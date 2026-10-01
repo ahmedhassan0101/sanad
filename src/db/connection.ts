@@ -22,6 +22,10 @@ export async function connectDB(uri?: string) {
     cached.promise = mongoose.connect(mongoUri, {
       autoIndex: env.nodeEnv !== "production",
     });
+    // A failed connect must not poison the cache until restart.
+    cached.promise.catch(() => {
+      if (globalThis.__mongooseCache) globalThis.__mongooseCache.promise = null;
+    });
   }
   cached.conn = await cached.promise;
   return cached.conn;

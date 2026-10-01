@@ -9,9 +9,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "seed:super-admin": "tsx scripts/seed-super-admin.ts",
-    "seed:dev": "tsx scripts/seed-dev.ts",
-    "db:indexes": "tsx scripts/ensure-indexes.ts"
+    "seed:super-admin": "tsx --conditions=react-server scripts/seed-super-admin.ts",
+    "seed:dev": "tsx --conditions=react-server scripts/seed-dev.ts",
+    "db:indexes": "tsx --conditions=react-server scripts/ensure-indexes.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

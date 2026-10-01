@@ -19,7 +19,14 @@ export interface InviteDoc extends Document {
 const inviteSchema = new Schema<InviteDoc>(
   {
     orgId: { type: Schema.Types.ObjectId, ref: "Org", required: true },
-    branchId: { type: Schema.Types.ObjectId, ref: "Branch", default: null },
+    branchId: {
+      type: Schema.Types.ObjectId,
+      ref: "Branch",
+      default: null,
+      required: function (this: InviteDoc) {
+        return this.role !== "center_admin";
+      },
+    },
     role: {
       type: String,
       enum: ["center_admin", "branch_admin", "teacher"],

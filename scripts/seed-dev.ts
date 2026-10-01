@@ -1,3 +1,4 @@
+// seed-dev.ts
 import { connectDB } from "@/db/connection";
 import { User } from "@/db/models/User";
 import { Org } from "@/db/models/Org";
@@ -37,6 +38,10 @@ export async function seedDev() {
 }
 
 if (process.argv[1]?.endsWith("seed-dev.ts")) {
-  await seedDev();
-  await mongoose.disconnect();
+  seedDev()
+    .then(() => mongoose.disconnect())
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    });
 }

@@ -1,3 +1,4 @@
+// seed-super-admin.ts
 import bcrypt from "bcryptjs";
 import { connectDB } from "@/db/connection";
 import { User } from "@/db/models/User";
@@ -32,6 +33,10 @@ export async function seedSuperAdmin() {
 }
 
 if (process.argv[1]?.endsWith("seed-super-admin.ts")) {
-  await seedSuperAdmin();
-  await mongoose.disconnect();
+  seedSuperAdmin()
+    .then(() => mongoose.disconnect())
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    });
 }

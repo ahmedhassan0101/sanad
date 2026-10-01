@@ -58,6 +58,9 @@ export function getEnv(): Env {
     if (!base.INVITE_CODE_PEPPER) {
       throw new Error("Invalid environment: INVITE_CODE_PEPPER is required in production");
     }
+    if (base.INVITE_CODE_PEPPER.length < 32) {
+      throw new Error("Invalid environment: INVITE_CODE_PEPPER must be at least 32 characters");
+    }
     mongoUri = base.MONGODB_URI_PROD;
   } else if (base.NODE_ENV === "development") {
     if (!base.MONGODB_URI_DEV) {

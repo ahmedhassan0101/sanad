@@ -28,6 +28,8 @@ const config = tseslint.config(
                 "@/db",
                 "@/db/*",
               ],
+              // lib/ may use DB *types* (import type) but never runtime values.
+              allowTypeImports: true,
               message:
                 "DB layer may only be imported from services/**, scripts/** or tests/**.",
             },

@@ -1,3 +1,4 @@
+// ensure-indexes.ts
 import "server-only";
 import { connectDB } from "@/db/connection";
 import { User } from "@/db/models/User";
@@ -20,6 +21,10 @@ export async function ensureIndexes() {
 }
 
 if (process.argv[1]?.endsWith("ensure-indexes.ts")) {
-  await ensureIndexes();
-  await mongoose.disconnect();
+  ensureIndexes()
+    .then(() => mongoose.disconnect())
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    });
 }

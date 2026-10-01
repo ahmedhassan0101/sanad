@@ -35,7 +35,7 @@ describe("seeds", () => {
   it("seed-dev refuses production without ALLOW_DEV_SEED", async () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("MONGODB_URI_PROD", "mongodb://127.0.0.1:27017/refused");
-    vi.stubEnv("INVITE_CODE_PEPPER", "test-pepper");
+    vi.stubEnv("INVITE_CODE_PEPPER", "test-pepper-0123456789abcdef01234567");
     vi.stubEnv("ALLOW_DEV_SEED", "");
     __resetEnvCache();
     const { seedDev } = await import("../scripts/seed-dev");
