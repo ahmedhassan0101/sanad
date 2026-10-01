@@ -2,13 +2,18 @@ import { z } from "zod";
 
 // Validates environment at boot (called from instrumentation.ts, never from a page).
 // Requirements depend on NODE_ENV:
-// - production: MONGODB_URI_PROD is required.
+// - production: MONGODB_URI_PROD + INVITE_CODE_PEPPER are required.
 // - development: MONGODB_URI_DEV is required.
 // - test: no URI required (mongodb-memory-server provides it).
 const baseSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   MONGODB_URI_DEV: z.string().optional(),
   MONGODB_URI_PROD: z.string().optional(),
+  INVITE_CODE_PEPPER: z.string().optional(),
+  ALLOW_DEV_SEED: z
+    .string()
+    .optional()
+    .transform((v) => v === "true"),
   EMAIL_ENABLED: z
     .string()
     .optional()
@@ -20,12 +25,19 @@ const baseSchema = z.object({
 export type Env = {
   nodeEnv: "development" | "test" | "production";
   mongoUri: string | null;
+  inviteCodePepper: string | null;
+  allowDevSeed: boolean;
   emailEnabled: boolean;
   seedSuperAdminEmail?: string;
   seedSuperAdminPassword?: string;
 };
 
 let cached: Env | null = null;
+
+// Test-only: env is cached for production speed; tests reset between cases.
+export function __resetEnvCache() {
+  cached = null;
+}
 
 export function getEnv(): Env {
   if (cached) return cached;
@@ -38,9 +50,13 @@ export function getEnv(): Env {
   }
   const base = parsed.data;
   let mongoUri: string | null = null;
+  const inviteCodePepper: string | null = base.INVITE_CODE_PEPPER ?? null;
   if (base.NODE_ENV === "production") {
     if (!base.MONGODB_URI_PROD) {
       throw new Error("Invalid environment: MONGODB_URI_PROD is required in production");
+    }
+    if (!base.INVITE_CODE_PEPPER) {
+      throw new Error("Invalid environment: INVITE_CODE_PEPPER is required in production");
     }
     mongoUri = base.MONGODB_URI_PROD;
   } else if (base.NODE_ENV === "development") {
@@ -53,6 +69,8 @@ export function getEnv(): Env {
   cached = {
     nodeEnv: base.NODE_ENV,
     mongoUri,
+    inviteCodePepper,
+    allowDevSeed: base.ALLOW_DEV_SEED ?? false,
     emailEnabled: base.EMAIL_ENABLED ?? false,
     seedSuperAdminEmail: base.SEED_SUPER_ADMIN_EMAIL,
     seedSuperAdminPassword: base.SEED_SUPER_ADMIN_PASSWORD,
