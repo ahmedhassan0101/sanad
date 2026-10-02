@@ -10,6 +10,10 @@ const baseSchema = z.object({
   MONGODB_URI_DEV: z.string().optional(),
   MONGODB_URI_PROD: z.string().optional(),
   INVITE_CODE_PEPPER: z.string().optional(),
+  AUTH_SECRET: z.string().optional(),
+  AUTH_URL: z.string().optional(),
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
   ALLOW_DEV_SEED: z
     .string()
     .optional()
@@ -30,6 +34,7 @@ export type Env = {
   emailEnabled: boolean;
   seedSuperAdminEmail?: string;
   seedSuperAdminPassword?: string;
+  authUrl: string;
 };
 
 let cached: Env | null = null;
@@ -77,6 +82,7 @@ export function getEnv(): Env {
     emailEnabled: base.EMAIL_ENABLED ?? false,
     seedSuperAdminEmail: base.SEED_SUPER_ADMIN_EMAIL,
     seedSuperAdminPassword: base.SEED_SUPER_ADMIN_PASSWORD,
+    authUrl: base.AUTH_URL ?? "http://localhost:3000",
   };
   return cached;
 }
