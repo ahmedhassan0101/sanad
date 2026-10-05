@@ -1,7 +1,7 @@
 // تعيين كلمة مرور جديدة بالرابط (ويخرج من كل الأجهزة).
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { resetPassword } from "@/services/auth-accounts";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ResetForm } from "./form";
 
 export default async function ResetPage({
   searchParams,
@@ -9,32 +9,22 @@ export default async function ResetPage({
   searchParams: Promise<{ email?: string; token?: string }>;
 }) {
   const { email = "", token = "" } = await searchParams;
-  async function action(formData: FormData) {
-    "use server";
-    const em = String(formData.get("email") ?? "");
-    const tk = String(formData.get("token") ?? "");
-    try {
-      await resetPassword(em, tk, String(formData.get("password") ?? ""));
-    } catch {
-      redirect(`/reset?email=${encodeURIComponent(em)}&token=${encodeURIComponent(tk)}&error=1`);
-    }
-    redirect("/login");
-  }
   return (
-    <main>
-      <h1>كلمة مرور جديدة</h1>
-      <form action={action}>
-        <input type="hidden" name="email" value={email} />
-        <input type="hidden" name="token" value={token} />
-        <label>
-          كلمة المرور الجديدة
-          <input name="password" type="password" required minLength={8} dir="ltr" />
-        </label>
-        <button type="submit">حفظ</button>
-      </form>
-      <p>
-        <Link href="/login">عودة للدخول</Link>
-      </p>
+    <main className="flex min-h-svh items-center justify-center p-4">
+      <Card className="w-full max-w-sm">
+        <CardHeader>
+          <CardTitle>كلمة مرور جديدة</CardTitle>
+          <CardDescription>اختر كلمة مرور قوية ولا تشاركها</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <ResetForm email={email} token={token} />
+          <p className="text-center text-sm">
+            <Link href="/login" className="underline underline-offset-4">
+              عودة للدخول
+            </Link>
+          </p>
+        </CardContent>
+      </Card>
     </main>
   );
 }

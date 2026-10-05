@@ -1,5 +1,7 @@
 // صفحة تفعيل الإيميل من الرابط.
 import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { verifyEmailToken } from "@/services/auth-accounts";
 
 export default async function VerifyPage({
@@ -9,22 +11,19 @@ export default async function VerifyPage({
 }) {
   const { email = "", token = "" } = await searchParams;
   const done = await verifyEmailToken(email, token);
-  if (!done) {
-    return (
-      <main>
-        <h1>الرابط غير صالح أو منتهي</h1>
-        <p>
-          <Link href="/login">عودة للدخول</Link>
-        </p>
-      </main>
-    );
-  }
   return (
-    <main>
-      <h1>تم تفعيل بريدك بنجاح</h1>
-      <p>
-        <Link href="/onboarding">أكمل إلى لوحتك</Link>
-      </p>
+    <main className="flex min-h-svh items-center justify-center p-4">
+      <Card className="w-full max-w-sm">
+        <CardHeader>
+          <CardTitle>{done ? "تم تفعيل بريدك بنجاح" : "الرابط غير صالح أو منتهي"}</CardTitle>
+          {!done && <CardDescription>اطلب رابطًا جديدًا أو تحقق من الرابط</CardDescription>}
+        </CardHeader>
+        <CardContent>
+          <Link href={done ? "/onboarding" : "/login"} className={buttonVariants()}>
+            {done ? "أكمل إلى لوحتك" : "عودة للدخول"}
+          </Link>
+        </CardContent>
+      </Card>
     </main>
   );
 }
