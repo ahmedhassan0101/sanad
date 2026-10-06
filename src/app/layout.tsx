@@ -15,8 +15,8 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
-  title: "Halaqa",
-  description: "Multi-center management platform",
+  title: "سند | Sanad",
+  description: "Sanad — mosque and Quran center management",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

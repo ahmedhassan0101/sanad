@@ -12,7 +12,7 @@ export default async function Home() {
     <main className="flex min-h-svh items-center justify-center p-4">
       <Card className="w-full max-w-sm text-center">
         <CardHeader>
-          <CardTitle className="text-2xl">حَلْقة</CardTitle>
+          <CardTitle className="text-2xl">سَنَد</CardTitle>
           <CardDescription>نظام إدارة مراكز التحفيظ</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
