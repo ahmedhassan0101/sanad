@@ -39,8 +39,10 @@
     --color-ring: var(--ring);
     --color-input: var(--input);
     --color-border: var(--border);
+    --color-border-subtle: var(--border-subtle);
     --color-destructive: var(--destructive);
     --color-destructive-muted: var(--destructive-muted);
+    --color-destructive-muted-foreground: var(--destructive-muted-foreground);
     --color-destructive-foreground: var(--destructive-foreground);
 
     --color-accent-foreground: var(--accent-foreground);
@@ -64,6 +66,9 @@
     --color-foreground: var(--foreground);
     --color-background: var(--background);
 
+    --color-text-tertiary: var(--text-tertiary);
+    --color-text-disabled: var(--text-disabled);
+
     --color-brand-primary: var(--brand-primary);
     --color-brand-primary-hover: var(--brand-primary-hover);
     --color-brand-primary-pressed: var(--brand-primary-pressed);
@@ -80,12 +85,15 @@
     --color-success: var(--success);
     --color-success-foreground: var(--success-foreground);
     --color-success-muted: var(--success-muted);
+    --color-success-muted-foreground: var(--success-muted-foreground);
     --color-warning: var(--warning);
     --color-warning-foreground: var(--warning-foreground);
     --color-warning-muted: var(--warning-muted);
+    --color-warning-muted-foreground: var(--warning-muted-foreground);
     --color-info: var(--info);
     --color-info-foreground: var(--info-foreground);
     --color-info-muted: var(--info-muted);
+    --color-info-muted-foreground: var(--info-muted-foreground);
 
     --shadow-elevation-0: var(--elevation-0);
     --shadow-elevation-1: var(--elevation-1);
@@ -93,10 +101,11 @@
     --shadow-elevation-3: var(--elevation-3);
     --shadow-elevation-4: var(--elevation-4);
 
-    --radius-sm: calc(var(--radius) * 0.6);
-    --radius-md: calc(var(--radius) * 0.8);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-full: 999px;
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
@@ -115,26 +124,31 @@
     --secondary-foreground: #FFFFFF;
     --muted: #EDF1F2;
     --muted-foreground: #52646D;
-    --accent: #E4EAEC;
+    --accent: #EDF1F2;
     --accent-foreground: #14222A;
     --destructive: #B83245;
     --destructive-foreground: #FFFFFF;
-    --destructive-muted: #F6DEE3;
-    --border: #D9E1E4;
-    --input: #D9E1E4;
+    --destructive-muted: #FCEAED;
+    --destructive-muted-foreground: #962636;
+    --border: #D5DDE0;
+    --border-subtle: #E4EAEC;
+    --input: #7F939C;
     --ring: #0A6C7E;
 
     --chart-1: #0A6C7E;
     --chart-2: #3D5A73;
-    --chart-3: #C28235;
-    --chart-4: #1B7A4E;
-    --chart-5: #2565A8;
+    --chart-3: #7F939C;
+    --chart-4: #52646D;
+    --chart-5: #B5C2C8;
 
     --radius: 0.75rem;
 
+    --text-tertiary: #5F7079;
+    --text-disabled: #B5C2C8;
+
     --brand-primary: #0A6C7E;
-    --brand-primary-hover: #085A69;
-    --brand-primary-pressed: #074A57;
+    --brand-primary-hover: #085C6C;
+    --brand-primary-pressed: #064B59;
     --brand-secondary: #3D5A73;
     --brand-accent: #C28235;
     --brand-accent-foreground: #14222A;
@@ -143,17 +157,20 @@
     --surface-2: #EDF1F2;
     --surface-3: #E4EAEC;
     --surface-elevated: #FFFFFF;
-    --surface-overlay: rgb(20 34 42 / 0.5);
+    --surface-overlay: #FFFFFF;
 
     --success: #1B7A4E;
     --success-foreground: #FFFFFF;
-    --success-muted: #DFF0E7;
+    --success-muted: #E6F4EC;
+    --success-muted-foreground: #14603C;
     --warning: #9A5B00;
     --warning-foreground: #FFFFFF;
-    --warning-muted: #F6E9CF;
+    --warning-muted: #FFF1D6;
+    --warning-muted-foreground: #7A4800;
     --info: #2565A8;
     --info-foreground: #FFFFFF;
-    --info-muted: #DEEAF6;
+    --info-muted: #E6EFFA;
+    --info-muted-foreground: #1D508A;
 
     --elevation-0: none;
     --elevation-1: 0 1px 2px rgb(20 34 42 / 0.06);
@@ -161,14 +178,17 @@
     --elevation-3: 0 8px 24px rgb(20 34 42 / 0.12);
     --elevation-4: 0 16px 48px rgb(20 34 42 / 0.18);
 
-    --sidebar: #FFFFFF;
-    --sidebar-foreground: #14222A;
-    --sidebar-primary: #0A6C7E;
-    --sidebar-primary-foreground: #FFFFFF;
-    --sidebar-accent: #E4EAEC;
-    --sidebar-accent-foreground: #14222A;
-    --sidebar-border: #D9E1E4;
-    --sidebar-ring: #0A6C7E;
+    --sidebar: var(--surface-1);
+    --sidebar-foreground: var(--foreground);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-accent: var(--accent);
+    --sidebar-accent-foreground: var(--accent-foreground);
+    --sidebar-border: var(--border);
+    --sidebar-ring: var(--ring);
+
+    /* مرجعية فقط لأهداف اللمس — لا تُستخدم كأحجام مكونات. */
+    --touch-target-min: 2.75rem;
 }
 
 .dark {
@@ -188,20 +208,25 @@
     --accent-foreground: #EDF3F4;
     --destructive: #F0717F;
     --destructive-foreground: #0A1519;
-    --destructive-muted: #3A2228;
-    --border: #233A42;
-    --input: #233A42;
-    --ring: #4FB3C4;
+    --destructive-muted: #3F1D24;
+    --destructive-muted-foreground: #FF9AA5;
+    --border: #27404A;
+    --border-subtle: #1B3038;
+    --input: #5C7782;
+    --ring: #7CCBD8;
 
     --chart-1: #4FB3C4;
     --chart-2: #8FB0CC;
-    --chart-3: #E0A04A;
-    --chart-4: #4CC38A;
-    --chart-5: #6AB0E8;
+    --chart-3: #5C7782;
+    --chart-4: #9FB3BA;
+    --chart-5: #4C6571;
+
+    --text-tertiary: #7F959D;
+    --text-disabled: #4C6571;
 
     --brand-primary: #4FB3C4;
-    --brand-primary-hover: #63C2D2;
-    --brand-primary-pressed: #7BD0DC;
+    --brand-primary-hover: #66C2D1;
+    --brand-primary-pressed: #3AA0B1;
     --brand-secondary: #8FB0CC;
     --brand-accent: #E0A04A;
     --brand-accent-foreground: #0A1519;
@@ -210,17 +235,20 @@
     --surface-2: #16282F;
     --surface-3: #1C3139;
     --surface-elevated: #16282F;
-    --surface-overlay: rgb(0 0 0 / 0.6);
+    --surface-overlay: #16282F;
 
     --success: #4CC38A;
     --success-foreground: #0A1519;
-    --success-muted: #122B23;
+    --success-muted: #11342A;
+    --success-muted-foreground: #7FDDAD;
     --warning: #E6AE4C;
     --warning-foreground: #0A1519;
-    --warning-muted: #33270F;
+    --warning-muted: #3A2D14;
+    --warning-muted-foreground: #F0C878;
     --info: #6AB0E8;
     --info-foreground: #0A1519;
-    --info-muted: #14293D;
+    --info-muted: #162F47;
+    --info-muted-foreground: #9CCBF2;
 
     --elevation-0: none;
     --elevation-1: 0 1px 2px rgb(0 0 0 / 0.4);
@@ -228,14 +256,14 @@
     --elevation-3: 0 8px 24px rgb(0 0 0 / 0.5);
     --elevation-4: 0 16px 48px rgb(0 0 0 / 0.55);
 
-    --sidebar: #101F25;
-    --sidebar-foreground: #EDF3F4;
-    --sidebar-primary: #4FB3C4;
-    --sidebar-primary-foreground: #0A1519;
-    --sidebar-accent: #1C3139;
-    --sidebar-accent-foreground: #EDF3F4;
-    --sidebar-border: #233A42;
-    --sidebar-ring: #4FB3C4;
+    --sidebar: var(--surface-1);
+    --sidebar-foreground: var(--foreground);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-accent: var(--accent);
+    --sidebar-accent-foreground: var(--accent-foreground);
+    --sidebar-border: var(--border);
+    --sidebar-ring: var(--ring);
 }
 
 /* حاوية الصفحة: نفس الحشوة في كل الشاشات — 16 موبايل / 24 تابلت / 32 ديسكتوب. */
@@ -249,6 +277,12 @@
   @media (min-width: 64rem) {
     padding-inline: 2rem;
   }
+}
+
+/* أرقام البيانات (KPI/جداول/مبالغ): Inter صراحةً مع أرقام متساوية العرض. */
+@utility font-data {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
 }
 
 @layer base {
