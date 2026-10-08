@@ -3,11 +3,11 @@ import NextAuth, { type DefaultSession } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import { z } from "zod";
-import { ensureGoogleUser, verifyCredentials } from "@/services/auth-accounts";
+import { ensureGoogleUser, getSessionVersionByUserId, verifyCredentials } from "@/services/auth-accounts";
 
 declare module "next-auth" {
   interface Session {
-    user: { id: string } & DefaultSession["user"];
+    user: { id: string; sessionVersion: number | null } & DefaultSession["user"];
   }
 }
 
@@ -37,12 +37,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async jwt({ token, user }) {
-      if (user?.id) (token as Record<string, unknown>).userId = user.id;
+      if (user?.id) {
+        (token as Record<string, unknown>).userId = user.id;
+        const v = (user as { sessionVersion?: unknown }).sessionVersion;
+        (token as Record<string, unknown>).sessionVersion =
+          typeof v === "number" ? v : await getSessionVersionByUserId(user.id);
+      }
       return token;
     },
     async session({ session, token }) {
       const userId = (token as Record<string, unknown>).userId;
       if (typeof userId === "string") session.user.id = userId;
+      const sv = (token as Record<string, unknown>).sessionVersion;
+      session.user.sessionVersion = typeof sv === "number" ? sv : null;
       return session;
     },
     async signIn({ user, account }) {

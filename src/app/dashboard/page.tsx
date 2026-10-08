@@ -1,11 +1,10 @@
-// لوحة تحكم المركز (فارغة الآن: اسم + فرع + دور + برامج).
+// الرئيسية: ترحيب + ملخص ما هو موجود في المركز.
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { getDashboard } from "@/services/screens";
+import { readBranchPref } from "@/services/branch-pref";
 import { viewer } from "@/services/viewer";
 
 const ROLE_NAMES: Record<string, string> = {
@@ -16,41 +15,32 @@ const ROLE_NAMES: Record<string, string> = {
 
 export default async function DashboardPage() {
   const ctx = await viewer();
+  if (ctx.kind === "unverified") redirect("/verify-pending");
   if (ctx.kind !== "member") redirect("/onboarding");
-  let data;
-  try {
-    data = await getDashboard(ctx);
-  } catch {
-    redirect("/onboarding");
-  }
-  const singleBranch = data.branches.length <= 1;
+  const data = await getDashboard(ctx).catch(() => null);
+  if (!data) redirect("/onboarding");
+  const pref = await readBranchPref();
+  const branches = pref ? data.branches.filter((b) => b.id === pref) : data.branches;
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-4 p-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">{data.orgName}</h1>
-        <ThemeToggle />
-      </div>
+    <div className="flex flex-col gap-4">
+      <h1 className="text-xl font-bold">
+        أهلًا بك في {data.orgName} — دورك: {ROLE_NAMES[data.role] ?? data.role}
+      </h1>
       <Card>
         <CardHeader>
-          <CardTitle>
-            دورك: {ROLE_NAMES[data.role] ?? data.role}
-            {!singleBranch && ` — ${data.branches.length} فروع`}
-          </CardTitle>
+          <CardTitle>الفروع ({branches.length})</CardTitle>
         </CardHeader>
-        {!singleBranch && (
-          <CardContent>
-            <h2 className="mb-2 text-sm font-medium">الفروع</h2>
-            <ul className="flex flex-col gap-1">
-              {data.branches.map((b) => (
-                <li key={b.id}>{b.name}</li>
-              ))}
-            </ul>
-          </CardContent>
-        )}
+        <CardContent>
+          <ul className="flex flex-col gap-1">
+            {branches.map((b) => (
+              <li key={b.id}>{b.name}</li>
+            ))}
+          </ul>
+        </CardContent>
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>البرامج</CardTitle>
+          <CardTitle>البرامج ({data.programs.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="flex flex-col gap-1">
@@ -60,18 +50,11 @@ export default async function DashboardPage() {
           </ul>
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>قريبًا</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">الطلاب والمجموعات والحضور — تُبنى في المرحلة الجاية.</p>
-        </CardContent>
-      </Card>
-      <Separator />
-      <Link href="/onboarding" className={buttonVariants({ variant: "ghost" })}>
-        تبديل المركز
-      </Link>
-    </main>
+      {(data.role === "center_admin" || data.role === "branch_admin") && (
+        <Link href="/dashboard/team" className={buttonVariants()}>
+          إدارة الفريق
+        </Link>
+      )}
+    </div>
   );
 }

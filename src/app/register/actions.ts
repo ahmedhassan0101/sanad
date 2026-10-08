@@ -3,7 +3,7 @@
 
 import { redirect } from "next/navigation";
 import { signIn } from "@/lib/auth/config";
-import { registerAccount } from "@/services/auth-accounts";
+import { isEmailVerified, registerAccount } from "@/services/auth-accounts";
 import { registerSchema, type RegisterInput } from "@/validators/forms";
 
 export async function registerAction(
@@ -21,5 +21,5 @@ export async function registerAction(
   }
   const res = await signIn("credentials", { ...parsed.data, redirect: false });
   if (!res || res.error) return { ok: false, message: "تم إنشاء الحساب — سجل الدخول" };
-  redirect("/onboarding");
+  redirect((await isEmailVerified(parsed.data.email)) ? "/onboarding" : "/verify-pending");
 }

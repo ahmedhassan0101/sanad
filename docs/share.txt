@@ -1,4016 +1,452 @@
-تمام. **ده القرار العملي الصح في المرحلة دي**: نعتبر **System C / Ink & Paper هو الـ working color system مؤقتًا**، نربطه بالمنتج ونشوفه في الاستخدام الحقيقي، ونحتفظ بحقنا في تغييره لاحقًا بدون ما نربط باقي النظام به بشكل يصعّب التعديل.
-
-يعني من الآن:
-
-> **A2 Working Color = System C**
-> **Status = Provisional / Not Final**
-
-وننتقل مباشرة إلى:
-
-# A3 — Typography
-
-هنا أنا لا أريد نعيد اختراع الخطوط. عندنا اتجاه واضح بالفعل، وهنحوّله إلى **نظام Typography قابل للتنفيذ**.
-
-## 1. الخطوط
-
-### Arabic — Tajawal
-
-نستخدم:
-
-**Tajawal**
-
-للواجهة العربية بالكامل.
-
-لماذا؟
-
-* واضح جدًا في الـ UI.
-* مناسب للنصوص الصغيرة.
-* شكله حديث لكن مش Techy زيادة.
-* لا يحمل طابعًا دينيًا أو زخرفيًا مباشرًا.
-* مناسب لطبيعة سَنَد المؤسسية.
-
-### Latin / Numbers — Inter
-
-نستخدم:
-
-**Inter**
-
-للإنجليزية والأرقام.
-
-خصوصًا:
-
-* الأرقام الكبيرة.
-* KPIs.
-* التواريخ.
-* النسب.
-* الأرقام المالية.
-* البيانات الجدولية.
-* المصطلحات الإنجليزية التقنية.
-
-وده يعطي فصلًا واضحًا بين:
-
-**Arabic UI ↔ Data / Numbers**
-
-بدون ما نحس إن النظام يستخدم خطين بشكل عشوائي.
-
----
-
-# 2. قاعدة مهمة جدًا
-
-مش معنى إننا بنستخدم Inter للأرقام إن كل رقم في الصفحة لازم يتحول إلى Inter.
-
-القاعدة:
-
-> **Typography follows the content role, not the character's language فقط.**
-
-مثلًا:
-
-**عدد الطلاب**
-
-`248`
-
-هنا الرقم KPI → **Inter 700**
-
-لكن:
-
-**تم تسجيل الحضور الساعة 10:30**
-
-الوقت جزء من النص → ممكن يبقى ضمن Typography السياق العربي.
-
----
-
-# 3. Type Scale
-
-أقترح نثبت الـ scale ده كبداية:
-
-| Token        | Size | Weight | Line Height | الاستخدام                   |
-| ------------ | ---: | -----: | ----------: | --------------------------- |
-| `display-lg` | 36px |    700 |        1.25 | العناوين الرئيسية جدًا      |
-| `heading-xl` | 30px |    700 |        1.30 | Page Hero / Dashboard title |
-| `heading-lg` | 24px |    700 |        1.35 | عناوين الأقسام الرئيسية     |
-| `heading-md` | 20px |    600 |        1.40 | عناوين البطاقات/الأقسام     |
-| `heading-sm` | 18px |    600 |        1.45 | Subsections                 |
-| `body-lg`    | 16px |    400 |        1.70 | النص الأساسي                |
-| `body-md`    | 14px |    400 |        1.65 | UI الأساسي                  |
-| `body-sm`    | 13px |    400 |        1.60 | الجداول والمعلومات الثانوية |
-| `caption`    | 12px |    400 |        1.50 | Metadata / hints            |
-
-وده تقريبًا نفس الاتجاه اللي كنا مثبتينه، وأنا **لا أرى سببًا حاليًا لتغييره**.
-
----
-
-# 4. الـ Weights
-
-مش عايزين 8 أوزان في كل مكان.
-
-نستخدم فقط:
-
-### 400 — Regular
-
-للنصوص.
-
-### 500 — Medium
-
-لـ:
-
-* labels
-* tabs
-* بعض عناصر الـ navigation
-* البيانات المهمة الصغيرة.
-
-### 600 — Semibold
-
-للعناوين الصغيرة والمتوسطة.
-
-### 700 — Bold
-
-للعناوين الرئيسية وKPI.
-
-### 800 — Extra Bold
-
-**نادر جدًا.**
-
-يفضل استخدامه فقط عندما نحتاج hierarchy قوي جدًا، وليس كوزن عادي.
-
----
-
-# 5. Arabic Letter Spacing
-
-للعربية:
-
-```text
-letter-spacing: 0
-```
-
-ولا نحاول نعمل tracking اصطناعي للعربي.
-
-خصوصًا في العناوين.
-
----
-
-# 6. Latin
-
-بالنسبة لـ Inter:
-
-### Display
-
-`-0.02em`
-
-### Headings
-
-`-0.01em`
-
-### Body
-
-`0`
-
-وده يخلي الأرقام والعناوين الكبيرة أكثر تماسكًا بدون التأثير على القراءة.
-
----
-
-# 7. KPI Typography
-
-دي مهمة جدًا لسَنَد لأن عندنا Dashboard وDecision Support.
-
-مثال:
-
-**248**
-
-يكون:
-
-```text
-Font: Inter
-Weight: 700
-Size: 30–36px
-Line-height: 1.1–1.2
-```
-
-وتحته:
-
-**طالبًا نشطًا**
-
-```text
-Font: Tajawal
-Weight: 400–500
-Size: 14px
-```
-
-يعني:
-
-> **الرقم = Data**
-> **الوصف = Human UI**
-
-وده هيخلي الـ Dashboard أكثر احترافية.
-
----
-
-# 8. الجداول
-
-هنا لازم نكون حذرين.
-
-جدول الطلاب هو أحد أهم أماكن اختبار شخصية سَنَد.
-
-لا نريد:
-
-❌ 16px لكل شيء
-❌ عناوين ضخمة
-❌ ألوان كثيرة
-❌ Bold في كل خلية
-
-الأساس:
-
-### Table body
-
-**13–14px / 400**
-
-### Column header
-
-**13px / 500–600**
-
-### Primary information
-
-**14px / 500**
-
-### Secondary metadata
-
-**12–13px / 400**
-
-والـ hierarchy يأتي من:
-
-**weight + spacing + surface + alignment**
-
-وليس من تكبير الخط باستمرار.
-
----
-
-# 9. Forms
-
-في النماذج:
-
-### Label
-
-`14px / 500`
-
-### Input
-
-`14px / 400`
-
-### Helper text
-
-`12–13px / 400`
-
-### Error
-
-`12–13px / 500`
-
-مثال:
-
-**اسم الطالب**
-
-`أحمد محمد`
-
-`أدخل الاسم كما هو في السجل الرسمي`
-
-ده يعطي إحساسًا مؤسسيًا هادئًا جدًا.
-
----
-
-# 10. Navigation
-
-الـ Sidebar عندنا RTL.
-
-النص الأساسي:
-
-**14px / 500**
-
-العنصر المحدد لا يحتاج Font Size مختلف.
-
-بدلًا من:
-
-> 14 → 16 عند selection
-
-نستخدم:
-
-**Typography ثابتة + Color + Surface + Indicator**
-
-وده مهم جدًا لأننا نريد hierarchy نظيف وليس UI صاخب.
-
----
-
-# 11. Alignment
-
-في العربية:
-
-> **RTL هو الأصل.**
-
-لكن الأرقام والبيانات الرقمية لها قواعدها الخاصة.
-
-خصوصًا:
-
-* الأرقام المالية
-* النسب
-* التواريخ
-* IDs
-* الأكواد
-* أرقام الهاتف
-
-لا نخلطها بصريًا داخل النص العربي.
-
----
-
-# 12. أهم قرار Typography في سَنَد
-
-أنا أقترح نضع قاعدة Design System صريحة:
-
-> **Typography in Sanad should communicate hierarchy, not decoration.**
-
-يعني الخط لا يحاول يكون "مميزًا" لذاته.
-
-التميز يأتي من:
-
-**الترتيب + المساحات + الـ hierarchy + اللون + المكونات.**
-
-وده متوافق جدًا مع الشخصية التي بنيناها:
-
-> **نظام حديث بروح رصينة.**
-
----
-
-# 13. Typography Tokens المقترحة
-
-لو هنحوّلها لاحقًا إلى Tokens:
-
-```text
-font-family
-├── sans-arabic: Tajawal
-└── sans-latin: Inter
-
-font-size
-├── display-lg: 36px
-├── heading-xl: 30px
-├── heading-lg: 24px
-├── heading-md: 20px
-├── heading-sm: 18px
-├── body-lg: 16px
-├── body-md: 14px
-├── body-sm: 13px
-└── caption: 12px
-
-font-weight
-├── regular: 400
-├── medium: 500
-├── semibold: 600
-├── bold: 700
-└── extrabold: 800
-```
-
----
-
-## 14. هل نحتاج Font Display مختلف؟
-
-**لا حاليًا.**
-
-أنا لا أريد إضافة خط ثالث للعناوين العربية لمجرد إعطاء شخصية.
-
-Tajawal + Inter كافيين جدًا.
-
-والسبب مهم:
-
-لو احتجنا شخصية أكثر، نريد أن تأتي من:
-
-**Sanad Mark + Color + Components + Layout**
-
-وليس من 3 أو 4 خطوط.
-
----
-
-# A3 Status
-
-إذن عندنا الآن:
-
-| النظام                     | القرار                      |
-| -------------------------- | --------------------------- |
-| **Color**                  | System C — مؤقت للعمل       |
-| **Arabic Font**            | Tajawal                     |
-| **Latin / Numbers**        | Inter                       |
-| **Type Scale**             | 12–36px                     |
-| **Weights**                | 400 / 500 / 600 / 700 / 800 |
-| **Direction**              | RTL-first                   |
-| **KPI**                    | Inter 700                   |
-| **Typography Personality** | رصينة، واضحة، غير استعراضية |
-
-### والنتيجة الأهم
-
-أنا **لا أرى داعيًا لفتح موضوع الخطوط مرة أخرى الآن**.
-
-A3 بالنسبة لي أصبح:
-
-> **Tajawal + Inter + Scale واضح + قواعد واضحة**
-
-ونكمل.
-
-**بعد A3، الطبيعي ندخل A4 — Spacing & Layout**؛ لأن الخط وحده مش هيحدد إحساس المنتج. الـ spacing والـ density هما اللي هيحددوا هل سَنَد فعلًا **هادئ ورصين** أم مجرد Dashboard تقليدي بألوان مختلفة.
--------------------------------------------------------------------.
-
-تمام. بما إننا قررنا **System C مؤقتًا للعمل**، وA3 أصبح واضحًا، نكمل باقي الـ A كـ **Design Foundation عملي**، بحيث نقدر بعدها نبدأ تحويله إلى shadcn ثم الشاشات الفعلية.
-
-# A4 — Shape Language
-
-هدفنا هنا أن تكون سَنَد **مؤسسية وهادئة**، وليست SaaS مليئة بالكروت المستديرة.
-
-## Radius
-
-أقترح تثبيت عائلة صغيرة:
-
-| Token         | Value | الاستخدام                             |
-| ------------- | ----: | ------------------------------------- |
-| `radius-sm`   |   6px | عناصر صغيرة، badges، compact controls |
-| `radius-md`   |   8px | Inputs / Buttons / Selects            |
-| `radius-lg`   |  12px | Cards / Panels                        |
-| `radius-xl`   |  16px | Dialogs / Large surfaces              |
-| `radius-full` | 999px | Pills فقط                             |
-
-### القاعدة
-
-> **كلما كان العنصر وظيفيًا وصغيرًا، قلّ الـ radius.**
-
-وبالتالي:
-
-* Button → 8px
-* Input → 8px
-* Card → 12px
-* Dialog → 16px
-* Badge → حسب النوع، وليس تلقائيًا pill.
-
----
-
-## Cards
-
-الكارت في سَنَد **ليس الوحدة الأساسية لكل شيء**.
-
-لا نريد:
-
-> Card داخل Card داخل Card.
-
-الكارت يستخدم عندما نحتاج فصلًا حقيقيًا بين مجموعتين من المعلومات.
-
-**Card = Surface + Border + محتوى واضح**
-
-والـ default لا يحتاج Shadow قوي.
-
----
-
-## Buttons
-
-الشكل:
-
-* ارتفاع شائع: 36–40px
-* Radius: 8px
-* Font: 14px / 500
-* Icon: 16–18px
-* Padding أفقي: 14–16px
-
-### Primary
-
-واضح ومتماسك.
-
-### Secondary
-
-أهدأ، ولا ينافس Primary.
-
-### Ghost
-
-للأفعال الثانوية.
-
-### Destructive
-
-يظهر عند الحاجة فقط.
-
----
-
-## Inputs
-
-* Radius: 8px
-* Border واضح لكن هادئ
-* Height: 40px تقريبًا
-* Label فوق الحقل
-* Focus ring واضح
-* Error لا يعتمد على الأحمر فقط؛ نستخدم icon/text أيضًا.
-
----
-
-## Dialogs
-
-`16px`
-
-مع:
-
-* Surface واضح
-* Border subtle
-* Shadow متوسط
-* Header / Content / Actions hierarchy واضحة.
-
-لا نريد Dialog يبدو كـ "floating glass".
-
----
-
-## Tables
-
-هنا نريد شخصية سَنَد أكثر من أي مكان آخر.
-
-**لا نضع كل صف داخل Card.**
-
-الجدول:
-
-* Surface واحد.
-* Header واضح.
-* Borders خفيفة.
-* Row hover subtle.
-* Selected row له surface مختلف.
-* كثافة معلومات جيدة.
-* Radius خارجي 12px فقط إن كان الجدول داخل container.
-
-الجدول يجب أن يشعر المستخدم:
-
-> **هذه أداة إدارة حقيقية.**
-
----
-
-## Badges
-
-نستخدم pill فقط عندما يكون المعنى **status/tag**.
-
-مثلاً:
-
-`نشط`
-
-`مكتمل`
-
-`قيد المراجعة`
-
-لكن لا نحول كل button أو control إلى pill.
-
----
-
-## Menus
-
-Radius:
-
-**8px**
-
-وليس 16px أو 20px.
-
-Menu يجب أن يبدو كجزء من النظام، وليس floating widget.
-
----
-
-# A5 — Elevation & Depth
-
-هنا أريد تثبيت مبدأ مهم:
-
-> **Depth في سَنَد يأتي أولًا من Surface hierarchy، ثم Border، ثم Shadow.**
-
-وليس العكس.
-
-## Elevation 0
-
-Canvas / Page
-
-```text
-Shadow: none
-Border: none
-```
-
----
-
-## Elevation 1
-
-Surface أساسي:
-
-```text
-Border: subtle
-Shadow: none أو شبه غير محسوس
-```
-
-يستخدم للـ Cards الأساسية.
-
----
-
-## Elevation 2
-
-عندما نحتاج فصلًا واضحًا:
-
-```text
-Border: subtle
-Shadow: soft
-```
-
-مثل:
-
-* Dropdown
-* Popover
-* بعض الـ Panels.
-
----
-
-## Elevation 3
-
-Floating elements:
-
-* Dialog
-* Menu مهم
-* Command surface
-
-Shadow أوضح، لكن بدون مبالغة.
-
----
-
-## Elevation 4
-
-للعناصر التي يجب أن تكون فوق كل شيء:
-
-* Modal
-* Critical overlay
-* بعض الـ drawers.
-
-وهذا سيكون **نادر الاستخدام**.
-
----
-
-### Dark Mode
-
-هنا القاعدة أهم:
-
-> **لا نحاول تقليد Light Mode بالـ shadows.**
-
-نستخدم:
-
-**Surface contrast → Border → Shadow**
-
-يعني مثلًا:
-
-```text
-Background
-↓
-Surface
-↓
-Elevated Surface
-↓
-Overlay
-```
-
-كل مستوى له فرق في الـ surface نفسه.
-
----
-
-# A6 — Light / Dark Visual Language
-
-هنا أريد أن نثبت أن الـ Dark ليس مجرد:
-
-> `#FFFFFF → #000000`
-
-## Light
-
-التسلسل:
-
-```text
-Canvas
-↓
-Surface
-↓
-Subtle Surface
-↓
-Elevated Surface
-```
-
-والـ borders تساعد في الفصل.
-
----
-
-## Dark
-
-التسلسل يصبح:
-
-```text
-Dark Canvas
-↓
-Dark Surface
-↓
-Elevated Surface
-↓
-Overlay
-```
-
-والـ surface contrast يصبح أهم من shadow.
-
----
-
-## Primary
-
-في Light:
-
-> Primary عميق وواضح.
-
-في Dark:
-
-> Primary يصبح أكثر إضاءة.
-
-وده موجود بالفعل في **System C**:
-
-Light:
-
-`#0A6C7E`
-
-Dark:
-
-`#4FB3C4`
-
-وده قرار جيد جدًا.
-
----
-
-## Accent
-
-Accent ليس status.
-
-وظيفته:
-
-* Highlight
-* Brand moments
-* Selected emphasis
-* بعض العناصر المهمة بصريًا
-
-وليس:
-
-> Warning.
-
----
-
-## Semantic
-
-Success / Warning / Error / Info يجب أن تبقى مستقلة عن Brand.
-
-وهذا من الأشياء التي لا أريد كسرها.
-
----
-
-# A7 — Interaction States
-
-نثبت State Model موحد.
-
-كل component رئيسي:
-
-```text
-Default
-Hover
-Pressed
-Focus
-Disabled
-Selected
-Loading
-Error
-Success
-Warning
-```
-
-لكن **ليس كل component يحتاج كل الحالات**.
-
----
-
-### Button
-
-```text
-Default
-Hover
-Pressed
-Focus
-Disabled
-Loading
-```
-
-### Input
-
-```text
-Default
-Hover
-Focus
-Disabled
-Error
-Success
-```
-
-### Table Row
-
-```text
-Default
-Hover
-Selected
-```
-
-### Menu Item
-
-```text
-Default
-Hover
-Selected
-Disabled
-```
-
----
-
-## قاعدة مهمة
-
-الـ State لا يعتمد على اللون فقط.
-
-مثلاً Error:
-
-**Border + Icon + Text + Color**
-
-وليس:
-
-> "غيرنا border للأحمر وخلاص."
-
-وده مهم جدًا لسَنَد بسبب Accessibility.
-
----
-
-# A8 — Iconography
-
-هنا أقترح اتجاهًا واضحًا:
-
-## Style
-
-**Outlined / Stroke-based**
-
-وليس Filled بشكل افتراضي.
-
-الشخصية:
-
-> Simple — Precise — Slightly Rounded
-
----
-
-## Stroke
-
-الأساس:
-
-**1.75px**
-
-وممكن:
-
-**2px**
-
-للأيقونات الصغيرة أو الحالات التي تحتاج وضوحًا أكبر.
-
-لا نخلط 1px و3px و2px بشكل عشوائي.
-
----
-
-## Sizes
-
-|  Size | الاستخدام                       |
-| ----: | ------------------------------- |
-|  14px | داخل metadata/compact UI        |
-|  16px | Buttons / Inputs                |
-|  18px | Navigation                      |
-|  20px | Actions                         |
-|  24px | Page-level                      |
-| 32px+ | Empty states / special contexts |
-
----
-
-## Icons داخل Buttons
-
-الأيقونة لا تكون أكبر من النص بشكل مبالغ فيه.
-
-مثلاً:
-
-**16px icon + 14px text**
-
-ومتناسقة مع RTL.
-
----
-
-## Semantic Icons
-
-نستخدم icon مع الحالة:
-
-* Success → Check
-* Warning → Alert
-* Error → X / Alert
-* Info → Info
-
-لكن:
-
-> **لا نعتمد على icon أو color وحده.**
-
----
-
-## مصدر الأيقونات
-
-بما أننا سنستخدم shadcn، فالأساس الطبيعي هو **Lucide**.
-
-ونحافظ على نفس اللغة بدل تجميع Icons من مصادر مختلفة.
-
----
-
-# A9 — Layout Language
-
-هنا عندنا قرار مهم:
-
-**لا نخلق Spacing System منفصلًا عن Tailwind.**
-
-نستخدم نظام spacing الموجود، لكن نضع **قواعد استعمال Sanad** فوقه.
-
----
-
-# RTL-first
-
-Desktop:
-
-```text
-┌───────────────────────────────────────┐
-│ Sidebar │        Main Content         │
-│  Right  │                             │
-└───────────────────────────────────────┘
-```
-
-Sidebar على **اليمين**.
-
-Navigation يبدأ من اليمين.
-
-Content flow طبيعي RTL.
-
----
-
-# Page Structure
-
-الشكل الأساسي:
-
-```text
-Page
- ├── Page Header
- │    ├── Title
- │    └── Actions
- │
- ├── Context / Filters
- │
- └── Main Content
-```
-
-مش كل صفحة لازم يكون فيها Card كبير يحيط بكل شيء.
-
----
-
-# Page Padding
-
-Responsive:
-
-### Desktop
-
-تقريبًا:
-
-**32px**
-
-### Tablet
-
-**24px**
-
-### Mobile
-
-**16px**
-
-مع إمكانية الزيادة في الصفحات ذات المحتوى المحدود.
-
----
-
-# Content Width
-
-لا نريد المحتوى يتمدد إلى عرض الشاشة بلا حدود.
-
-خصوصًا:
-
-* Forms
-* Settings
-* Reports
-* Details
-
-بينما:
-
-* Tables
-* Dashboards
-
-يمكن أن تستفيد من مساحة أكبر.
-
----
-
-# Dashboard Language
-
-Dashboard في سَنَد ليس:
-
-> 15 Card + 7 ألوان + 3 Charts.
-
-الترتيب:
-
-```text
-Page Context
-↓
-Important KPIs
-↓
-Operational Information
-↓
-Actions / Alerts
-↓
-Detailed Data
-```
-
-والـ visual hierarchy أهم من كثرة المكونات.
-
----
-
-# Density
-
-أريد سَنَد في منطقة:
-
-> **Comfortable Dense**
-
-وليس:
-
-**Airy SaaS**
-
-ولا:
-
-**Enterprise Dense**
-
-يعني المستخدم يستطيع رؤية كمية محترمة من البيانات بدون أن يشعر أن النظام مزدحم.
-
-وده مهم جدًا لأن المنتج في النهاية **نظام إدارة** وليس Landing Page.
-
----
-
-# A4 → A9 Final Direction
-
-إذن أصبحت لدينا الآن Foundation شبه مكتملة:
-
-| المرحلة           | القرار الحالي                             |
-| ----------------- | ----------------------------------------- |
-| **A2 Color**      | System C — مؤقت للعمل                     |
-| **A3 Typography** | Tajawal + Inter                           |
-| **A4 Shape**      | 8 / 12 / 16 radius hierarchy              |
-| **A5 Elevation**  | Surface → Border → Shadow                 |
-| **A6 Light/Dark** | نظامان بصريان مستقلان                     |
-| **A7 States**     | State model موحد                          |
-| **A8 Icons**      | Lucide / outlined / 1.75–2px              |
-| **A9 Layout**     | RTL-first + Tailwind spacing + responsive |
-
-### والـ Design Compass يظل ثابتًا:
-
-> **رصين — عميق — هادئ — دقيق — إنساني**
-
-وبصيغة أبسط:
-
-> **Depth + Restraint + Clarity**
-
-**المرحلة التالية المنطقية بعد A9 هي B — Design Tokens & shadcn Mapping.**
-وهنا تحديدًا سنأخذ ما بنيناه في A ونحوّله من قرارات تصميمية إلى **tokens فعلية** بدون إنشاء نظام موازٍ ينافس shadcn.
-
-
---------------------
-
-ممتاز. هنا نبدأ نحول A من **قرارات بصرية** إلى **لغة تنفيذية حقيقية**. والأهم عندي في B إننا لا نبني نظام Tokens موازيًا لـ shadcn؛ بل نبني **Sanad semantic layer** ثم نعمل mapping عليه.
-
-# B — Sanad Design System
-
-## B1 — Semantic Tokens
-
-أقترح أن تكون هذه هي الطبقة التي تستخدمها المكونات يوميًا.
-
-### Core
-
-| Token                | المعنى                        |
-| -------------------- | ----------------------------- |
-| `background`         | Canvas الأساسي                |
-| `foreground`         | النص الأساسي                  |
-| `muted`              | Surface منخفض الأهمية         |
-| `muted-foreground`   | النص الثانوي                  |
-| `card`               | Surface المكونات الرئيسية     |
-| `card-foreground`    | نص الـ Card                   |
-| `popover`            | Surface القوائم والـ Popovers |
-| `popover-foreground` | نصها                          |
-| `border`             | الحدود الأساسية               |
-| `input`              | حدود/سطح عناصر الإدخال        |
-| `ring`               | Focus ring                    |
-
-### Brand / Actions
-
-| Token                  | المعنى                         |
-| ---------------------- | ------------------------------ |
-| `primary`              | الإجراء الأساسي / Brand action |
-| `primary-foreground`   | النص فوق Primary               |
-| `secondary`            | الإجراء الثانوي                |
-| `secondary-foreground` | النص فوق Secondary             |
-| `accent`               | إبراز Brand غير دلالي          |
-| `accent-foreground`    | النص فوق Accent                |
-
-### Semantic
-
-نضيف:
-
-```text
-success
-success-foreground
-success-muted
-
-warning
-warning-foreground
-warning-muted
-
-destructive
-destructive-foreground
-destructive-muted
-
-info
-info-foreground
-info-muted
-```
-
-وأنا أفضل استخدام **`destructive`** في طبقة التنفيذ إذا كنا سنلتزم بمفردات shadcn، بينما هو دلاليًا عندنا = Error.
-
----
-
-# B2 — Brand Tokens
-
-وهنا نحافظ على الفصل الذي أصررنا عليه:
-
-> **Brand ≠ Semantic**
-
-يعني لا نقول:
-
-> "الأخضر هو Success إذن Primary = Success."
-
-لا.
-
-Brand له عائلة مستقلة.
-
-وبناءً على **System C المؤقت**:
-
-### Brand
-
-```text
-brand-primary
-brand-secondary
-brand-accent
-```
-
-مع درجات interaction:
-
-```text
-brand-primary-hover
-brand-primary-pressed
-```
-
-والـ Dark لها قيمها الخاصة.
-
-### System C الحالي
-
-**Light**
-
-```text
-Primary   #0A6C7E
-Secondary #3D5A73
-Accent    #C28235
-```
-
-**Dark**
-
-```text
-Primary   #4FB3C4
-Secondary #8FB0CC
-Accent    #E0A04A
-```
-
-
-
-لكن مهم جدًا:
-
-> هذه القيم **Working Tokens** وليست Final Brand Tokens.
-
-لأننا اتفقنا أن System C تحت الاختبار.
-
----
-
-# B3 — Surface System
-
-دي في رأيي من أهم أجزاء سَنَد.
-
-لأننا لا نريد أن تكون كل المساحات:
-
-`background` + `white card`.
-
-نحتاج hierarchy واضح.
-
-## Light
-
-أقترح:
-
-```text
-Canvas
-Surface 1
-Surface 2
-Surface 3
-Elevated
-Overlay
-```
-
-وبالـ System C الحالي تقريبًا:
-
-```text
-Canvas      #F5F7F7
-Surface 1   #FFFFFF
-Surface 2   #EDF1F2
-Surface 3   #E4EAEC
-Elevated    #FFFFFF
-```
-
-لكن **لا نريد تعريف كل هذه الأسطح فقط لأننا نستطيع**.
-
-كل مستوى له وظيفة.
-
-### Canvas
-
-الخلفية العامة للتطبيق.
-
-### Surface 1
-
-المكونات الأساسية:
-
-* Cards
-* Main panels
-* Forms
-
-### Surface 2
-
-للفصل الخفيف داخل الصفحة.
-
-### Surface 3
-
-لـ:
-
-* selected areas
-* grouped content
-* stronger hierarchy
-
-### Elevated
-
-عناصر فوق الـ normal flow:
-
-* Dropdown
-* Popover
-* Floating panel
-* بعض الـ dialogs.
-
-### Overlay
-
-طبقة فوق المحتوى عند الحاجة:
-
-* Modal backdrop
-* Drawer backdrop
-* interaction overlays
-
----
-
-# Dark Mode
-
-هنا لا نعمل inversion.
-
-لدينا:
-
-```text
-Canvas      #0A1519
-Surface 1   #101F25
-Surface 2   #16282F
-Surface 3   #1C3139
-Elevated    #16282F
-```
-
-
-
-لكن مرة أخرى:
-
-**القيمة ليست أهم من العلاقة.**
-
-المهم أن:
-
-> Surface 3 يبدو أعلى من Surface 2
-> Surface 2 أعلى من Surface 1
-> Surface 1 أعلى من Canvas
-
-بدون الحاجة إلى Shadows ضخمة.
-
----
-
-# B4 — Elevation System
-
-هنا نطبق قرار A5 فعليًا.
-
-وأنا أقترح ألا يكون:
-
-```text
-elevation-1 = shadow-sm
-elevation-2 = shadow-md
-```
-
-فقط.
-
-بل Token مركب.
-
-مثلاً:
-
-```text
-elevation-0
-→ surface + no border + no shadow
-
-elevation-1
-→ surface-1 + subtle border + minimal shadow
-
-elevation-2
-→ surface-2 + border + soft shadow
-
-elevation-3
-→ elevated surface + stronger border + medium shadow
-
-elevation-4
-→ overlay surface + strongest controlled shadow
-```
-
----
-
-## الشكل المفاهيمي
-
-```text
-E0
-Canvas
-──────────────────
-
-E1
-Card
-──────────────────
-
-E2
-Dropdown / Popover
-──────────────────
-
-E3
-Dialog
-──────────────────
-
-E4
-Modal / Critical overlay
-```
-
-لكن **E4 لا يعني "ظل ضخم"**.
-
-يعني:
-
-> أعلى مستوى بصري في hierarchy.
-
----
-
-# أهم قرار في B
-
-أنا أقترح إضافة قاعدة Design System صريحة:
-
-> **A token describes intent, not appearance.**
-
-يعني المكون لا يقول:
-
-```text
-background: teal-700
-```
-
-بل يقول:
-
-```text
-background: primary
-```
-
-والمستخدم النهائي لا يعرف هل Primary اليوم Teal أو Blue-Green أو أي شيء آخر.
-
-وهذا بالضبط ما سيسمح لنا بتغيير System C لاحقًا **بدون إعادة تصميم المكونات**.
-
----
-
-# العلاقة مع shadcn
-
-الهيكل الذي أريده:
-
-```text
-Sanad Identity
-       ↓
-Sanad Design Decisions
-       ↓
-Semantic Tokens
-       ↓
-shadcn Theme Variables
-       ↓
-Sanad Components
-       ↓
-Product Screens
-```
-
-وليس:
-
-```text
-shadcn
-  ↓
-نحاول إجبار Sanad عليه
-```
-
----
-
-# نقطة مهمة: لا نحتاج Tokens لكل شيء
-
-لا أريد أن نصل إلى:
-
-```text
-brand-primary-500
-brand-primary-600
-brand-primary-700
-...
-surface-17
-border-9
-```
-
-ثم يصبح النظام معقدًا.
-
-نحن نحتاج **semantic roles** أولًا.
-
-لو component احتاج درجة غير موجودة، نسأل:
-
-> هل هناك Role ناقص؟
-
-بدل:
-
-> نضيف Hex جديد وخلاص.
-
----
-
-# B الحالي — الحالة
-
-| المرحلة                | الحالة                |
-| ---------------------- | --------------------- |
-| **B1 Semantic Tokens** | 🟢 Defined            |
-| **B2 Brand Tokens**    | 🟡 Working — System C |
-| **B3 Surface System**  | 🟢 Defined            |
-| **B4 Elevation**       | 🟢 Defined            |
-
-وأقترح أن نكمل B بنفس المنهج إلى:
-
-**B5 — Typography Tokens**
-**B6 — Spacing & Layout Tokens**
-**B7 — Radius Tokens**
-**B8 — Icon & Stroke Tokens**
-**B9 — State Tokens**
-**B10 — Responsive / Breakpoint Tokens**
-**B11 — shadcn Mapping**
-**B12 — Sanad Component Rules**
-
-وبعدها نكون فعلًا خرجنا من مرحلة **"عندنا هوية جميلة"** إلى **"عندنا Design System يمكن للفريق أن يبني عليه المنتج بالكامل."**
-
-----------------
-
-
-بالضبط. الأفضل ما نقسمش مرحلة **B** لقرارات صغيرة جدًا؛ ناخد مجموعة مترابطة في كل مرة، ونقفلها قبل الانتقال للي بعدها.
-
-أقترح نقسمها كده:
-
-### B1 — Core Tokens
-
-نقفل معًا:
-
-* Semantic Tokens
-* Brand Tokens
-* Surface System
-* Elevation
-
-### B2 — Visual Tokens
-
-نقفل معًا:
-
-* Typography
-* Spacing
-* Layout
-* Radius
-* Iconography / Stroke
-
-### B3 — Interaction System
-
-نقفل معًا:
-
-* States
-* Focus
-* Hover / Active / Disabled
-* Loading
-* Error / Success / Warning
-* Selection
-
-### B4 — Responsive & Accessibility
-
-نقفل معًا:
-
-* Breakpoints
-* RTL behavior
-* Density
-* Touch targets
-* Contrast
-* Keyboard/focus behavior
-
-### B5 — shadcn Integration
-
-نقفل معًا:
-
-* Mapping إلى shadcn variables
-* `globals.css`
-* `components.json`
-* Theme structure
-* Dark/Light
-* Custom Sanad tokens
-* قواعد عدم تكرار الـtokens
-
-### B6 — Component Rules
-
-نحدد قواعد:
-
-* Buttons
-* Inputs
-* Tables
-* Cards
-* Dialogs
-* Dropdowns
-* Tabs
-* Badges
-* Navigation
-* Forms
-
-وبعدها نكون فعليًا خلصنا **Sanad Design System Foundation** ونقدر ندخل على الشاشات الحقيقية بدل ما نفضل في مرحلة التنظير.
-
-**إذن من الآن هنشتغل Batch-by-Batch، وليس عنصرًا عنصرًا.**
-
-----------------
-
-تمام. هنقفل **B1 + B2 + B3** كحزمة واحدة، لكن بدون الدخول الآن في shadcn implementation. الهدف هنا هو استخراج **Design Tokens وقواعدها** بشكل يمكن تحويله لاحقًا مباشرة إلى `globals.css` وComponents.
-
-سأتعامل مع **System C كـ Working Color System** كما اتفقنا، مع بقاء الألوان قابلة للتبديل لاحقًا.
-
----
-
-# B1 — Core Tokens
-
-## 1. Semantic Tokens
-
-نريد الـsemantic layer أن يصف **وظيفة اللون** وليس اللون نفسه.
-
-### Core
-
-| Token                | الاستخدام               |
-| -------------------- | ----------------------- |
-| `background`         | خلفية الصفحة الرئيسية   |
-| `foreground`         | النص الأساسي            |
-| `muted`              | خلفيات العناصر الثانوية |
-| `muted-foreground`   | النص الثانوي            |
-| `card`               | سطح البطاقات والمحتوى   |
-| `card-foreground`    | نص محتوى الـcard        |
-| `popover`            | القوائم والـpopover     |
-| `popover-foreground` | نصها                    |
-| `border`             | الحدود الأساسية         |
-| `input`              | حدود/حالة input         |
-| `ring`               | Focus ring              |
-
-### Actions / Brand
-
-| Token                  | الاستخدام                   |
-| ---------------------- | --------------------------- |
-| `primary`              | الإجراء الرئيسي وهوية Sanad |
-| `primary-foreground`   | المحتوى فوق Primary         |
-| `secondary`            | إجراء/عنصر ثانوي            |
-| `secondary-foreground` | المحتوى فوق Secondary       |
-| `accent`               | إبراز بصري وليس حالة        |
-| `accent-foreground`    | المحتوى فوق Accent          |
-
-### Semantic States
-
-| Token                    | الاستخدام        |
-| ------------------------ | ---------------- |
-| `success`                | نجاح/اكتمل       |
-| `success-muted`          | خلفية نجاح هادئة |
-| `success-foreground`     | نص نجاح          |
-| `warning`                | تحذير            |
-| `warning-muted`          | خلفية تحذير      |
-| `warning-foreground`     | نص تحذير         |
-| `destructive`            | خطأ/إجراء خطير   |
-| `destructive-muted`      | خلفية خطأ        |
-| `destructive-foreground` | نص خطأ           |
-| `info`                   | معلومة           |
-| `info-muted`             | خلفية معلومة     |
-| `info-foreground`        | نص معلومة        |
-
-**قاعدة مهمة:**
-`destructive` هو الاسم التقني المناسب للتوافق مع shadcn، لكن معناه في Sanad هو **Error / خطر / إجراء destructive**.
-
----
-
-# 2. Brand Tokens
-
-الـBrand منفصل عن الـsemantic states.
-
-### Working System C
-
-**Light**
-
-```text
-Brand Primary   #0A6C7E
-Brand Secondary #3D5A73
-Brand Accent    #C28235
-```
-
-**Dark**
-
-```text
-Brand Primary   #4FB3C4
-Brand Secondary #8FB0CC
-Brand Accent    #E0A04A
-```
-
-ونضيف حالات الـPrimary:
-
-```text
-brand-primary
-brand-primary-hover
-brand-primary-pressed
-```
-
-لكن **لا نحتاج Brand Gradient حاليًا**.
-
-قرارنا هنا:
-
-> **لا Gradient في هوية Sanad الآن.**
-
-لو ظهر لاحقًا استخدام حقيقي يستحقه، نضيفه كاستثناء مدروس، وليس كجزء أساسي من الهوية.
-
----
-
-# 3. Surface System
-
-بدل ما نقول:
-
-> هذا اللون للـCard وهذا اللون للTable...
-
-نحدد **طبقات سطح**.
-
-### Light
-
-```text
-Canvas      #F5F7F7
-Surface 1   #FFFFFF
-Surface 2   #EDF1F2
-Surface 3   #E4EAEC
-Elevated    #FFFFFF
-Overlay     #FFFFFF
-```
-
-### Dark
-
-```text
-Canvas      #0A1519
-Surface 1   #101F25
-Surface 2   #16282F
-Surface 3   #1C3139
-Elevated    #16282F
-Overlay     #101F25
-```
-
-### الاستخدام
-
-**Canvas**
-
-* خلفية التطبيق
-* صفحات الـDashboard
-* المساحات الرئيسية
-
-**Surface 1**
-
-* المحتوى الأساسي
-* cards
-* forms
-* tables
-
-**Surface 2**
-
-* مناطق ثانوية
-* filters
-* sections
-* grouped content
-
-**Surface 3**
-
-* emphasis خفيف
-* مناطق تحتاج فصل بصري أوضح
-
-**Elevated**
-
-* dropdown
-* popover
-* floating panel
-* عناصر فوق المحتوى
-
-**Overlay**
-
-* dialog
-* modal
-* طبقات فوق التطبيق
-
-### القاعدة
-
-> **ليس كل Container يحتاج Surface مختلف.**
-
-نستخدم أقل عدد ممكن من الطبقات التي تحقق hierarchy واضحة.
-
----
-
-# 4. Elevation System
-
-Elevation عندنا ليست `box-shadow` فقط.
-
-هي مزيج من:
-
-**Surface + Border + Shadow**
-
-### E0 — Canvas
-
-```text
-No border
-No shadow
-```
-
-الاستخدام:
-
-* الصفحة
-* الخلفية
-
-### E1 — Surface
-
-```text
-Subtle border
-Minimal / no shadow
-```
-
-الاستخدام:
-
-* Card
-* Table container
-* Form section
-
-### E2 — Raised
-
-```text
-Border
-Soft shadow
-```
-
-الاستخدام:
-
-* Dropdown
-* Popover
-* Floating panel
-
-### E3 — Floating
-
-```text
-Stronger border
-Medium shadow
-```
-
-الاستخدام:
-
-* Dialog
-* Important floating UI
-
-### E4 — Overlay
-
-```text
-Strongest controlled elevation
-```
-
-الاستخدام:
-
-* Modal
-* Critical overlay
-
-### قاعدة Dark Mode
-
-في الـDark:
-
-> **Surface contrast > Border > Shadow**
-
-وليس:
-
-> Shadow قوي لمحاولة إظهار العنصر.
-
----
-
-# B2 — Visual Tokens
-
-## 5. Typography
-
-نثبت الاتجاه الذي اتفقنا عليه.
-
-### Fonts
-
-```text
-Arabic → Tajawal
-Latin / Numbers → Inter
-```
-
-### Weights
-
-```text
-400 Regular
-500 Medium
-600 Semibold
-700 Bold
-800 Extra Bold — نادر
-```
-
-### Scale
-
-| Token        | Size | Weight |
-| ------------ | ---: | -----: |
-| `display-lg` | 36px |    700 |
-| `heading-xl` | 30px |    700 |
-| `heading-lg` | 24px |    700 |
-| `heading-md` | 20px |    600 |
-| `heading-sm` | 18px |    600 |
-| `body-lg`    | 16px |    400 |
-| `body-md`    | 14px |    400 |
-| `body-sm`    | 13px |    400 |
-| `caption`    | 12px |    400 |
-
-### Line Height
-
-```text
-display-lg → 1.25
-heading-xl → 1.30
-heading-lg → 1.35
-heading-md → 1.35
-heading-sm → 1.40
-
-body-lg → 1.70
-body-md → 1.65
-body-sm → 1.60
-caption → 1.50
-```
-
-### Arabic
-
-```text
-letter-spacing: 0
-```
-
-### Latin
-
-```text
-Display → -0.02em
-Headings → -0.01em
-Body → 0
-```
-
-### KPI
-
-الأرقام:
-
-```text
-Inter
-700
-30–36px تقريبًا
-```
-
-والـlabel:
-
-```text
-Tajawal
-14px
-400–500
-```
-
-**المبدأ:**
-
-> Typography communicates hierarchy, not decoration.
-
----
-
-# 6. Spacing
-
-هنا **لن نخترع نظام spacing جديد**.
-
-نستخدم spacing system الخاص بـTailwind/shadcn كأساس.
-
-لكن نحدد **لغة الاستخدام**:
-
-### Micro
-
-```text
-4px
-6px
-8px
-```
-
-لـ:
-
-* icon ↔ text
-* label ↔ helper
-* compact controls
-
-### Component
-
-```text
-12px
-16px
-20px
-24px
-```
-
-لـ:
-
-* padding
-* gaps
-* form fields
-* card content
-
-### Section
-
-```text
-32px
-40px
-48px
-64px
-```
-
-لـ:
-
-* sections
-* page hierarchy
-* dashboard groups
-
-### القاعدة
-
-> **Spacing should communicate relationship.**
-
-مثلاً:
-
-```text
-Label
-  ↓ 6–8px
-Input
-```
-
-لكن:
-
-```text
-Form Section
-  ↓ 24–32px
-Next Section
-```
-
-يعني المسافة نفسها لها معنى.
-
----
-
-# 7. Layout
-
-Sanad:
-
-> **RTL-first + Responsive from day one**
-
-### Desktop
-
-```text
-Sidebar → Right
-Main Content → Left
-```
-
-### Page structure
-
-```text
-Page Header
-    ↓
-Context / Filters
-    ↓
-Primary Content
-    ↓
-Secondary / Detailed Content
-```
-
-### Page padding
-
-```text
-Desktop → 32px
-Tablet  → 24px
-Mobile  → 16px
-```
-
-### Dashboard
-
-الأولوية:
-
-```text
-Page Context
-↓
-Important KPIs
-↓
-Operational Information
-↓
-Actions / Alerts
-↓
-Detailed Data
-```
-
-وليس:
-
-```text
-Card
-Card
-Card
-Card
-Card
-```
-
----
-
-# 8. Radius
-
-نثبت الـhierarchy:
-
-```text
-radius-sm   6px
-radius-md   8px
-radius-lg   12px
-radius-xl   16px
-radius-full 999px
-```
-
-### الاستخدام
-
-```text
-sm → عناصر صغيرة
-md → inputs / buttons
-lg → cards / panels
-xl → dialogs / large surfaces
-full → badges / semantic pills فقط
-```
-
-**ممنوع تقريب كل شيء لمجرد أن التصميم Modern.**
-
----
-
-# 9. Iconography / Stroke
-
-### Style
-
-**Outlined / Stroke-based**
-
-نستخدم:
-
-> **Lucide**
-
-بسبب توافقه الطبيعي مع shadcn.
-
-### Sizes
-
-```text
-14px
-16px
-18px
-20px
-24px
-32px+
-```
-
-### Stroke
-
-```text
-1.75–2px
-```
-
-### قواعد الاستخدام
-
-الأيقونة يجب أن تكون:
-
-* واضحة
-* بسيطة
-* دقيقة
-* slightly rounded
-* وظيفية
-
-وليست decoration.
-
-مثلاً:
-
-**صح**
-
-`✓ نجاح + نص`
-
-**غير كافٍ**
-
-`✓ باللون الأخضر فقط`
-
-لأن:
-
-> **Color is not the only carrier of meaning.**
-
----
-
-# B3 — Interaction System
-
-هنا أهم شيء أن كل Components تتكلم **نفس لغة التفاعل**.
-
-## 10. States
-
-الـstate model الأساسي:
-
-```text
-Default
-Hover
-Active / Pressed
-Focus
-Disabled
-Selected
-Loading
-Error
-Success
-Warning
-```
-
-ليس مطلوبًا أن يحتوي كل Component على كل الحالات.
-
----
-
-## 11. Focus
-
-Focus يجب أن يكون واضحًا جدًا، خصوصًا مع keyboard navigation.
-
-نستخدم:
-
-```text
-Ring
-+
-Contrast
-```
-
-وليس تغيير لون العنصر فقط.
-
-مثال منطقي:
-
-```text
-focus-visible
-→ ring
-→ sufficient contrast
-→ لا يعتمد على shadow فقط
-```
-
----
-
-## 12. Hover / Active / Disabled
-
-### Hover
-
-تغيير خفيف:
-
-```text
-surface
-border
-foreground
-```
-
-وليس animation مبالغ فيه.
-
-### Active / Pressed
-
-أوضح من Hover بقليل.
-
-### Disabled
-
-يتم التعبير عنه عبر:
-
-```text
-Reduced contrast
-+
-No interaction
-+
-Cursor/interaction behavior
-```
-
-لكن لا نجعل العنصر يختفي بصريًا.
-
----
-
-# 13. Loading
-
-Loading يجب أن يحافظ على layout.
-
-يعني:
-
-> لا نسمح للزر أو الصفحة أن "تقفز" بسبب loading.
-
-### Button
-
-```text
-Loading indicator
-+
-Original action context remains understandable
-```
-
-مثلاً:
-
-`حفظ` → loading state مع بقاء سياق العملية.
-
-### Page
-
-نستخدم skeleton عندما نعرف شكل المحتوى.
-
-ولا نستخدم spinner لكل شيء.
-
----
-
-# 14. Error / Success / Warning
-
-نستخدم الـsemantic tokens:
-
-```text
-Success
-Warning
-Error
-Info
-```
-
-مع:
-
-```text
-Color
-+
-Icon
-+
-Text / Context
-```
-
-### ممنوع
-
-الاعتماد على اللون وحده.
-
-مثلاً:
-
-```text
-🔴 خطأ
-```
-
-أفضل من مجرد:
-
-```text
-نص أحمر
-```
-
----
-
-# 15. Selection
-
-Selection مهم جدًا في:
-
-* Tables
-* Lists
-* Navigation
-* Filters
-* Forms
-
-يجب أن يكون واضحًا من خلال combination من:
-
-```text
-Surface
-+
-Border / indicator
-+
-Foreground
-```
-
-وليس فقط تغيير اللون.
-
-### مثال Table
-
-```text
-Default
-→ normal surface
-
-Hover
-→ subtle surface change
-
-Selected
-→ distinct surface
-→ optional side/inline indicator
-```
-
----
-
-# القرار النهائي لهذه الحزمة
-
-أصبح عندنا الآن:
-
-```text
-B1 Core Tokens
-├── Semantic
-├── Brand
-├── Surface
-└── Elevation
-
-B2 Visual Tokens
-├── Typography
-├── Spacing
-├── Layout
-├── Radius
-└── Iconography
-
-B3 Interaction
-├── States
-├── Focus
-├── Hover / Active / Disabled
-├── Loading
-├── Semantic Feedback
-└── Selection
-```
-
-والأهم أن الأنظمة الثلاثة **مترابطة وليست قوائم منفصلة**:
-
-> **Brand → Semantic → Surface → Elevation → Component → State**
-
-وده هو المستوى المناسب الآن قبل ما ندخل على **B4 Responsive & Accessibility + B5 shadcn Integration**.
-
-**أعتبر B1–B3 مقفولين مبدئيًا كـ Design System Foundation، وليس كـ implementation code بعد.**
-
-
-تمام. هنقفل **B4 → B6** كحزمة واحدة، وبنفس المبدأ: قرارات عملية قابلة للتنفيذ، بدون تحويل الـDesign System إلى موسوعة.
-
-# B4 — Responsive & Accessibility
-
-## 1. Breakpoints
-
-مش هنخترع breakpoints خاصة بـSanad؛ نستخدم نظام Tailwind كأساس، ونحدد فقط **سلوك Sanad** عند الانتقال بينها.
-
-| المستوى | العرض التقريبي | سلوك Sanad                              |
-| ------- | -------------: | --------------------------------------- |
-| Mobile  |      `< 640px` | Single column، Sidebar تتحول إلى drawer |
-| Tablet  |   `640–1023px` | محتوى مرن، navigation مضغوطة            |
-| Desktop |  `1024–1279px` | Sidebar + content                       |
-| Wide    |     `≥ 1280px` | المساحة تستغل بشكل أفضل                 |
-
-### قاعدة مهمة
-
-**Responsive ≠ تصغير Desktop.**
-
-مثلاً الـDashboard على Mobile قد يتحول من:
-
-```text
-KPI  KPI  KPI  KPI
-```
-
-إلى:
-
-```text
-KPI
-KPI
-KPI
-KPI
-```
-
-لكن بعض البيانات قد تحتاج **horizontal scroll** بدل تدمير الجدول.
-
----
-
-## 2. RTL
-
-Sanad **RTL-first**.
-
-```text
-Sidebar → Right
-Primary navigation → Right
-Text alignment → Right
-Tables → context-dependent
-Numbers → remain visually stable
-```
-
-لكن لا نفترض أن كل شيء RTL بشكل أعمى.
-
-مثلاً:
-
-* الأرقام: لا نعكس ترتيبها.
-* البريد الإلكتروني: LTR.
-* URLs: LTR.
-* الأكواد: LTR.
-* بعض identifiers: LTR.
-
-القاعدة:
-
-> **RTL هو اتجاه الواجهة، وليس اتجاه كل محتوى داخلها.**
-
----
-
-## 3. Density
-
-نثبت:
-
-> **Comfortable Dense**
-
-يعني النظام يسمح بإدارة أعداد كبيرة من الطلاب والبيانات، لكن بدون الإحساس القديم للأنظمة الإدارية المكتظة.
-
-خصوصًا:
-
-* Tables → أكثر كثافة.
-* Forms → متوسطة.
-* Dashboard → أكثر تنفسًا.
-* Mobile → أكبر لمسًا.
-
----
-
-## 4. Touch Targets
-
-العناصر التفاعلية الأساسية:
-
-```text
-Minimum practical target ≈ 40px
-Preferred ≈ 44px
-```
-
-خصوصًا:
-
-* Buttons
-* Navigation
-* Checkbox
-* Switch
-* Icon buttons
-
-الأيقونة نفسها يمكن أن تكون 16–20px، لكن **منطقة الضغط أكبر**.
-
----
-
-## 5. Accessibility
-
-نلتزم مبدئيًا بـ:
-
-* Contrast واضح.
-* Focus ظاهر.
-* Keyboard navigation.
-* Labels حقيقية للـinputs.
-* Error لا يعتمد على اللون فقط.
-* Status لا يعتمد على اللون فقط.
-* Motion محدود.
-* احترام `prefers-reduced-motion`.
-
-### مبدأ Sanad
-
-> **Accessibility جزء من الوضوح، وليست طبقة إضافية بعد التصميم.**
-
----
-
-# B5 — shadcn Integration
-
-هنا نبدأ تحويل الهوية إلى implementation language.
-
-## 1. قاعدة الربط
-
-العلاقة النهائية:
-
-```text
-Sanad Identity
-      ↓
-Design Decisions
-      ↓
-Semantic Tokens
-      ↓
-shadcn Theme Variables
-      ↓
-Sanad Components
-      ↓
-Product Screens
-```
-
-**مش:**
-
-```text
-shadcn
-↓
-نغير ألوانه
-↓
-نسميه Sanad
-```
-
----
-
-# 2. Token Mapping
-
-مثلاً:
-
-| Sanad                  | shadcn                   |
-| ---------------------- | ------------------------ |
-| `background`           | `--background`           |
-| `foreground`           | `--foreground`           |
-| `card`                 | `--card`                 |
-| `card-foreground`      | `--card-foreground`      |
-| `popover`              | `--popover`              |
-| `popover-foreground`   | `--popover-foreground`   |
-| `primary`              | `--primary`              |
-| `primary-foreground`   | `--primary-foreground`   |
-| `secondary`            | `--secondary`            |
-| `secondary-foreground` | `--secondary-foreground` |
-| `muted`                | `--muted`                |
-| `muted-foreground`     | `--muted-foreground`     |
-| `accent`               | `--accent`               |
-| `accent-foreground`    | `--accent-foreground`    |
-| `destructive`          | `--destructive`          |
-| `border`               | `--border`               |
-| `input`                | `--input`                |
-| `ring`                 | `--ring`                 |
-
-وبالتالي Components الموجودة أصلًا في shadcn تستفيد من Sanad مباشرة.
-
----
-
-# 3. Tokens إضافية لـSanad
-
-أي شيء لا يغطيه shadcn نضيفه **فوقه**، وليس كنظام منفصل.
-
-مثلاً:
-
-```text
---surface-1
---surface-2
---surface-3
---surface-elevated
---surface-overlay
-
---brand-primary
---brand-secondary
---brand-accent
-
---success
---success-muted
---warning
---warning-muted
---info
---info-muted
-```
-
-والـElevation:
-
-```text
---elevation-0
---elevation-1
---elevation-2
---elevation-3
---elevation-4
-```
-
----
-
-# 4. Dark / Light
-
-نستخدم:
-
-```text
-:root
-```
-
-للـLight.
-
-و:
-
-```text
-.dark
-```
-
-للـDark.
-
-لكن **القيم لا تكون مجرد inversion**.
-
-نظام C الذي اخترناه أصلًا يعطينا:
-
-```text
-Light Primary → #0A6C7E
-Dark Primary  → #4FB3C4
-```
-
-وهكذا كل theme له hierarchy خاص به.
-
----
-
-# 5. لا Token Explosion
-
-دي قاعدة مهمة جدًا.
-
-مش هنطلع بـ:
-
-```text
---blue-50
---blue-100
---blue-200
-...
-```
-
-ثم نستخدمهم في كل Component.
-
-بدلًا من ذلك:
-
-```text
-primary
-secondary
-accent
-muted
-success
-warning
-error
-info
-```
-
-والـcomponents تستهلك **intent**.
-
-> **Token describes intent, not appearance.**
-
----
-
-# 6. shadcn Components
-
-الأصل:
-
-**نستخدم الموجود ونعدله عند الحاجة.**
-
-لا نعيد بناء:
-
-* Button
-* Input
-* Dialog
-* Dropdown
-* Tabs
-* Checkbox
-* Select
-* Table
-
-من الصفر لمجرد أن Sanad له هوية.
-
-لكن عندما تظهر حاجة حقيقية:
-
-```text
-shadcn component
-      ↓
-Sanad customization
-```
-
-وليس:
-
-```text
-shadcn component
-      ↓
-discard
-      ↓
-completely new system
-```
-
----
-
-# B6 — Sanad Component Rules
-
-الآن نضع **قواعد المكونات** التي ستمنع التصميم من الانحراف أثناء بناء الشاشات.
-
-## 1. Button
-
-### Primary
-
-للإجراء الرئيسي.
-
-### Secondary
-
-للإجراءات المهمة لكن الأقل أولوية.
-
-### Outline
-
-لإجراء ثانوي واضح.
-
-### Ghost
-
-للإجراءات الخفيفة.
-
-### Destructive
-
-للأفعال الخطرة.
-
-قاعدة:
-
-> **صفحة واحدة لا تحتاج 5 Primary actions.**
-
-يجب أن يكون هناك hierarchy واضح.
-
----
-
-# 2. Input
-
-```text
-Label
-↓
-Input
-↓
-Helper / Error
-```
-
-المواصفات:
-
-* Radius 8px.
-* Height تقريبًا 40px.
-* Label واضح.
-* Focus واضح.
-* Error لا يعتمد على الأحمر وحده.
-* Placeholder ليس بديلًا عن Label.
-
----
-
-# 3. Cards
-
-Card ليست default container.
-
-نستخدمها عندما يوجد:
-
-> **Grouping with meaning**
-
-مثلاً:
-
-```text
-Student Summary
-```
-
-مناسب.
-
-لكن:
-
-```text
-كل عنصر في الصفحة داخل Card
-```
-
-مرفوض.
-
----
-
-# 4. Tables
-
-الجدول عنصر أساسي في Sanad.
-
-### قواعده
-
-* Header واضح.
-* Borders خفيفة.
-* Row height مريحة.
-* Hover subtle.
-* Selected واضح.
-* Actions في مكان ثابت.
-* لا نحول كل row إلى Card.
-
-وعلى Mobile:
-
-إما:
-
-```text
-Horizontal scroll
-```
-
-أو:
-
-```text
-Responsive alternate presentation
-```
-
-حسب طبيعة البيانات.
-
----
-
-# 5. Dialog
-
-```text
-radius-xl → 16px
-```
-
-Hierarchy:
-
-```text
-Title
-↓
-Description / Context
-↓
-Content
-↓
-Actions
-```
-
-ولا نستخدم:
-
-* Glassmorphism.
-* Blur مبالغ.
-* Shadows ضخمة.
-
----
-
-# 6. Badges
-
-`Badge` يستخدم عندما تكون المعلومة **status/tag/category**.
-
-مثلاً:
-
-```text
-نشط
-متوقف
-مكتمل
-متأخر
-```
-
-لكن لا نحول كل button إلى pill.
-
----
-
-# 7. Navigation
-
-Sidebar:
-
-* RTL.
-* Right side.
-* Icon + label.
-* Active state واضح.
-* لا نعتمد على تغيير حجم الخط.
-* Groups واضحة.
-* لا نستخدم الألوان بكثرة.
-
-والـactive item يعتمد على:
-
-```text
-surface
-+
-foreground
-+
-indicator
-```
-
-وليس لونًا صارخًا فقط.
-
----
-
-# 8. Forms
-
-Form Sanad يجب أن تكون:
-
-> **واضحة قبل أن تكون جميلة.**
-
-القواعد:
-
-```text
-Section
-↓
-Field
-↓
-Helper
-↓
-Validation
-```
-
-والـsections تستخدم spacing لتوضيح العلاقة، وليس Card لكل مجموعة.
-
----
-
-# 9. Feedback
-
-كل Feedback يستخدم نفس اللغة:
-
-```text
-Success → نجاح
-Warning → يحتاج انتباه
-Error → فشل / مشكلة
-Info → معلومة
-```
-
-وكل حالة تستخدم:
-
-```text
-Color
-+
-Icon
-+
-Text/context
-```
-
-عندما يكون ذلك مناسبًا.
-
----
-
-# 10. Motion
-
-Motion في Sanad:
-
-> **Calm + Functional**
-
-نستخدمه في:
-
-* Opening/closing.
-* State transition.
-* Loading.
-* Navigation.
-* Feedback.
-
-ولا نستخدمه للزخرفة.
-
-الهدف:
-
-> يشعر المستخدم أن النظام **مستجيب**، وليس أن النظام **يستعرض نفسه**.
-
----
-
-# B4–B6 Status
-
-نعتبرها الآن **مقفولة مبدئيًا**:
-
-```text
-B4 Responsive & Accessibility
-✓ RTL
-✓ Breakpoints
-✓ Density
-✓ Touch
-✓ Accessibility
-
-B5 shadcn Integration
-✓ Token Mapping
-✓ Custom Sanad Tokens
-✓ Light/Dark
-✓ No Token Explosion
-✓ Extend, don't replace
-
-B6 Component Rules
-✓ Buttons
-✓ Inputs
-✓ Cards
-✓ Tables
-✓ Dialogs
-✓ Badges
-✓ Navigation
-✓ Forms
-✓ Feedback
-✓ Motion
-```
-
-وبكده خلصنا **B1 → B6** كـ **Sanad Design System Foundation**.
-
-الخطوة الطبيعية التالية ليست B7 تنظيري جديد؛ الأفضل أن نبدأ **C — Component Specification** ونحوّل هذه القواعد إلى مواصفات فعلية للمكونات الأساسية، ثم نختبرها على **Dashboard + Students Table + Attendance/Memorization Form**.
-
-
-أيوه، بالضبط. **المرحلة C هي مرحلة الـimplementation الفعلية**: نأخذ الـDesign System الذي أقفلناه ونركّبه على أساس shadcn الموجود عندك.
-
-عشان نبدأ بدون تخمين أو إعادة شغل، ابعتلي الآتي:
-
-### المطلوب أساسيًا
-
-1. **`globals.css`**
-   أهم ملف عندنا؛ لأنه غالبًا يحتوي على الـCSS variables والـtheme.
-
-2. **`components.json`**
-   عشان أعرف إعدادات shadcn عندك والـaliases والـstyling configuration.
-
-3. **ملف `tailwind.config.*`**
-   **لو موجود**.
-   لو المشروع يستخدم Tailwind v4 ومفيش `tailwind.config`، عادي، ابعت الموجود بدلًا منه.
-
-4. **ملفات الـtheme إن كانت منفصلة**
-   مثل:
-
-   * `theme.ts`
-   * `theme.css`
-   * `tokens.css`
-   * أو أي ملف عندك مسؤول عن الألوان/الثيم.
-
-### مهم جدًا لـ C3
-
-5. **ملف الـSidebar الأساسي**
-   غالبًا شيء مثل:
-
-   ```text
-   components/ui/sidebar.tsx
-   ```
-
-   أو الملف المقابل عندك.
-
-6. **أي Layout أساسي**
-   خصوصًا:
-
-   ```text
-   app/layout.tsx
-   ```
-
-   أو الـlayout المسؤول عن RTL والـfonts.
-
-### مفيد جدًا لـ C4
-
-7. **أي Components خاصة بالـCharts موجودة حاليًا**
-   مثل:
-
-   ```text
-   components/ui/chart.tsx
-   ```
-
-   أو أي chart wrapper تستخدمه.
-
-8. **`package.json`**
-
-   ده مهم عشان أعرف بالضبط:
-
-   * نسخة Next.js
-   * Tailwind
-   * shadcn/Radix
-   * lucide
-   * chart library
-   * وأي dependencies مؤثرة.
-
----
-
-## أفضل طريقة
-
-لو المشروع عندك Git repo، **ابعتلي الملفات المذكورة معًا أو ZIP للجزء الخاص بالـUI/theme**.
-
-والحد الأدنى الذي أحتاجه فعلًا:
-
-```text
-globals.css
-components.json
-package.json
-tailwind.config.*     ← إن وجد
-app/layout.tsx
-sidebar.tsx
-chart.tsx             ← إن وجد
-theme files           ← إن وجدت
-```
-
-**مش محتاج تبعت المشروع كله.**
-
-وبمجرد ما تبعتهم، هنبدأ بـ:
-
-```text
-C1 — Core shadcn Mapping
-        ↓
-C2 — Custom Sanad Tokens
-        ↓
-C3 — Sidebar Theme
-        ↓
-C4 — Charts & Data Visualization
-```
-
-وأثناء الـMapping **لن أغيّر قرارات Sanad التي اتفقنا عليها**؛ سأطابقها مع بنية مشروعك، وأشير لك فقط لأي تعارض حقيقي يظهر في الكود.
-
-
----------------
-تمام. كده الصورة واضحة، والأفضل فعلًا إننا **ما نطلبش من Muse Spark 1.3 مراجعة الـcomponents الآن**. نخليه في هذه الجولة يعمل **Foundation / Token Setup فقط**، مع تغيير الهوية من **حلقة → سَنَد | Sanad**، ويحافظ على الـdefault shadcn architecture بدل ما يبدأ يفرض فلسفة components من نفسه.
-
-هديك Prompt جاهز ترسله له كما هو:
-
-# Sanad | Design System Foundation Setup
-
-## Context
-
-أنت تعمل كوكيل تطوير داخل مشروع قائم مبني حاليًا على shadcn/ui + Tailwind CSS.
-
-اسم المشروع السابق كان **"حلقة"**، لكن تم اعتماد هوية ومنتج جديد باسم:
-
-**سَنَد | Sanad**
-
-من هذه اللحظة، تعامل مع **Sanad** باعتباره الاسم والهوية الحالية للمشروع، ولا تستخدم "حلقة" كاسم للمنتج أو الهوية في أي نصوص أو metadata أو branding جديدة.
-
-نحن حاليًا في مرحلة:
-
-**Design System Foundation / Token Setup**
-
-ولسنا بعد في مرحلة إعادة تصميم أو إعادة كتابة الـcomponents.
-
----
-
-# الهدف الحالي
-
-أريد منك تنفيذ الـDesign System Foundation الخاصة بـSanad داخل المشروع.
-
-المطلوب الآن:
-
-1. استبدال الـdefault shadcn theme الحالي بهوية Sanad.
-2. إنشاء Semantic Tokens.
-3. إنشاء Brand Tokens.
-4. إنشاء Surface System.
-5. إنشاء Elevation System.
-6. إضافة Typography foundation.
-7. إضافة spacing/layout/radius foundations عند الحاجة.
-8. إضافة state/feedback tokens.
-9. إضافة responsive/accessibility utilities أو foundations الضرورية.
-10. تجهيز النظام بحيث يكون جاهزًا لتطبيقه على الـcomponents لاحقًا.
-
-**مهم جدًا: لا تعيد تصميم الـcomponents الموجودة الآن.**
-
-سنراجع الـcomponents وفلسفة تصميمها في مرحلة منفصلة لاحقًا بعد اعتماد الـfoundation.
-
----
-
-# Sanad Design Philosophy
-
-Sanad ليس مجرد Quran app ولا مجرد SaaS dashboard.
-
-هو:
-
-> نظام حديث بروح رصينة.
-
-الشخصية:
-
-* Reliable: 10/10
-* Clear: 10/10
-* Calm: 9/10
-* Formal: 8/10
-* Modern: 7/10
-* Technical: 7/10
-* Human: 6/10
-* Luxury: 4/10
-* Color Boldness: 4/10
-* Ornamentation: 2/10
-
-Design compass:
-
-> **Depth + Restraint + Clarity**
-
-الهوية القرآنية لا تأتي من الزخارف الإسلامية أو الأقواس أو الذهب أو صور المساجد.
-
-والهوية التقنية لا تأتي من gradients أو glassmorphism أو SaaS clichés.
-
-المطلوب:
-
-> **روح قرآنية + هندسة تقنية**
-
----
-
-# Anti-Cliché Rules
-
-تجنب في الـfoundation:
-
-* Purple AI gradients
-* Mesh gradients
-* Glassmorphism
-* Excessive rounded cards
-* Floating blobs
-* Rainbow dashboards
-* Neon colors
-* Generic startup SaaS appearance
-* Stock Islamic imagery
-* Excessive Islamic ornamentation
-* Gold فقط لأنه "ديني"
-* Green فقط لأنه "قرآن"
-
-لا تضف شيئًا بصريًا إلا إذا كان له سبب وظيفي أو هوياتي واضح.
-
----
-
-# Color System
-
-تم اختيار **System C — Ink & Paper** كـWORKING COLOR SYSTEM.
-
-هذه الألوان **Provisional** وليست قرارًا أبديًا، لذلك لا تبنِ architecture تجعل تغييرها لاحقًا صعبًا.
-
-## Light
-
-```css
-Canvas      #F5F7F7
-Surface 1   #FFFFFF
-Surface 2   #EDF1F2
-Surface 3   #E4EAEC
-Elevated    #FFFFFF
-
-Foreground  #14222A
-Muted       #52646D
-
-Primary     #0A6C7E
-Secondary   #3D5A73
-Accent      #C28235
-
-Success     #1B7A4E
-Warning     #9A5B00
-Error       #B83245
-Info        #2565A8
-```
-
-## Dark
-
-```css
-Canvas      #0A1519
-Surface 1   #101F25
-Surface 2   #16282F
-Surface 3   #1C3139
-Elevated    #16282F
-
-Foreground  #EDF3F4
-Muted       #9FB3BA
-
-Primary     #4FB3C4
-Secondary   #8FB0CC
-Accent      #E0A04A
-
-Success     #4CC38A
-Warning     #E6AE4C
-Error       #F0717F
-Info        #6AB0E8
-```
-
----
-
-# Important Color Rule
-
-Brand identity ≠ semantic state.
-
-لا تستخدم:
-
-* Brand Accent كـWarning
-* Brand Primary كـSuccess
-* Brand colors عشوائيًا للـstatus
-
-كل semantic state له token مستقل.
-
----
-
-# C1 — Core shadcn Mapping
-
-استعمل shadcn semantic variables الموجودة بالفعل:
-
-```text
-background
-foreground
-
-card
-card-foreground
-
-popover
-popover-foreground
-
-primary
-primary-foreground
-
-secondary
-secondary-foreground
-
-muted
-muted-foreground
-
-accent
-accent-foreground
-
-destructive
-destructive-foreground
-
-border
-input
-ring
-```
-
-اربطها بهوية Sanad.
-
-لا تنشئ نظام ألوان parallel باسماء مختلفة إذا كان shadcn يوفر semantic token مناسبًا بالفعل.
-
----
-
-# C2 — Custom Sanad Tokens
-
-أضف فقط ما لا يغطيه shadcn.
-
-المطلوب مبدئيًا:
-
-```text
-brand-primary
-brand-secondary
-brand-accent
-
-brand-primary-hover
-brand-primary-pressed
-
-surface-1
-surface-2
-surface-3
-surface-elevated
-surface-overlay
-
-success
-success-foreground
-success-muted
-
-warning
-warning-foreground
-warning-muted
-
-info
-info-foreground
-info-muted
-```
-
-وبالنسبة للـError استخدم توافق shadcn:
-
-```text
-destructive
-destructive-foreground
-destructive-muted
-```
-
----
-
-# Surface System
-
-نريد hierarchy واضح:
-
-```text
-Canvas
-↓
-Surface 1
-↓
-Surface 2
-↓
-Surface 3
-↓
-Elevated
-↓
-Overlay
-```
-
-لا تجعل كل container يأخذ سطحًا مختلفًا.
-
-الـsurface يحدد hierarchy وليس decoration.
-
----
-
-# Elevation System
-
-Elevation ليست shadow فقط.
-
-أنشئ foundation لـ:
-
-```text
-elevation-0
-elevation-1
-elevation-2
-elevation-3
-elevation-4
-```
-
-المفهوم:
-
-```text
-E0
-Canvas
-No border
-No shadow
-
-E1
-Basic surface
-Subtle border
-Minimal/no shadow
-
-E2
-Raised/floating
-Subtle border
-Soft shadow
-
-E3
-Dialog/floating
-Stronger border
-Medium shadow
-
-E4
-Overlay/modal
-Strongest controlled elevation
-```
-
-في Dark Mode:
-
-> Surface contrast + Border أهم من Shadow.
-
-لا تستخدم shadows ثقيلة لمحاولة إظهار العمق.
-
----
-
-# Typography Foundation
-
-الـfont direction المعتمد:
-
-```text
-Arabic → Tajawal
-Latin / Numbers → Inter
-```
-
-Weights:
-
-```text
-400
-500
-600
-700
-800
-```
-
-Scale:
-
-```text
-display-lg  36px / 700
-heading-xl  30px / 700
-heading-lg  24px / 700
-heading-md  20px / 600
-heading-sm  18px / 600
-
-body-lg     16px / 400
-body-md     14px / 400
-body-sm     13px / 400
-caption      12px / 400
-```
-
-Arabic letter spacing:
-
-```text
-0
-```
-
-Latin:
-
-```text
-Display  -0.02em
-Headings -0.01em
-Body      0
-```
-
-KPI numbers:
-
-```text
-Inter
-700
-approximately 30–36px
-```
-
-لا تضف font ثالث.
-
----
-
-# Radius
-
-Foundation:
-
-```text
-radius-sm    6px
-radius-md    8px
-radius-lg    12px
-radius-xl    16px
-radius-full  999px
-```
-
-Semantic usage:
-
-```text
-sm   small controls
-md   inputs/buttons
-lg   cards/panels
-xl   dialogs/large surfaces
-full badges/pills فقط عندما يكون لها معنى
-```
-
-لا تجعل كل component rounded لمجرد الشكل.
-
----
-
-# Spacing
-
-لا تنشئ spacing system منفصل عن Tailwind.
-
-استخدم spacing system الموجود في Tailwind، لكن اجعل usage consistent.
-
-اللغة العامة:
-
-```text
-4 / 6 / 8
-12 / 16 / 20 / 24
-32 / 40 / 48 / 64
-```
-
-لا تنشئ عشرات tokens جديدة للـspacing بدون حاجة.
-
----
-
-# Layout Foundation
-
-Sanad:
-
-> RTL-first
-
-Desktop:
-
-```text
-Sidebar → Right
-Main Content → Left
-```
-
-Page padding:
-
-```text
-Desktop → 32px
-Tablet  → 24px
-Mobile  → 16px
-```
-
-Responsive من البداية.
-
-لا تبني desktop ثم تحاول إصلاح mobile لاحقًا.
-
----
-
-# Responsive Philosophy
-
-لا نريد مجرد تصغير desktop.
-
-Mobile يجب أن يكون responsive adaptation حقيقي.
-
-أمثلة:
-
-* Dashboard cards يمكن أن تصبح single-column.
-* Tables يمكن أن تستخدم horizontal scrolling عند الحاجة.
-* Navigation تتحول إلى drawer/mobile pattern.
-* Touch targets تصبح مناسبة للمس.
-
-لا تغير محتوى أو UX بدون سبب.
-
----
-
-# Interaction Foundations
-
-States المطلوبة:
-
-```text
-default
-hover
-active
-focus
-disabled
-selected
-loading
-error
-success
-warning
-```
-
-ليس كل component يحتاج كل state.
-
----
-
-# Accessibility
-
-Foundation يجب أن يدعم:
-
-* واضح contrast
-* visible focus
-* keyboard navigation
-* semantic labels
-* status لا يعتمد على اللون فقط
-* errors لا تعتمد على اللون فقط
-* reduced motion support
-* touch targets مناسبة
-
-الـfocus يجب أن يكون واضحًا وليس مجرد تغيير لون بسيط.
-
----
-
-# Icons
-
-اللغة:
-
-```text
-Outlined / Stroke based
-Lucide
-```
-
-Sizes:
-
-```text
-14
-16
-18
-20
-24
-32+
-```
-
-Stroke:
-
-```text
-approximately 1.75–2px
-```
-
-لا تضف icon library ثانية بدون سبب.
-
----
-
-# IMPORTANT — Tailwind Utility Strategy
-
-نريد الاستفادة من Tailwind، لكن لا نريد تكرار نفس التصميم في كل شاشة.
-
-إذا كانت قيمة أو pattern:
-
-* متكررًا
-* semantic
-* جزءًا من هوية Sanad
-* أو يحتاج consistency
-
-فالأفضل تعريفه مرة واحدة في الـtheme/style layer أو reusable utility/component مناسب.
-
-مثلاً:
-
-بدل تكرار styling طويل لنفس container في عشرات الصفحات، أنشئ abstraction مناسب مثل:
-
-```text
-container / page-container
-```
-
-أو utility semantic مناسبة.
-
-لكن:
-
-**لا تحول كل Tailwind utility إلى custom class.**
-
-Tailwind utilities البسيطة ما زالت مسموحة.
-
-المطلوب هو منع:
-
-```text
-hardcoded brand values
-```
-
-ومنـع تكرار نفس combination من utilities في كل مكان.
-
----
-
-# VERY IMPORTANT — No Hardcoded Brand Values
-
-بعد إعداد الـtokens، لا تستخدم في application code:
-
-```text
-bg-[#0A6C7E]
-text-[#0A6C7E]
-border-[#...]
-shadow-[...]
-```
-
-إذا كان اللون أو القيمة جزءًا من Design System، استخدم semantic token.
-
-مثال:
-
-```text
-bg-primary
-text-primary-foreground
-border-border
-bg-muted
-text-muted-foreground
-```
-
-ولـSanad custom tokens استخدم الـsemantic names المناسبة.
-
-الهدف:
-
-> تغيير الهوية لاحقًا يجب أن يكون ممكنًا من طبقة الـtokens، وليس من مئات الملفات.
-
----
-
-# Existing Project
-
-المكونات الموجودة حاليًا:
-
-```text
-src/
-├── app/
-├── components/
-│   ├── form/
-│   │   ├── field-shell.tsx
-│   │   ├── form-checkbox.tsx
-│   │   ├── form-input.tsx
-│   │   ├── form-radio-group.tsx
-│   │   ├── form-select.tsx
-│   │   ├── form-submit-button.tsx
-│   │   ├── form-switch.tsx
-│   │   ├── form-textarea.tsx
-│   │   ├── index.ts
-│   │   └── use-entity-form.ts
-│   │
-│   ├── ui/
-│   │   ├── button.tsx
-│   │   ├── card.tsx
-│   │   ├── checkbox.tsx
-│   │   ├── direction.tsx
-│   │   ├── dropdown-menu.tsx
-│   │   ├── field.tsx
-│   │   ├── input-group.tsx
-│   │   ├── input.tsx
-│   │   ├── label.tsx
-│   │   ├── radio-group.tsx
-│   │   ├── select.tsx
-│   │   ├── separator.tsx
-│   │   ├── skeleton.tsx
-│   │   ├── sonner.tsx
-│   │   ├── spinner.tsx
-│   │   ├── switch.tsx
-│   │   └── textarea.tsx
-│   │
-│   ├── theme-provider.tsx
-│   └── theme-toggle.tsx
-```
-
-المشروع حاليًا قريب من **default shadcn setup**.
-
----
-
-# Current globals.css
-
-المشروع حاليًا يستخدم:
-
-```css
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
-
-@custom-variant dark (&:is(.dark *));
-
-@theme inline {
-    --font-heading: var(--font-sans);
-    --font-sans: var(--font-sans);
-
-    --color-sidebar-ring: var(--sidebar-ring);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar: var(--sidebar);
-
-    --color-chart-5: var(--chart-5);
-    --color-chart-4: var(--chart-4);
-    --color-chart-3: var(--chart-3);
-    --color-chart-2: var(--chart-2);
-    --color-chart-1: var(--chart-1);
-
-    --color-ring: var(--ring);
-    --color-input: var(--input);
-    --color-border: var(--border);
-    --color-destructive: var(--destructive);
-
-    --color-accent-foreground: var(--accent-foreground);
-    --color-accent: var(--accent);
-
-    --color-muted-foreground: var(--muted-foreground);
-    --color-muted: var(--muted);
-
-    --color-secondary-foreground: var(--secondary-foreground);
-    --color-secondary: var(--secondary);
-
-    --color-primary-foreground: var(--primary-foreground);
-    --color-primary: var(--primary);
-
-    --color-popover-foreground: var(--popover-foreground);
-    --color-popover: var(--popover);
-
-    --color-card-foreground: var(--card-foreground);
-    --color-card: var(--card);
-
-    --color-foreground: var(--foreground);
-    --color-background: var(--background);
-
-    --radius-sm: calc(var(--radius) * 0.6);
-    --radius-md: calc(var(--radius) * 0.8);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.8);
-    --radius-3xl: calc(var(--radius) * 2.2);
-    --radius-4xl: calc(var(--radius) * 2.6);
-}
-
-:root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-
-    --radius: 0.625rem;
-
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
-}
-
-@layer base {
-  :root {
-    --font-sans: var(--font-inter), var(--font-tajawal), ui-sans-serif, system-ui, sans-serif;
-  }
-
-  * {
-    @apply border-border outline-ring/50;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-  }
-
-  html {
-    @apply font-sans;
-  }
-}
-```
-
----
-
-# What NOT to do now
-
-لا تقم الآن بـ:
-
-1. إعادة تصميم Button.
-2. إعادة تصميم Card.
-3. إعادة تصميم Input.
-4. إعادة تصميم Forms.
-5. إعادة تصميم Sidebar.
-6. إعادة كتابة components الموجودة.
-7. إضافة animation system كبير.
-8. إنشاء design components جديدة لمجرد التجميل.
-9. تغيير architecture الخاص بالمشروع بدون ضرورة.
-10. إدخال فلسفة UI جديدة من عندك.
-
-**سنقوم بمراجعة الـcomponents لاحقًا في مرحلة منفصلة.**
-
----
-
-# Next Phase — Component Review
-
-بعد الانتهاء من Foundation، توقف.
-
-لا تبدأ تلقائيًا في إعادة بناء الـcomponents.
-
-المرحلة التالية التي سنطلبها منك لاحقًا ستكون:
-
-> **Review existing components against Sanad Design Philosophy**
-
-وفيها سنراجع:
-
-* Button
-* Input
-* Field
-* Card
-* Select
-* Checkbox
-* Radio
-* Switch
-* Dropdown
-* Form components
-* Skeleton
-* Spinner
-* Toast/Sonner
-* Theme handling
-* Direction handling
-
-لكن ليس الآن.
-
-عندما تبدأ هذه المرحلة، لا تفترض أن كل component يجب أن يتغير.
-
-لكل component اسأل:
-
-1. هل يخدم Sanad philosophy؟
-2. هل الـvisual hierarchy صحيح؟
-3. هل الـstates صحيحة؟
-4. هل الـspacing/radius صحيح؟
-5. هل RTL صحيح؟
-6. هل accessibility صحيحة؟
-7. هل يعتمد على semantic tokens؟
-8. هل توجد hardcoded values؟
-9. هل الـAPI الخاص بالcomponent جيد؟
-10. هل يحتاج customization أم shadcn default كافٍ؟
-
----
-
-# Current priority
-
-الآن الأولوية فقط:
-
-```text
-Sanad Identity
-      ↓
-Tokens
-      ↓
-Theme
-      ↓
-Utilities / Foundations
-      ↓
-STOP
-```
-
-ثم نراجع الـcomponents معًا.
-
----
-
-# Final instruction
-
-نفّذ الـFoundation بعناية، وراجع الملفات الحالية قبل تعديلها.
-
-لا تحذف functionality موجودة.
-
-لا تغير behavior الموجود إلا إذا كان ضروريًا للـtheme/foundation.
-
-لا تضف dependencies جديدة إلا إذا كانت ضرورية فعلًا.
-
-بعد التنفيذ، أعطني تقريرًا مختصرًا يوضح:
-
-1. الملفات التي تم تعديلها.
-2. الـtokens التي تمت إضافتها.
-3. الـtokens التي تمت إعادة mapping لها.
-4. أي utilities/foundations جديدة.
-5. أي قرارات اضطررت لاتخاذها بسبب بنية المشروع.
-6. أي شيء لم تستطع تنفيذه بأمان وتحتاج مني مراجعته.
-
-ثم **توقف ولا تبدأ Component Review**.
-
-### ملاحظة مني قبل ما تبعته
-
-في الـprompt تعمدت أقول له **"لا تعيد تصميم الـcomponents الآن"** وبوضوح شديد.
-
-لأن المرحلة الحالية عندنا هي:
-
-**C = تثبيت الأرضية**
-
-وليس:
-
-**C = تجميل كل حاجة.**
-
-وبعد ما يخلص، نقدر نشتغل سوا على المرحلة التالية بالطريقة اللي اتفقنا عليها: **نراجع فلسفة كل Component، ونقرر هل نُبقي shadcn كما هو، نعدله، أو نبني abstraction خاص بسَنَد.**
-
-وكمان خليته لا يحول كل Tailwind utility إلى custom class؛ لأن ده ممكن يعمل لنا abstraction مبالغ فيه. الهدف هو **إزالة التكرار والـhardcoded design decisions**، مش منع Tailwind نفسه.
-
+STATUS_AND_NEXT.md
+------------
+# أين نحن وإلى أين
+
+## كيف تقرأ هذا الملف
+- جدول الحالة أولًا: ماذا يعمل فعلًا وماذا لا.
+- ثم مشاكل رأيتها في الكود (بدون إصلاح).
+- ثم الخطوات التالية بالترتيب، وسؤال لك قبل كل خطوة.
+
+## جدول الحالة
+| الميزة | الحالة | الدليل |
+|---|---|---|
+| تسجيل بإيميل/باسورد + دخول | يعمل | `registerAction`/`loginAction` + اختبار دخاني سابق |
+| دخول Google | يعمل (بالمفاتيح) | زر مشروط في `login/page.tsx` |
+| تأكيد الإيميل | يعمل (رابط في الـ logs) | `verifyEmailToken` + صفحة verify |
+| استعادة الباسورد | تعمل (رابط في الـ logs) | `requestPasswordReset`/`resetPassword` |
+| إرسال إيميل حقيقي | غير مبني | `sendAuthLink` تطبع فقط |
+| تسجيل الخروج (زر) | غير مبني | لا زر ولا مستدعٍ لـ `signOut` |
+| إنشاء مركز (transaction) | يعمل | `createCenter` + حد 3 + شرط التفعيل |
+| الانضمام بكود | يعمل | `consumeInvite` (ذري + إعادة فحص) |
+| إنشاء الدعوات من الواجهة | غير مبني | `createInvite` بلا صفحة |
+| إدارة الفريق/الأدوار | غير مبنية | `guardAdminChange` بلا واجهة |
+| الفروع (عرض) | يعمل جزئيًا | الداشبورد يعرضها؛ لا إنشاء فرع ثانٍ من الواجهة |
+| البرامج (اختيار عند الإنشاء) | يعمل | لا إدارة لاحقة (تفعيل/تعطيل) |
+| صفحة المنصة (أدمن عام) | تعمل | `platform/page.tsx` + seed |
+| بوابة ولي الأمر | غير مبنية | زر معطل فقط |
+| الطلاب/المجموعات/الحضور | غير مبنية | كارت «قريبًا» فقط |
+| UI foundation (شادن + فورمات + سمة + خطوط) | يعمل | كل الصفحات بالبطاقات + `/ui-demo` |
+| توكنات Sanad | تعمل | `globals.css` + `docs/sanad-tokens.md` |
+| الاختبارات الآلية | تعمل (19 ناجحة) | `npm run test` |
+
+## مشاكل وديون رأيتها (بدون إصلاح)
+1. `sessionVersion` يُرفع عند تغيير الباسورد لكن لا شيء يقارنه — «الخروج من كل الأجهزة» غير مفعّل فعليًا، والـ JWT لا يحمله أصلًا.
+2. لا زر خروج في أي صفحة — الجلسة تبقى حتى انتهائها.
+3. تحقق `branchIds` في الـ schema يعمل عند الإنشاء فقط وليس التحديث المباشر — الأمان الحالي يعتمد على مرور كل كتابة عبر الـ services.
+4. `guardAdminChange` يعدّ الأدمنز خارج transaction — سباق نظري موثق في الكود (`adminsVersion` موجود للحل لاحقًا).
+5. `getPlatformStats` تقرأ كل المراكز دفعة واحدة — تكفي الآن وتحتاج ترقيم صفحات لاحقًا.
+6. رابط التحقق/الاستعادة يُطبع في الـ logs — أي وصول للـ terminal يعني اختراق حسابات (مقبول للتطوير فقط).
+
+## الخطوات التالية المقترحة
+1. **زر الخروج + تفعيل `sessionVersion`**: الهدف جلسات آمنة. يُبنى زر في الداشبورد ينادي `signOut`، وتُضاف مقارنة النسخة في `getSessionContext`. البدء من `dashboard/page.tsx` و`session-context.ts`. سؤال: هل الخروج من جهاز واحد أم كل الأجهزة؟
+2. **إنشاء الدعوات من الواجهة**: الهدف إدخال المعلمين فعليًا. تُبنى صفحة للمالك/المشرف تعرض `createInvite` وتُظهر الكود مرة واحدة. البدء من `services/invites.ts` وصفحة جديدة. سؤال: من يرى الأكواد النشطة ويلغيها؟
+3. **إدارة الفريق**: الهدف تفعيل `guardAdminChange`. صفحة أعضاء المركز (تغيير دور/تعطيل). البدء من `services/memberships.ts`. سؤال: هل المعلم يرى قائمة زملائه؟
+4. **الطلاب والمجموعات**: الهدف أول كيان تعليمي. جداول + صفحات جديدة بالنطاق نفسه. سؤال: هل الطالب يُسجَّل برقم هاتف ولي الأمر من البداية؟
+
+## أسئلة قبل الخطوة التالية
+- أي خطوة من الأربع أولًا؟
+- هل أبني واجهة إنشاء الدعوات قبل إدارة الفريق أم معًا؟
+---------------------+--------------------------------
+
+# المسارات (Flows)
+
+## كيف تقرأ هذا الملف
+- كل مسار رسمة نصية من الضغطة حتى الداتابيز والعودة.
+- تحت كل رسمة: الملف والدالة الفعليان لكل خطوة، وما يحدث عند الخطأ.
+- الأسماء حرفية كما في الكود.
+
+## 1) Auth Flow (التسجيل والدخول)
+
+### 1-أ) حساب جديد بإيميل وباسورد
+```
+زر «إنشاء الحساب»
+  → الفورم يتحقق محليًا (registerSchema)
+  → registerAction (register/actions.ts)
+  → registerAccount (services/auth-accounts.ts): إيميل مكرر؟ اسم/باسورد قصير؟
+  → User.create + VerificationToken.create (بصمة الرابط لا نصه)
+  → sendAuthLink: يطبع الرابط في الـ logs فقط (الإرسال الحقيقي لسه مش مبني)
+  → signIn("credentials") دخول تلقائي → تحويل /onboarding
+```
+- عند الخطأ: إيميل مكرر ← رسالة «هذا البريد مسجل بالفعل». حقول ناقصة ← «تحقق من الحقول».
+
+### 1-ب) الدخول بإيميل وباسورد
+```
+زر «دخول»
+  → loginAction (login/actions.ts) يتحقق من loginSchema
+  → signIn("credentials") (src/lib/auth/config.ts)
+  → authorize → verifyCredentials: يبحث بالإيميل + يقارن البصمة + يرفض غير active
+  → نجاح: JWT يُختم ويُحفظ في كوكي. فشل: رسالة «بيانات الدخول غير صحيحة أو الحساب موقوف»
+```
+- الـ JWT فيه `userId` فقط (سطر `token.userId` في callback الـ `jwt`). لا أدوار ولا مركز فيه.
+- الـ session تُبنى منه عند كل قراءة (`session.user.id`) — الملف `src/lib/auth/config.ts`.
+
+### 1-ج) الدخول بـ Google
+```
+زر «الدخول بـ Google» (يظهر فقط لو GOOGLE_CLIENT_ID موجود)
+  → googleAction في login/page.tsx → signIn("google")
+  → callback الـ signIn ينادي ensureGoogleUser: موجود؟ يرفض الموقوف ويثبّت التفعيل. جديد؟ ينشئه مفعّلًا
+  → تحويل /onboarding
+```
+
+### 1-د) تأكيد الإيميل (مبني ويعمل)
+```
+الرابط /verify?email&token (من الـ logs)
+  → verify/page.tsx تنادي verifyEmailToken
+  → تطابق البصمة + عدم الانتهاء → User.emailVerifiedAt + حذف التوكن لمرة واحدة
+  → «تم تفعيل بريدك» بزر إكمال، أو «الرابط غير صالح»
+```
+- التفعيل **شرط** إنشاء مركز (`createCenter` ترفض غير المفعّل).
+
+### 1-هـ) نسيان الباسورد (مبني ويعمل)
+```
+forgot → forgotAction → requestPasswordReset: لو الحساب موجود ينشئ توكن ساعتين ويطبع الرابط (صمت تام لو غير موجود)
+  → reset?email&token → resetAction → resetPassword: يبدّل البصمة + يرفع sessionVersion + يحذف التوكن → تحويل /login
+```
+- تحذير: رفع `sessionVersion` مكتوب لكن **لا شيء يقرأه** — الخروج من كل الأجهزة لسه مش مفعّل فعليًا (انظر STATUS_AND_NEXT).
+
+### تسجيل الخروج (لسه مش مبني)
+لا يوجد زر خروج في أي صفحة. الدالة `signOut` مُصدَّرة من الإعداد لكن بلا مستدعٍ.
+
+## 2) User Flow (رحلة المستخدم)
+```
+/ → register (حساب) → /onboarding
+  → الكارت 1 «إنشاء مركز جديد»: بيانات + برامج (واحد على الأقل + مخصص اختياري)
+      → createCenterAction → createCenter → كوكي active_org → /dashboard
+  → الكارت 2 «عندي كود دعوة»: كود من مشرف
+      → enterCodeAction → consumeInvite → كوكي active_org → /dashboard
+  → الكارت 3 «متابعة طفلي»: زر معطل (قريبًا) — لسه مش مبني
+  → لو له عضويات: أزرار «دخول <اسم المركز>» تثبت الكوكي عبر setActiveOrg
+/dashboard: اسم المركز + الدور + الفروع (تظهر فقط لو أكثر من فرع) + البرامج + كارت «قريبًا»
+```
+- إنشاء مركز بإيميل غير مفعّل ← رسالة «فعّل بريدك أولًا».
+- أكثر من 3 مراكز لنفس المنشئ ← رفض `FORBIDDEN`.
+
+## 3) API/Data Flow (مسار طلب كامل)
+```
+مثال: فتح /dashboard
+صفحة (app/dashboard/page.tsx)
+  → viewer() (services/viewer.ts): يقرأ الجلسة (auth) وكوكي active_org
+  → getSessionContext(userId, activeOrgId) (services/session-context.ts):
+     يقرأ User (الحالة؟ أدمن عام؟) ثم Membership (فعالة؟) ويبني {orgId, role, branchScope}
+  → getDashboard(ctx) (services/screens.ts):
+     التحقق zod كان في الـ action (للقراءة: لا مدخلات)
+     الصلاحيات: kind必须为 member وإلا تحويل (في الصفحة نفسها)
+     العزل: Org.findOne({_id, ...}) ضمنيًا + Branch.find(scopedFilter(ctx, "_id"))
+  → الرد: كائن بيانات عادي {orgName, role, branches, programs}
+     (ملاحظة: شكل Result الموحد معرّف لكن الأكشنات ترد {ok, message} مباشرة — انظر قسم غير المستخدم)
+```
+- القاعدة: `orgId` يأتي من السياق السيرفري دائمًا، والعميل لا يرسله أبدًا (الكوكي مجرد مؤشر يُتحقق منه).
+- أي `findById` مباشر ممنوع بموجب قاعدة ESLint (الـ models لا تُستورد إلا في services/scripts/tests).
+
+## 4) Context Flow (حالات السياق)
+```
+getSessionContext(userId, activeOrgId):
+  userId فارغ/تالف → خطأ UNAUTHENTICATED (الصفحة تحوّل إلى /login)
+  المستخدم غير موجود أو غير active → UNAUTHENTICATED
+  isPlatformAdmin → {kind: "platform"} (يُقبل فقط في /platform، وغيره يُحوَّل)
+  بلا active_org صالح → {kind: "onboarding"} (صفحات الداشبورد تحوّل إلى /onboarding)
+  بلا عضوية فعالة في المركز → خطأ FORBIDDEN
+  عضوية فعالة → {kind: "member", orgId, role, branchScope}
+     الدور center_admin ← نطاق all (كل الفروع)
+     غيره ← نطاق list (فروع العضوية فقط)
+```
+
+## 5) Create Org Flow (إنشاء مركز بالتفصيل)
+```
+createCenterAction (تحقق createCenterSchema + تحويل المخصص إلى custom:...)
+  → createCenter (services/orgs.ts):
+     1. تحقق داخلي ثانٍ + شرط الإيميل المفعّل + عد المراكز (3 كحد أقصى)
+     2. transaction واحدة (mongoose.startSession + withTransaction):
+        - Org.create (الاسم/التواصل/العنوان/createdByUserId)
+        - Branch.create (نفس المركز، الاسم ثابت «الفرع الرئيسي»)
+        - Membership.create (المنشئ center_admin بلا فروع)
+        - OrgProgram.create (صف لكل برنامج مختار)
+     3. عند أي فشل: الـ transaction تلغي الكل، والأكشن يرد رسالة عربية
+  → كوكي active_org = المركز الجديد → تحويل /dashboard
+```
+- عند الخطأ: رسالة الخدمة تُعرض كما هي بعد حذف بادئة `VALIDATION:`/`FORBIDDEN:`.
+---------------------+--------------------------------
+
+# خريطة المشروع (للمبتدئ)
+
+## كيف تقرأ هذا الملف
+- القسم الأول فهرس: اضغط على أي رابط للقفز لقسمه.
+- الأسماء مكتوبة حرفيًا كما في الكود لتقدر تبحث عنها.
+- كلمة callers تعني "مين بينادي على الدالة"، وكلمة callees تعني "الدالة بتنادي على مين".
+
+## الفهرس
+- [شجرة المجلدات](#شجرة-المجلدات)
+- [طبقة app/ (الصفحات)](#طبقة-app-الصفحات)
+- [طبقة components/](#طبقة-components)
+- [طبقة lib/](#طبقة-lib)
+- [طبقة services/](#طبقة-services)
+- [طبقة db/models/](#طبقة-dbmodels)
+- [طبقة validators/](#طبقة-validators)
+- [طبقة scripts/](#طبقة-scripts)
+- [طبقة tests/](#طبقة-tests)
+- [الملفات الجذرية](#الملفات-الجذرية-config)
+- [جدول الـ Routes](#جدول-الـ-routes)
+- [جدول الـ Server Actions والـ API](#جدول-الـ-server-actions-والـ-api)
+- [موجود لكن غير مستخدم](#موجود-لكن-غير-مستخدم-حاليا)
+
+## شجرة المجلدات
+- `src/app/`: الصفحات التي يفتحها المستخدم في المتصفح. كل مجلد باسمه = عنوان في الموقع.
+- `src/components/ui/`: قطع جاهزة من مكتبة shadcn (زر، كارت، حقل إدخال). مولّدة آليًا — لا تعدلها بيدك.
+- `src/components/form/`: حقول فورمات جاهزة من صنع المشروع، كل حقل يُستخدم بسطر واحد.
+- `src/components/`: مكونات عامة من صنع المشروع (مبدل السمة...).
+- `src/lib/`: دوال صغيرة نقية. كلمة نقية تعني لا تفتح الداتابيز بنفسها.
+- `src/db/`: شكل الجداول (models) وطريقة الاتصال بالداتابيز.
+- `services/`: العقل. أي قراءة أو كتابة في الداتابيز تتم من هنا فقط، وبعده تُمنع في الصفحات (قاعدة ESLint).
+- `src/validators/`: قواعد التحقق (zod) المشتركة بين المتصفح والسيرفر.
+- `scripts/`: أوامر تُشغَّل من سطر الأوامر (terminal) وليست صفحات.
+- `tests/`: اختبارات آلية تتأكد أن العزل بين المراكز يعمل.
+- `docs/`: هذا التوثيق وملفات مرجعية أخرى.
+- `middleware.ts` (جذر): بوابة خفيفة تتحقق هل الزائر مسجل دخول أم لا.
+
+## طبقة app/ (الصفحات)
+كل صفحة ملف اسمه `page.tsx`. ملف `form.tsx` يعني فورم تفاعلي (Client Component — يعمل في المتصفح). ملف `actions.ts` يعني دوال سيرفر (Server Action — تعمل على السيرفر وتُستدعى من الفورم).
+
+- `src/app/page.tsx`: صفحة البداية. تعرض كارت «سَنَد» مع زري الدخول والحساب. لو مسجل دخول تحوله إلى `/onboarding`. لا تنادي services.
+- `src/app/layout.tsx`: الغلاف العام لكل الصفحات (الخطوط، الاتجاه RTL، السمة، التنبيهات). لا منطق فيه.
+- `src/app/loading.tsx`: شاشة تحميل (Skeleton — مستطيلات رمادية متحركة) تظهر أثناء فتح أي صفحة.
+- `src/app/not-found.tsx`: صفحة 404 بزر عودة للبداية.
+- `src/app/login/page.tsx`: كارت الدخول + زر Google (يظهر فقط لو مفاتيح Google موجودة). فيها `googleAction` تنادي `signIn("google")` من `src/lib/auth/config.ts`.
+- `src/app/login/form.tsx`: فورم الدخول. الدالة `LoginForm` تنادي `loginAction` من `./actions`، وعند الفشل تعرض الرسالة بـ `FormAlert` وتنبيه `toast`.
+- `src/app/login/actions.ts`: الدالة `loginAction(values)` تتحقق من `loginSchema` ثم تنادي `signIn("credentials")` من `src/lib/auth/config.ts`. عند النجاح تحول إلى `/onboarding`.
+- `src/app/register/page.tsx` + `form.tsx` (الدالة `RegisterForm`): نفس نمط الدخول.
+- `src/app/register/actions.ts`: الدالة `registerAction(values)` تتحقق من `registerSchema` ثم تنادي `registerAccount` من `services/auth-accounts.ts` (الخطأ `TAKEN` يعني الإيميل مسجل)، ثم دخول تلقائي ثم تحويل إلى `/onboarding`.
+- `src/app/forgot/page.tsx` + `form.tsx` (الدالة `ForgotForm`): تطلب الإيميل فقط.
+- `src/app/forgot/actions.ts`: الدالة `forgotAction(values)` تنادي `requestPasswordReset` من `services/auth-accounts.ts` وترد دائمًا بنجاح حتى لا تكشف وجود الحسابات.
+- `src/app/reset/page.tsx` + `form.tsx` (الدالة `ResetForm` تستقبل `email` و`token`): كلمة مرور جديدة.
+- `src/app/reset/actions.ts`: الدالة `resetAction(email, token, values)` تنادي `resetPassword` من `services/auth-accounts.ts`، وعند النجاح تحول إلى `/login`.
+- `src/app/verify/page.tsx`: صفحة تفعيل الإيميل من الرابط. تنادي `verifyEmailToken` من `services/auth-accounts.ts` وتعرض نجاحًا أو فشلًا مع زر مناسب.
+- `src/app/onboarding/page.tsx`: شاشة البداية بعد الدخول. تنادي `auth()` ثم `listMyMemberships` من `services/org-selection.ts`. تعرض أزرار «دخول» لكل عضوية (كل زر فورم صغير ينادي `setActiveOrg`) + 3 كروت: إنشاء مركز / عندي كود / متابعة طفلي (معطل).
+- `src/app/onboarding/actions.ts`: الدالة `setActiveOrg(formData)` تنادي `activateOrg` من `services/org-selection.ts` ثم تخزن كوكي `active_org` ثم تحول إلى `/dashboard`.
+- `src/app/onboarding/create-center/page.tsx`: كارت بخطوتين ظاهريًا وإرسال واحد.
+- `src/app/onboarding/create-center/form.tsx`: الدالة `CreateCenterForm` تستخدم `FormCheckboxes` للبرامج من `PROGRAM_CATALOG` في `src/lib/programs.ts` + حقل برنامج مخصص، وتنادي `createCenterAction`.
+- `src/app/onboarding/create-center/actions.ts`: الدالة `createCenterAction(values)` تتحقق من `createCenterSchema`، وتحول البرنامج المخصص إلى مفتاح `custom:...` عبر `customProgramKey`، ثم تنادي `createCenter` من `services/orgs.ts`، ثم تخزن كوكي `active_org` وتحول إلى `/dashboard`.
+- `src/app/onboarding/enter-code/page.tsx` + `form.tsx` (الدالة `EnterCodeForm`): حقل كود واحد.
+- `src/app/onboarding/enter-code/actions.ts`: الدالة `enterCodeAction(values)` تنادي `consumeInvite` من `services/invites.ts` ثم تخزن كوكي `active_org` وتحول إلى `/dashboard`.
+- `src/app/dashboard/page.tsx`: لوحة المركز. تنادي `viewer()` من `services/viewer.ts` (غير العضو يُحوَّل إلى `/onboarding`) ثم `getDashboard` من `services/screens.ts`. تعرض اسم المركز والدور والفروع (تظهر فقط لو أكثر من فرع) والبرامج وكارت «قريبًا» وزر تبديل المركز و`ThemeToggle`.
+- `src/app/platform/page.tsx`: شاشة المنصة للأدمن العام فقط. تنادي `viewer()` (غير المنصة يُحوَّل) ثم `getPlatformStats` من `services/screens.ts`. تعرض لكل مركز: الاسم والفروع والأعضاء والبرامج والتواصل — أرقام فقط بلا تفاصيل.
+- `src/app/ui-demo/page.tsx`: بوابة معرض المكونات. لو `NODE_ENV` يساوي `production` تعرض 404، وإلا تعرض `DemoSections` من `./demo`.
+- `src/app/ui-demo/demo.tsx`: الدالة `DemoSections` (عرض ثابت) + `DemoForm` (فورم تجريبي بإرسال وهمي) + `EditExample` (يحاكي تحميل سجل بعد ثانية لعرض وضع التعديل).
+- `src/app/api/auth/[...nextauth]/route.ts`: نقطة استقبال طلبات Auth.js (الدخول والجلسات). يصدّر `GET` و`POST` من `handlers` في `src/lib/auth/config.ts`.
+
+## طبقة components/
+- `src/components/ui/*` (17 ملفًا مولدًا): `button` `card` `input` `label` `textarea` `select` `radio-group` `checkbox` `switch` `field` `input-group` `sonner` `separator` `skeleton` `dropdown-menu` `direction` `spinner`. لا منطق مشروع فيها.
+- `src/components/form/field-shell.tsx`: `FieldShell` (عنوان + وصف + خطأ حول أي حقل) و`FormAlert` (رسالة خطأ على مستوى الفورم). مستدعاة من كل حقول الفورم.
+- `src/components/form/form-input.tsx`: `FormInput` (نص/إيميل/باسورد مع زر إظهار/رقم يفرق الفارغ عن الصفر/هاتف، أيقونات بداية/نهاية). مستدعاة من فورمات login/register/forgot/reset/create-center/enter-code.
+- `src/components/form/form-textarea.tsx`: `FormTextarea`. لا مستدعٍ لها حاليًا خارج `ui-demo`.
+- `src/components/form/form-select.tsx`: `FormSelect`. لا مستدعٍ لها حاليًا خارج `ui-demo`.
+- `src/components/form/form-radio-group.tsx`: `FormRadioGroup`. لا مستدعٍ لها حاليًا خارج `ui-demo`.
+- `src/components/form/form-checkbox.tsx`: `FormCheckbox` (مفرد) و`FormCheckboxes` (مجموعة، تُستخدم في فورم إنشاء المركز للبرامج).
+- `src/components/form/form-switch.tsx`: `FormSwitch`. لا مستدعٍ لها حاليًا خارج `ui-demo`.
+- `src/components/form/form-submit-button.tsx`: `FormSubmitButton` يعرض «جارٍ الحفظ…» ويُعطَّل أثناء الإرسال. مستدعاة من كل الفورمات.
+- `src/components/form/use-entity-form.ts`: `useEntityForm({schema, defaultValues, values})` — يبني الفورم مع `zodResolver`، ولو وصل `values` لاحقًا (وضع التعديل) يعيد الضبط عليها. مستدعاة من كل الفورمات.
+- `src/components/form/index.ts`: يعيد تصدير كل ما سبق فقط.
+- `src/components/theme-provider.tsx`: `ThemeProvider` (يغلّف `next-themes`). مستدعاة من `layout.tsx`.
+- `src/components/theme-toggle.tsx`: `ThemeToggle` (قائمة فاتح/داكن/النظام). مستدعاة من صفحة الداشبورد و`ui-demo`.
+- `src/lib/utils.ts`: الدالة `cn` (دمج أسماء CSS). مستدعاة من مكونات shadcn المولدة.
+
+## طبقة lib/
+- `src/lib/auth/config.ts`: إعداد Auth.js. يصدّر `handlers` (يستخدمه route الـ API) و`auth` (قراءة الجلسة — تستخدمه الصفحات والـ middleware) و`signIn`/`signOut` (يستخدمهما login/register). الدالة الداخلية `authorizeLogin` تنادي `verifyCredentials`. الـ callback `signIn` لحساب Google ينادي `ensureGoogleUser`. الـ callback `authorized` يسمح للمسارات العامة ويطلب جلسة لغيرها.
+- `src/lib/env.ts`: `getEnv()` تقرأ وتتحقق من متغيرات البيئة حسب `NODE_ENV`، و`__resetEnvCache()` للاختبارات فقط. مستدعاة من `instrumentation.ts` و`connectDB` و`invites.ts` و`auth-accounts.ts` و`dev-logger.ts`.
+- `src/lib/tenant/context.ts`: الأنواع فقط: `SessionContext` (ثلاث حالات: `platform` أدمن عام بلا مركز، `onboarding` مسجل بلا مركز، `member` عضو بمركز ودور ونطاق فروع) و`BranchScope` (`all` للمالك أو `list` بفروع محددة).
+- `src/lib/tenant/scopedFilter.ts`: `scopedFilter(ctx, branchField)` تبني فلتر `{orgId}` وتضيف شرط الفروع لو النطاق `list`. مستدعاة من `screens.ts` و`branches-read.ts`.
+- `src/lib/permissions/roles.ts`: `ROLES` و`can(role, action)` (جدول ثابت) و`rank(role)` (3/2/1 لمنع منح دور أعلى). مستدعاة من `invites.ts` و`memberships.ts` والاختبارات.
+- `src/lib/result.ts`: النوع `Result` والدالتان `ok` و`fail`. لا مستدعٍ لهما حاليًا.
+- `src/lib/invite-code.ts`: `generateInviteCode` (كود 8 حروف) و`normalizeInviteCode` (توحيد قبل المقارنة) و`hashInviteCode` (بصمة HMAC-SHA256 بالـ pepper). مستدعاة من `invites.ts` والاختبارات.
+- `src/lib/programs.ts`: `PROGRAM_CATALOG` (قرآن/تجويد/تربية/مقرأة/ملعب) و`customProgramKey` (تحويل الاسم المخصص إلى `custom:...`). مستدعاة من فورم وأكشن إنشاء المركز.
+- `src/lib/email/dev-logger.ts`: `sendAuthLink` تطبع رابط الإيميل في الـ logs (الإرسال الحقيقي لسه مش مبني). مستدعاة من `auth-accounts.ts`.
+
+## طبقة services/
+- `services/auth-accounts.ts`: `registerAccount` (إنشاء + رابط تفعيل، الخطأ `TAKEN` للإيميل المكرر) ← يناديها `registerAction`. `verifyEmailToken` ← صفحة verify. `requestPasswordReset` (صامتة لو الحساب غير موجود) ← `forgotAction`. `resetPassword` (ترفع `sessionVersion`) ← `resetAction`. `verifyCredentials` ← إعداد Auth.js. `ensureGoogleUser` ← إعداد Auth.js عند دخول Google.
+- `services/session-context.ts`: `getSessionContext(userId, activeOrgId)` تبني السياق من الداتابيز في كل طلب: بلا user ← `UNAUTHENTICATED`، أدمن عام ← `platform`، بلا مركز ← `onboarding`، بلا عضوية فعالة ← `FORBIDDEN`، وإلا `member` بالنطاق من الدور. تنادي `User` و`Membership`. يناديها `viewer`.
+- `services/viewer.ts`: `viewer()` تقرأ الجلسة (`auth`) وكوكي `active_org` ثم تنادي `getSessionContext`. تناديها صفحات dashboard وplatform.
+- `services/org-selection.ts`: `listMyMemberships(userId)` (عضوياتي الفعالة مع أسماء المراكز) ← صفحة onboarding. `activateOrg(userId, orgId)` (تتحقق من عضوية فعالة) ← أكشن `setActiveOrg`.
+- `services/orgs.ts`: `createCenter(userId, raw)` تتحقق داخليًا بـ schema خاص، تشترط إيميلًا مفعّلًا و3 مراكز كحد أقصى، ثم transaction واحدة تكتب Org + فرع «الفرع الرئيسي» + عضوية مالك + البرامج. يناديها أكشن إنشاء المركز.
+- `services/invites.ts`: `createInvite` (إنشاء كود بحد 20 نشطة، بلا مستدعٍ من الواجهة حاليًا) و`consumeInvite` (استهلاك ذري بشرط واحد ثم إعادة فحص صلاحية الداعي والفرع، ثم إنشاء عضوية أو إعادة تفعيل معطلة). تنادي `assertMembershipShape` و`assertBranchesInOrg`. ينادي `consumeInvite` أكشن إدخال الكود.
+- `services/memberships.ts`: `assertMembershipShape` (الفروع إجبارية للأدوار المحدودة) و`assertBranchesInOrg` (الفروع داخل نفس المركز) و`guardAdminChange` (حماية المنشئ وآخر أدمن — مع ملاحظة سباق مكتوبة في الكود) و`assertRankAllows`. تُستخدم في `invites.ts` والاختبارات فقط حاليًا.
+- `services/screens.ts`: `getDashboard(ctx)` (اسم المركز + الفروع بالنطاق + البرامج) ← الداشبورد. `getPlatformStats()` (أرقام كل المراكز) ← صفحة المنصة.
+- `services/branches-read.ts`: `listBranches(ctx)` خدمة صغيرة للاختبار فقط — لا تستخدمها الصفحات.
+
+## طبقة db/models/
+كلها تعريف شكل الجدول فقط (Mongoose Schema). الجداول الفعلية في MongoDB بأسماء جمع lowercase (users, orgs...).
+- `User.ts`: الهوية (اسم/إيميل فريد/صورة/باسورد مخفي `select:false`/حالة/أدمن عام/`sessionVersion`). تُقرأ من كل خدمات الحسابات والسياق.
+- `Org.ts`: المركز + `adminsVersion` (مخصص لمنع السباق لاحقًا) + منشئ المركز.
+- `Branch.ts`: الفرع (اسم فريد داخل المركز + حالة). فهرس `{orgId, name}` فريد.
+- `Membership.ts`: العضوية (مستخدم + مركز + دور + فروع + حالة). فهرس `{userId, orgId}` فريد. تحقق الفروع يعمل عند الإنشاء فقط وليس عند التحديث المباشر.
+- `Invite.ts`: الدعوة (كود مُبصَّم لا يُخزَّن نصًا + انتهاء + استخدام/إلغاء + `purgeAt` للحذف بعد 30 يومًا). الفرع إجباري لغير المالك.
+- `OrgProgram.ts`: برامج المركز المفعلة. فهرس `{orgId, programKey}` فريد.
+- `VerificationToken.ts`: روابط التفعيل والاستعادة لمرة واحدة (تُحذف بانتهائها).
+- `AuditLog.ts`: سجل الأحداث (يُحذف بعد 180 يومًا). لا كتابة فيه من أي service حاليًا.
+- `RateLimit.ts`: عدّادات الحماية (تُحذف بعد 24 ساعة). لا استخدام لها حاليًا.
+- `src/db/connection.ts`: `connectDB(uri?)` اتصال واحد مخزن يُعاد استخدامه، والفهارس تُبنى تلقائيًا خارج الإنتاج.
+
+## طبقة validators/
+- `common.ts`: قوالب (إيميل/باسورد/هاتف مصري/نص/رقم/اختيار/كود) برسائل عربية. `emptyTo` تحوّل `""` إلى `undefined`. غير المستخدمة حاليًا: `confirmPasswordRule` و`optionalPhoneRule` و`numberRule` (تُستخدم في `ui-demo` فقط `optionalNumberRule` و`selectRequired`).
+- `forms.ts`: ست schemas (دخول/حساب/نسيان/تعيين/مركز/كود) — نفس الكائن يُستخدم في الفورم (RHF) والأكشن (السيرفر).
+
+## طبقة scripts/
+- `scripts/seed-dev.ts`: `seedDev()` تنشئ مركزين تجريبيين (Dev Org A/B) بعضوية مالك لكل منهما. ترفض الإنتاج بدون `ALLOW_DEV_SEED=true`. التشغيل: `npm run seed:dev`.
+- `scripts/seed-super-admin.ts`: `seedSuperAdmin()` تنشئ/تحدّث أدمن المنصة من متغيرات البيئة (تعمل أكثر من مرة بأمان). التشغيل: `npm run seed:super-admin`.
+- `scripts/ensure-indexes.ts`: `ensureIndexes()` تبني الفهارس المعلنة بدون حذف (`createIndexes` فقط). التشغيل: `npm run db:indexes`.
+
+## طبقة tests/
+تعمل على داتابيز وهمية في الذاكرة (`mongodb-memory-server`) عبر `tests/helpers/db.ts` (الدوال `startMemoryDB` و`stopMemoryDB` و`clearDB`).
+- `uniques.test.ts`: خمسة اختبارات للفهارس الفريدة (إيميل/عضوية/فرع/برنامج/بصمة كود).
+- `membership-validation.test.ts`: اختباران (الفروع إجبارية للمحدودين، والمالك بلا فروع).
+- `roles.test.ts`: جدول الصلاحيات الثابت + حماية المنشئ وآخر أدمن + شرط الفرع في الدعوة.
+- `isolation.test.ts`: خمسة اختبارات أن كل مركز/فرع يرى بياناته فقط.
+- `seeds.test.ts`: اختباران (تكرار seed الأدمن آمن، ورفض seed-dev في الإنتاج).
+
+## الملفات الجذرية (config)
+- `package.json`: الأوامر (`dev/build/start/typecheck/lint/test/seed:*/db:indexes`) والمكتبات.
+- `middleware.ts`: يمرر الطلب لـ Auth.js، ويحمي `/dashboard/*` و`/onboarding/*` و`/platform/*` (غير المسجل يُحوَّل إلى `/login`).
+- `src/instrumentation.ts`: يعمل مرة عند إقلاع السيرفر ويتحقق من متغيرات البيئة بصوت عالٍ.
+- `eslint.config.mjs`: أهم قاعدة فيه تمنع استيراد الـ models خارج `services/` و`scripts/` و`tests/`.
+- `components.json`: إعداد shadcn (النمط الافتراضي + RTL).
+- `postcss.config.mjs` + `src/app/globals.css`: تنسيقات Tailwind وتوكنات Sanad (موثقة في `docs/sanad-tokens.md`).
+- `.env.example`: نسخة فارغة من الإعدادات (انسخها إلى `.env`).
+
+## جدول الـ Routes
+| المسار | النوع | الملف | من يدخله | ماذا يفعل |
+|---|---|---|---|---|
+| `/` | صفحة | `app/page.tsx` | عام | ترحيب + رابطا الدخول والحساب، والمسجل يُحوَّل |
+| `/login` | صفحة + فورم | `app/login/*` | عام | دخول إيميل/باسورد أو Google |
+| `/register` | صفحة + فورم | `app/register/*` | عام | حساب جديد + دخول تلقائي |
+| `/forgot` | صفحة + فورم | `app/forgot/*` | عام | طلب رابط الاستعادة (رد ثابت) |
+| `/reset?email&token` | صفحة + فورم | `app/reset/*` | عام (معه رابط) | كلمة مرور جديدة |
+| `/verify?email&token` | صفحة | `app/verify/page.tsx` | عام (معه رابط) | تفعيل الإيميل |
+| `/onboarding` | صفحة محمية | `app/onboarding/page.tsx` | مسجل | عضوياتي + 3 كروت |
+| `/onboarding/create-center` | صفحة + فورم | `app/onboarding/create-center/*` | مسجل (بإيميل مفعّل) | إنشاء مركز |
+| `/onboarding/enter-code` | صفحة + فورم | `app/onboarding/enter-code/*` | مسجل | الانضمام بكود |
+| `/dashboard` | صفحة محمية | `app/dashboard/page.tsx` | عضو بمركز | اسم المركز والدور والفروع والبرامج |
+| `/platform` | صفحة محمية | `app/platform/page.tsx` | أدمن عام فقط | أرقام كل المراكز |
+| `/ui-demo` | صفحة تطوير | `app/ui-demo/*` | غير الإنتاج فقط (404 في الإنتاج) | معرض المكونات |
+| `/api/auth/[...nextauth]` | API | route handler | عام | تسجيل الدخول والجلسات (Auth.js) |
+
+## جدول الـ Server Actions والـ API
+| الاسم | الملف | المدخلات | الـ service | المخرجات |
+|---|---|---|---|---|
+| `loginAction` | `login/actions.ts` | إيميل + باسورد | `signIn` (Auth.js) | تحويل إلى onboarding أو رسالة خطأ |
+| `registerAction` | `register/actions.ts` | اسم + إيميل + باسورد | `registerAccount` ثم `signIn` | تحويل أو رسالة (منها الإيميل المكرر) |
+| `forgotAction` | `forgot/actions.ts` | إيميل | `requestPasswordReset` | رسالة نجاح ثابتة دائمًا |
+| `resetAction` | `reset/actions.ts` | إيميل + توكن + باسورد | `resetPassword` | تحويل إلى login أو رسالة انتهاء |
+| `setActiveOrg` | `onboarding/actions.ts` | orgId (FormData) | `activateOrg` | كوكي `active_org` + تحويل إلى dashboard |
+| `createCenterAction` | `create-center/actions.ts` | بيانات المركز + برامج | `createCenter` | كوكي + تحويل إلى dashboard أو رسالة |
+| `enterCodeAction` | `enter-code/actions.ts` | كود | `consumeInvite` | كوكي + تحويل إلى dashboard أو رسالة |
+| `googleAction` | داخل `login/page.tsx` | — | `signIn("google")` | تحويل إلى onboarding |
+| `GET/POST /api/auth/*` | route handler | حسب Auth.js | الجلسات والـ JWT | جلسة/كوكي |
+
+## موجود لكن غير مستخدم حاليًا
+- `Result` و`ok` و`fail` في `src/lib/result.ts`: لا مستدعٍ (الأكشنات ترد بكائنات `{ok, message}` مباشرة).
+- `createInvite` في `services/invites.ts`: لا واجهة تنشئ دعوات بعد (الاستهلاك فقط هو المبني).
+- `listBranches` في `services/branches-read.ts`: للاختبارات فقط، لا صفحة تستخدمها.
+- `AuditLog` و`RateLimit`: معرفان وتُبنى فهارسهما فقط، بلا قراءة/كتابة.
+- `confirmPasswordRule` و`optionalPhoneRule` و`numberRule` في `validators/common.ts`: بلا استخدام خارج `ui-demo`.
+- `FormTextarea` و`FormSelect` و`FormRadioGroup` و`FormSwitch`: بلا استخدام خارج `ui-demo`.
+- `middleware.ts` يحمي المسارات لكن التفاصيل الدقيقة (الدور) تُفحص داخل كل صفحة.
+
+---------------------+--------------------------------
+
+# الشاشات والصفحات
+
+## كيف تقرأ هذا الملف
+- صفحة لكل مسار موجود فعلًا في `src/app/`.
+- لكل صفحة: ماذا ترى، وماذا تفعل، وبياناتها من أين، وأين تذهب بعد كل إجراء.
+- آخر قسم للنوافص.
+
+## `/` — البداية (`app/page.tsx`)
+- ترى: كارت «سَنَد» + زري الدخول والحساب.
+- البيانات: الجلسة فقط. المسجل يُحوَّل تلقائيًا إلى `/onboarding`.
+- لا أفعال هنا.
+
+## `/login` — الدخول (`app/login/*`)
+- ترى: زر Google (مشروط بالمفاتيح) + حقلا الإيميل والباسورد (إظهار/إخفاء) + رابطا الحساب والنسيان.
+- الفعل: دخول ← نجاح يحول إلى `/onboarding`، فشل يعرض رسالة حمراء + تنبيهًا.
+- المكونات: `Card` و`LoginForm` (`FormInput` + `FormSubmitButton`).
+
+## `/register` — حساب جديد (`app/register/*`)
+- ترى: الاسم + الإيميل + الباسورد (مع تلميح 8 أحرف).
+- الفعل: إنشاء ← إنشاء الحساب + دخول تلقائي ← `/onboarding`. الإيميل المكرر رسالته الخاصة.
+- ملاحظة: رابط التفعيل يُطبع في الـ logs — افتح الـ terminal لتنسخه.
+
+## `/forgot` و`/reset` — الاستعادة (`app/forgot/*`, `app/reset/*`)
+- `/forgot`: إيميل واحد. الرد دائمًا «إن وُجد الحساب ستصلك رسالة» حتى لو لا حساب.
+- `/reset`: يفتح فقط برابط صحيح (`email`+`token`). حفظ ناجح ← `/login`. رابط منتهي ← رسالة تطلب رابطًا جديدًا.
+
+## `/verify` — التفعيل (`app/verify/page.tsx`)
+- لا فورم فيها: تعمل تلقائيًا من الرابط وتعرض نجاحًا بزر «أكمل» أو فشلًا بزر عودة.
+
+## `/onboarding` — البداية (`app/onboarding/*`)
+- ترى: ترحيبًا بالاسم + أزرار «دخول» لكل عضوية فعالة (تثبت الكوكي عبر `setActiveOrg` ثم `/dashboard`) + 3 كروت.
+- الكروت: إنشاء مركز (يعمل) / كود دعوة (يعمل) / متابعة طفلي (معطل).
+
+## `/onboarding/create-center` — إنشاء مركز (`app/onboarding/create-center/*`)
+- ترى: الاسم + التواصل + العنوان + برامج (checkboxes من الكتالوج) + مخصص + زر إنشاء.
+- الفعل: نجاح ← `/dashboard` (الكوكي يُثبَّت تلقائيًا). فشل ← رسالة (منها: فعّل بريدك، الحد 3 مراكز).
+- البيانات الخارجة: مركز + فرع رئيسي + عضوية مالك + برامج (transaction واحدة).
+
+## `/onboarding/enter-code` — الكود (`app/onboarding/enter-code/*`)
+- ترى: حقل كود واحد + زر انضمام.
+- الفعل: كود صحيح ← عضوية بالدور المحدد في الدعوة ← `/dashboard`. كود خاطئ/منتهي/مستخدم ← رسالة. العضو الحالي ← «أنت عضو بالفعل».
+
+## `/dashboard` — اللوحة (`app/dashboard/page.tsx`)
+- ترى: اسم المركز + دورك + مبدل السمة + الفروع (فقط لو أكثر من فرع) + البرامج + كارت «قريبًا» + زر تبديل المركز.
+- البيانات: من `getDashboard` بالنطاق الخاص بك (المعلم يرى فروعه فقط).
+- غير العضو يُحوَّل إلى `/onboarding`.
+
+## `/platform` — المنصة (`app/platform/page.tsx`)
+- ترى: بطاقة لكل مركز (اسم/فروع/أعضاء/برامج/تواصل) — أرقام فقط.
+- للأدمن العام فقط (يُزرع بالـ seed). غيره يُحوَّل إلى `/onboarding`.
+
+## `/ui-demo` — المعرض (`app/ui-demo/*`)
+- ترى: كل الأزرار والحالات وحقلي معطل/قراءة فقط وفورم تجريبي كامل (إنشاء وتعديل) وأزرار toast وهيكل تحميل ومبدل السمة.
+- للتطوير فقط: في الإنتاج تُرجع 404. غير مرتبطة من أي صفحة.
+
+## النواقص والـ placeholders
+- زر «متابعة طفلي»: معطل، لا صفحة ولا منطق له.
+- لا زر خروج في أي صفحة (تسجيل الخروج لسه مش مبني).
+- لا صفحة لإنشاء الدعوات (الاستهلاك مبني، الإنشاء بلا واجهة).
+- لا صفحة لإدارة الفريق/الأدوار/الفروع (الحماية `guardAdminChange` بلا واجهة).
+- الداشبورد يعرض «قريبًا» بدل الطلاب والمجموعات والحضور (غير مبنية).
+- لا صفحة إعدادات ولا ملف شخصي.
+---------
+# دليل الاختبار اليدوي من المتصفح
+
+## كيف تقرأ هذا الملف
+- خطوات تنفذها بنفسك بالترتيب من متصفحك.
+- كل سيناريو: الخطوات، ثم النتيجة المتوقعة، ثم أين تتأكد في الداتابيز.
+- كلمة collection تعني جدول في MongoDB.
+
+## التشغيل
+1. انسخ `.env.example` إلى `.env` واملأ `MONGODB_URI_DEV` (رابط Atlas أو محلي) و`AUTH_SECRET` (أي نص طويل).
+2. `npm install` ثم `npm run dev` وافتح `http://localhost:3000`.
+3. سجّل حسابين من `/register` (مالك ومعلم). روابط التفعيل تُطبع في الـ terminal على شكل `[DEV-MAIL] ... url=...` — انسخ الرابط والصقه.
+4. ملاحظة: حسابات `seed-dev` (deva/devb) بلا كلمة مرور ولا تصلح للدخول — أنشئ حساباتك من الواجهة.
+
+## السيناريوهات
+1. **تسجيل ودخول**: سجّل حسابًا ← متوقع: دخول تلقائي إلى `/onboarding` وصف `users` فيه سطرك. افتح رابط التفعيل من الـ logs ← متوقع: «تم تفعيل بريدك» وحقل `emailVerifiedAt` امتلأ.
+2. **إنشاء مركز**: فعّل الإيميل ثم «إنشاء مركز» (اسم + رقم مصري صحيح + برنامج واحد على الأقل) ← متوقع: `/dashboard` باسم مركزك. في الداتابيز: صف في جدول المراكز + صف «الفرع الرئيسي» في جدول الفروع + عضوية `center_admin` + صفوف البرامج.
+3. **إنشاء بلا تفعيل**: حساب جديد غير مفعّل يحاول إنشاء مركز ← متوقع: رسالة «فعّل بريدك أولًا» ولا صف جديد في `orgs`.
+4. **الدعوة والقبول**: من حساب المالك تحتاج كودًا — حاليًا لا واجهة لإنشائه (تولّده من دالة `createInvite` فقط). بالكود: سجّل حسابًا ثانيًا ← «عندي كود» ← أدخله ← متوقع: `/dashboard` بالدور المحدد، وفي جدول الدعوات صار `usedAt` ممتلئًا، وفي جدول العضويات عضوية جديدة.
+5. **العزل**: سجّل حسابًا في مركزين مختلفين ← بدّل بينهما بزر «تبديل المركز» ← متوقع: كل مركز يرى فروعه وبرامجه فقط. كوكي `active_org` في أدوات المطور (Application → Cookies) يتغير مع التبديل.
+6. **نسيان الباسورد**: `/forgot` بإيميلك ← انسخ رابط الـ logs ← عيّن باسوردًا ← متوقع: دخول بالجديد من `/login`.
+
+## حالات الخطأ
+- باسورد غلط ← «بيانات الدخول غير صحيحة أو الحساب موقوف» ولا دخول.
+- إيميل مكرر في التسجيل ← «هذا البريد مسجل بالفعل».
+- فتح `/dashboard` بلا دخول ← تحويل إلى `/login`. فتحه بحساب بلا مركز ← تحويل إلى `/onboarding`.
+- كوكي `active_org` فاسد (عدّله يدويًا) ← تحويل إلى `/onboarding` (السياق يرفضه).
+- كود مستخدم/منتهي ← «الكود غير صحيح أو منتهي أو مستخدم».
+
+## ما يمكن اختباره الآن وما لا
+- يعمل: التسجيل/الدخول/Google (بالمفاتيح)/التفعيل/الاستعادة/إنشاء مركز/القبول بكود/العزل/السمة والـ RTL.
+- لا يعمل: زر الخروج (غير موجود)، إنشاء الدعوات من الواجهة، إدارة الفريق، بوابة ولي الأمر، أي شيء في كارت «قريبًا».
+
+## التتبع
+- الـ logs: الـ terminal الذي يعمل فيه `npm run dev` (روابط الإيميل تبدأ بـ `[DEV-MAIL]`).
+- الكوكي: أدوات المطور ← Application ← Cookies ← `active_org` (معرف المركز) و`authjs.session-token` (الجلسة).
+- الداتابيز: `mongosh "رابط-الاتصال"` ثم `show collections` لرؤية أسماء الجداول الفعلية (مثل users/orgs/memberships)، ثم `db.users.find()`.

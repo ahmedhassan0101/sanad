@@ -8,6 +8,7 @@ import { Membership, type MembershipRole } from "@/db/models/Membership";
 import { generateInviteCode, hashInviteCode } from "@/lib/invite-code";
 import { getEnv } from "@/lib/env";
 import { can, rank } from "@/lib/permissions/roles";
+import { requireVerifiedUser } from "./auth-accounts";
 import { assertBranchesInOrg, assertMembershipShape } from "./memberships";
 
 export async function createInvite(
@@ -17,6 +18,7 @@ export async function createInvite(
   daysValid: number
 ) {
   await connectDB();
+  await requireVerifiedUser(granter.userId);
   if (rank(granter.role) < rank(role)) throw new Error("FORBIDDEN: above own level");
   if (role === "center_admin" && !can(granter.role, "member:invite")) {
     throw new Error("FORBIDDEN");
@@ -56,6 +58,7 @@ export async function createInvite(
 
 export async function consumeInvite(userId: string, rawCode: string) {
   await connectDB();
+  await requireVerifiedUser(userId);
   const env = getEnv();
   const now = new Date();
   const updated = await Invite.findOneAndUpdate(
@@ -83,8 +86,7 @@ export async function consumeInvite(userId: string, rawCode: string) {
     if (!br || br.status !== "active") throw new Error("الفرع غير نشط");
   }
   const uid = new Types.ObjectId(userId);
-  const branchIds = updated.branchId ? [updated.branchId] : [];
-  assertMembershipShape(updated.role, branchIds as Types.ObjectId[]);
+  const branchIds = updated.branchId ? [updated.branchId] : [];  assertMembershipShape(updated.role, branchIds as Types.ObjectId[]);
   const existing = await Membership.findOne({ userId: uid, orgId: updated.orgId });
   if (existing) {
     if (existing.status === "active") throw new Error("أنت عضو بالفعل في هذا المركز");
@@ -102,4 +104,60 @@ export async function consumeInvite(userId: string, rawCode: string) {
     });
   }
   return { orgId: String(updated.orgId) };
+}
+
+type TeamCtx = {
+  kind: "member";
+  orgId: Types.ObjectId;
+  role: MembershipRole;
+  branchScope: { mode: "all" } | { mode: "list"; branchIds: Types.ObjectId[] };
+};
+
+function requireTeamAccess(ctx: TeamCtx) {
+  if (ctx.role !== "center_admin" && ctx.role !== "branch_admin") {
+    throw new Error("FORBIDDEN: الفريق للمشرفين فقط");
+  }
+}
+
+function branchFilter(ctx: TeamCtx) {
+  if (ctx.branchScope.mode === "all") return {};
+  return { branchId: { $in: ctx.branchScope.branchIds } };
+}
+
+// الدعوات الفعّالة فقط (غير مستخدمة وغير منتهية وغير ملغاة)، بالنطاق.
+export async function listInvites(ctx: TeamCtx) {
+  requireTeamAccess(ctx);
+  await connectDB();
+  const invites = await Invite.find({
+    orgId: ctx.orgId,
+    ...branchFilter(ctx),
+    usedAt: null,
+    revokedAt: null,
+    expiresAt: { $gt: new Date() },
+  })
+    .sort({ createdAt: -1 })
+    .lean();
+  return invites.map((i) => ({
+    id: String(i._id),
+    role: i.role,
+    branchId: i.branchId ? String(i.branchId) : null,
+    expiresAt: i.expiresAt.toISOString(),
+  }));
+}
+
+export async function revokeInvite(ctx: TeamCtx, inviteId: string) {
+  requireTeamAccess(ctx);
+  if (!Types.ObjectId.isValid(inviteId)) throw new Error("FORBIDDEN");
+  await connectDB();
+  const invite = await Invite.findOne({ _id: new Types.ObjectId(inviteId), orgId: ctx.orgId });
+  if (!invite || invite.usedAt || invite.revokedAt) throw new Error("NOT_FOUND");
+  if (ctx.role === "branch_admin") {
+    const mine = ctx.branchScope.mode === "list" ? ctx.branchScope.branchIds : [];
+    if (!invite.branchId || !mine.some((b) => b.equals(invite.branchId))) {
+      throw new Error("FORBIDDEN: خارج فروعك");
+    }
+  }
+  invite.revokedAt = new Date();
+  await invite.save();
+  return { ok: true as const };
 }

@@ -5,15 +5,23 @@ import { Membership } from "@/db/models/Membership";
 import type { SessionContext } from "@/lib/tenant/context";
 
 // Builds context from the DB on every request. JWT carries userId only.
-// Three states: platform (stats only) | onboarding (no org yet) | member.
+// Four states: platform (stats only) | onboarding (no org yet) | unverified | member.
 export async function getSessionContext(
   userId: string | null,
-  activeOrgId: string | null
+  activeOrgId: string | null,
+  expectedSessionVersion?: number | null
 ): Promise<SessionContext> {
   if (!userId || !Types.ObjectId.isValid(userId)) throw new Error("UNAUTHENTICATED");
-  const user = await User.findById(userId).select("status isPlatformAdmin sessionVersion");
+  const user = await User.findById(userId).select("status isPlatformAdmin sessionVersion email emailVerifiedAt");
   if (!user || user.status !== "active") throw new Error("UNAUTHENTICATED");
+  if (
+    expectedSessionVersion !== undefined &&
+    expectedSessionVersion !== user.sessionVersion
+  ) {
+    throw new Error("UNAUTHENTICATED");
+  }
   if (user.isPlatformAdmin) return { kind: "platform", userId };
+  if (!user.emailVerifiedAt) return { kind: "unverified", userId, email: user.email };
   if (!activeOrgId || !Types.ObjectId.isValid(activeOrgId)) return { kind: "onboarding", userId };
   const membership = await Membership.findOne({
     userId: user._id,

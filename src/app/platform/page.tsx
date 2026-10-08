@@ -6,6 +6,7 @@ import { viewer } from "@/services/viewer";
 
 export default async function PlatformPage() {
   const ctx = await viewer();
+  if (ctx.kind === "unverified") redirect("/verify-pending");
   if (ctx.kind !== "platform") redirect("/onboarding");
   const rows = await getPlatformStats();
   return (

@@ -7,6 +7,7 @@ import { User } from "@/db/models/User";
 import { VerificationToken } from "@/db/models/VerificationToken";
 import { sendAuthLink } from "@/lib/email/dev-logger";
 import { getEnv } from "@/lib/env";
+import { checkRateLimit } from "./rate-limit";
 
 async function issueToken(email: string, type: "verify-email" | "reset-password", hours: number) {
   const token = randomBytes(32).toString("hex");
@@ -19,12 +20,10 @@ async function issueToken(email: string, type: "verify-email" | "reset-password"
   return token;
 }
 
-export async function registerAccount(name: string, emailRaw: string, password: string) {
+export async function sendVerificationEmail(emailRaw: string) {
   const email = emailRaw.toLowerCase().trim();
-  if (name.trim().length < 2 || password.length < 8) throw new Error("VALIDATION");
+  await checkRateLimit(`verify:${email}`, 3600_000, 3, "RATE_LIMITED: أعد المحاولة بعد ساعة");
   await connectDB();
-  if (await User.findOne({ email })) throw new Error("TAKEN");
-  await User.create({ name: name.trim(), email, passwordHash: await bcrypt.hash(password, 12) });
   const token = await issueToken(email, "verify-email", 24);
   const env = getEnv();
   await sendAuthLink(
@@ -32,6 +31,34 @@ export async function registerAccount(name: string, emailRaw: string, password: 
     `${env.authUrl}/verify?email=${encodeURIComponent(email)}&token=${token}`,
     "تفعيل حسابك"
   );
+}
+
+export async function resendVerification(userId: string) {
+  await connectDB();
+  const user = await User.findById(userId).select("email emailVerifiedAt status");
+  if (!user || user.status !== "active") throw new Error("UNAUTHENTICATED");
+  if (user.emailVerifiedAt) throw new Error("ALREADY_VERIFIED");
+  await sendVerificationEmail(user.email);
+  return { email: user.email };
+}
+
+export async function registerAccount(name: string, emailRaw: string, password: string) {
+  const email = emailRaw.toLowerCase().trim();
+  if (name.trim().length < 2 || password.length < 8) throw new Error("VALIDATION");
+  await connectDB();
+  const existing = await User.findOne({ email });
+  if (existing) {
+    if (existing.emailVerifiedAt) throw new Error("TAKEN");
+    // حجز الإيميل: غير المفعّل يُستبدل ويُعاد تفعيله بدل الرفض.
+    existing.name = name.trim();
+    existing.passwordHash = await bcrypt.hash(password, 12);
+    await existing.save();
+    await VerificationToken.deleteMany({ identifier: email, type: "verify-email" });
+    await sendVerificationEmail(email);
+    return;
+  }
+  await User.create({ name: name.trim(), email, passwordHash: await bcrypt.hash(password, 12) });
+  await sendVerificationEmail(email);
 }
 
 export async function verifyEmailToken(emailRaw: string, token: string) {
@@ -51,6 +78,7 @@ export async function verifyEmailToken(emailRaw: string, token: string) {
 
 export async function requestPasswordReset(emailRaw: string) {
   const email = emailRaw.toLowerCase().trim();
+  await checkRateLimit(`reset:${email}`, 3600_000, 3, "RATE_LIMITED");
   await connectDB();
   if (await User.findOne({ email })) {
     const token = await issueToken(email, "reset-password", 2);
@@ -81,12 +109,33 @@ export async function resetPassword(emailRaw: string, token: string, password: s
   await VerificationToken.deleteOne({ _id: found._id });
 }
 
+export async function isEmailVerified(emailRaw: string) {
+  await connectDB();
+  const user = await User.findOne({ email: emailRaw.toLowerCase().trim() }).select("emailVerifiedAt");
+  return !!user?.emailVerifiedAt;
+}
+
+export async function requireVerifiedUser(userId: string) {
+  await connectDB();
+  const user = await User.findById(userId).select("emailVerifiedAt status");
+  if (!user || user.status !== "active" || !user.emailVerifiedAt) {
+    throw new Error("UNVERIFIED: فعّل بريدك أولاً");
+  }
+  return user;
+}
+
 export async function verifyCredentials(emailRaw: string, password: string) {
   await connectDB();
   const user = await User.findOne({ email: emailRaw.toLowerCase().trim() }).select("+passwordHash");
   if (!user || user.status !== "active" || !user.passwordHash) return null;
   if (!(await bcrypt.compare(password, user.passwordHash))) return null;
-  return { id: String(user._id), name: user.name, email: user.email };
+  return { id: String(user._id), name: user.name, email: user.email, sessionVersion: user.sessionVersion };
+}
+
+export async function getSessionVersionByUserId(userId: string) {
+  await connectDB();
+  const user = await User.findById(userId).select("sessionVersion");
+  return user ? user.sessionVersion : null;
 }
 
 export async function ensureGoogleUser(profile: {
@@ -97,11 +146,16 @@ export async function ensureGoogleUser(profile: {
   const email = profile.email?.toLowerCase().trim();
   if (!email) return false;
   await connectDB();
-  const existing = await User.findOne({ email });
+  const existing = await User.findOne({ email }).select("+passwordHash");
   if (existing) {
     if (existing.status !== "active") return false;
     if (!existing.emailVerifiedAt) {
       existing.emailVerifiedAt = new Date();
+      // منع الاستيلاء: تفعيل Google يمسح باسوردًا وُضع قبل التفعيل ويُبطل الجلسات.
+      if (existing.passwordHash) {
+        existing.passwordHash = null;
+        existing.sessionVersion += 1;
+      }
       await existing.save();
     }
     return true;

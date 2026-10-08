@@ -9,6 +9,7 @@ export type BranchScope =
 export type SessionContext =
   | { kind: "platform"; userId: string }
   | { kind: "onboarding"; userId: string }
+  | { kind: "unverified"; userId: string; email: string }
   | {
       kind: "member";
       userId: string;

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth/config";
 import { listMyMemberships } from "@/services/org-selection";
+import { viewer } from "@/services/viewer";
 import { buttonVariants } from "@/components/ui/button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,10 @@ import { setActiveOrg } from "./actions";
 export default async function OnboardingPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
+  const ctx = await viewer();
+  if (ctx.kind === "unverified") redirect("/verify-pending");
+  if (ctx.kind === "member") redirect("/dashboard");
+  if (ctx.kind === "platform") redirect("/platform");
   const memberships = await listMyMemberships(session.user.id);
   return (
     <main className="flex min-h-svh items-center justify-center p-4">

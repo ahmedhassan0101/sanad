@@ -1,5 +1,6 @@
 // صفحة تفعيل الإيميل من الرابط.
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { verifyEmailToken } from "@/services/auth-accounts";
@@ -11,6 +12,7 @@ export default async function VerifyPage({
 }) {
   const { email = "", token = "" } = await searchParams;
   const done = await verifyEmailToken(email, token);
+  if (done) redirect("/onboarding");
   return (
     <main className="flex min-h-svh items-center justify-center p-4">
       <Card className="w-full max-w-sm">

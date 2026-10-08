@@ -12,6 +12,8 @@ const baseSchema = z.object({
   INVITE_CODE_PEPPER: z.string().optional(),
   AUTH_SECRET: z.string().optional(),
   AUTH_URL: z.string().optional(),
+  RESEND_API_KEY: z.string().optional(),
+  RESEND_FROM: z.string().optional(),
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   ALLOW_DEV_SEED: z

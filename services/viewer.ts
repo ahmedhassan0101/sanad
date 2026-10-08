@@ -9,5 +9,5 @@ export async function viewer() {
   if (!session?.user?.id) return { kind: "logged-out" } as const;
   const jar = await cookies();
   const activeOrg = jar.get("active_org")?.value ?? null;
-  return getSessionContext(session.user.id, activeOrg);
+  return getSessionContext(session.user.id, activeOrg, session.user.sessionVersion ?? null);
 }

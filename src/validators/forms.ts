@@ -39,3 +39,10 @@ export type CreateCenterInput = z.infer<typeof createCenterSchema>;
 
 export const enterCodeSchema = z.object({ code: inviteCodeRule });
 export type EnterCodeInput = z.infer<typeof enterCodeSchema>;
+
+export const inviteFormSchema = z.object({
+  role: z.enum(["center_admin", "branch_admin", "teacher"]),
+  branchId: z.string().nullable().optional(),
+  days: z.coerce.number().min(1).max(7),
+});
+export type InviteFormInput = z.infer<typeof inviteFormSchema>;

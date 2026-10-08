@@ -4,6 +4,7 @@ import { Types } from "mongoose";
 import { connectDB } from "@/db/connection";
 import { Membership } from "@/db/models/Membership";
 import { Org } from "@/db/models/Org";
+import { requireVerifiedUser } from "./auth-accounts";
 
 export async function listMyMemberships(userId: string) {
   await connectDB();
@@ -22,6 +23,7 @@ export async function listMyMemberships(userId: string) {
 
 export async function activateOrg(userId: string, orgId: string) {
   if (!Types.ObjectId.isValid(orgId)) throw new Error("FORBIDDEN");
+  await requireVerifiedUser(userId);
   await connectDB();
   const m = await Membership.findOne({
     userId: new Types.ObjectId(userId),
@@ -30,4 +32,25 @@ export async function activateOrg(userId: string, orgId: string) {
   });
   if (!m) throw new Error("FORBIDDEN");
   return { orgId };
+}
+
+export async function activateBranchPref(userId: string, orgId: string, branchId: string | null) {
+  if (branchId !== null && !Types.ObjectId.isValid(branchId)) throw new Error("FORBIDDEN");
+  await requireVerifiedUser(userId);
+  await connectDB();
+  const m = await Membership.findOne({
+    userId: new Types.ObjectId(userId),
+    orgId: new Types.ObjectId(orgId),
+    status: "active",
+  });
+  if (!m) throw new Error("FORBIDDEN");
+  if (branchId !== null) {
+    if (m.role !== "center_admin" && !m.branchIds.some((b) => b.equals(new Types.ObjectId(branchId)))) {
+      throw new Error("FORBIDDEN: خارج فروعك");
+    }
+    const { Branch } = await import("@/db/models/Branch");
+    const br = await Branch.findOne({ _id: new Types.ObjectId(branchId), orgId: m.orgId, status: "active" });
+    if (!br) throw new Error("NOT_FOUND");
+  }
+  return { branchId };
 }
