@@ -3,11 +3,19 @@ import NextAuth, { type DefaultSession } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import { z } from "zod";
-import { ensureGoogleUser, getSessionVersionByUserId, verifyCredentials } from "@/services/auth-accounts";
+import {
+  ensureGoogleUser,
+  getSessionVersionByUserId,
+  resolveGoogleTokenUser,
+  verifyCredentials,
+} from "@/services/auth-accounts";
 
 declare module "next-auth" {
   interface Session {
-    user: { id: string; sessionVersion: number | null } & DefaultSession["user"];
+    user: {
+      id: string;
+      sessionVersion: number | null;
+    } & DefaultSession["user"];
   }
 }
 
@@ -22,13 +30,21 @@ async function authorizeLogin(credentials: unknown) {
   return verifyCredentials(parsed.data.email, parsed.data.password);
 }
 
-const googleReady = !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET;
+const googleReady =
+  !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET;
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
   providers: [
-    ...(googleReady ? [Google] : []),
+    ...(googleReady
+      ? [
+          Google({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          }),
+        ]
+      : []),
     Credentials({
       async authorize(credentials) {
         return authorizeLogin(credentials);
@@ -36,12 +52,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user?.id) {
-        (token as Record<string, unknown>).userId = user.id;
-        const v = (user as { sessionVersion?: unknown }).sessionVersion;
-        (token as Record<string, unknown>).sessionVersion =
-          typeof v === "number" ? v : await getSessionVersionByUserId(user.id);
+        if (account?.provider === "google" && user.email) {
+          const resolved = await resolveGoogleTokenUser(user.email);
+          if (resolved) {
+            (token as Record<string, unknown>).userId = resolved.id;
+            (token as Record<string, unknown>).sessionVersion =
+              resolved.sessionVersion;
+          }
+        } else {
+          // Credentials ترجع Mongo _id مباشرة.
+          (token as Record<string, unknown>).userId = user.id;
+          const v = (user as { sessionVersion?: unknown }).sessionVersion;
+          (token as Record<string, unknown>).sessionVersion =
+            typeof v === "number"
+              ? v
+              : await getSessionVersionByUserId(user.id);
+        }
       }
       return token;
     },
@@ -59,8 +87,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return true;
     },
     authorized({ auth: session, request }) {
-      const publicPaths = ["/login", "/register", "/verify", "/forgot", "/reset"];
-      if (publicPaths.some((p) => request.nextUrl.pathname.startsWith(p))) return true;
+      const publicPaths = [
+        "/login",
+        "/register",
+        "/verify",
+        "/forgot",
+        "/reset",
+      ];
+      if (publicPaths.some((p) => request.nextUrl.pathname.startsWith(p)))
+        return true;
       return !!session?.user;
     },
   },

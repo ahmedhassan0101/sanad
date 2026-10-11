@@ -1,4 +1,3 @@
-// مدخل واحد لكل حقول الفورم الجاهزة.
 export { FieldShell, FormAlert } from "./field-shell";
 export { FormInput } from "./form-input";
 export { FormTextarea } from "./form-textarea";

@@ -12,7 +12,6 @@ const rateLimitSchema = new Schema<RateLimitDoc>(
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 );
-
 rateLimitSchema.index({ createdAt: 1 }, { expireAfterSeconds: 86400 });
 rateLimitSchema.index({ key: 1, createdAt: -1 });
 

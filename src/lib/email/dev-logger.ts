@@ -1,4 +1,3 @@
-// إرسال الإيميل: حقيقي عبر Resend عند التفعيل، والرابط يُطبع أيضًا خارج الإنتاج.
 import { Resend } from "resend";
 import { getEnv } from "@/lib/env";
 
@@ -9,7 +8,11 @@ function template(title: string, body: string, url: string, action: string) {
 <p style="color:#666;font-size:13px">لو الزر لا يعمل انسخ الرابط: ${url}</p></div>`;
 }
 
-export async function sendAuthLink(email: string, url: string, subject: string) {
+export async function sendAuthLink(
+  email: string,
+  url: string,
+  subject: string,
+) {
   const env = getEnv();
   if (process.env.NODE_ENV !== "production") {
     console.log(`[DEV-MAIL] to=${email} subject=${subject} url=${url}`);
@@ -24,4 +27,7 @@ export async function sendAuthLink(email: string, url: string, subject: string) 
     html: template("سند", subject, url, "اضغط هنا"),
   });
   if (error) throw new Error(`EMAIL_FAILED: ${error.message}`);
+  console.log(`[MAIL] to=${email} subject=${subject} url=${url}`);
+  // log the error
+  console.log(`[MAIL] to=${email} subject=${subject} url=${url} error=${error}`);
 }

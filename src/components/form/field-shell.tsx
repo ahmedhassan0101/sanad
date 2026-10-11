@@ -31,7 +31,6 @@ export function FieldShell({ label, required, description, error, htmlFor, child
   );
 }
 
-// رسالة خطأ على مستوى الفورم كله: اعرضها مع toast بعد فشل الإرسال.
 export function FormAlert({ message }: { message: string | null }) {
   if (!message) return null;
   return (

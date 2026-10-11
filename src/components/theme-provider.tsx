@@ -1,4 +1,3 @@
-// مزود السمة (فاتح/داكن/النظام) بدون وميض عند التحميل.
 "use client";
 
 import { ThemeProvider as NextThemeProvider } from "next-themes";

@@ -1,9 +1,13 @@
-// حد المعدل: عدّادات في الداتابيز (تصلح للـ serverless).
 import "server-only";
 import { connectDB } from "@/db/connection";
 import { RateLimit } from "@/db/models/RateLimit";
 
-export async function checkRateLimit(key: string, windowMs: number, max: number, message: string) {
+export async function checkRateLimit(
+  key: string,
+  windowMs: number,
+  max: number,
+  message: string,
+) {
   await connectDB();
   const count = await RateLimit.countDocuments({
     key,

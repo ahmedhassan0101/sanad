@@ -1,4 +1,3 @@
-// حقل نص/إيميل/باسورد/رقم/هاتف — سطر واحد في أي فورم.
 "use client";
 
 import { useId, useState, type ReactNode } from "react";

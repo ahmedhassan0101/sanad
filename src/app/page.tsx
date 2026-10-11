@@ -1,4 +1,3 @@
-// صفحة البداية: دخول للمسجل، وترحيب مع رابطي الدخول والتسجيل للزائر.
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth/config";

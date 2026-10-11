@@ -1,452 +1,457 @@
-STATUS_AND_NEXT.md
-------------
-# أين نحن وإلى أين
+// صفحة الفريق: دعوات + أعضاء — للمشرفين فقط (الفحص في السيرفر).
+import { redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { viewer } from "@/services/viewer";
+import {
+  createInviteAction,
+  revokeInviteAction,
+  teamData,
+  updateMemberAction,
+} from "./actions";
+import { CopyInvite } from "./copy-button";
 
-## كيف تقرأ هذا الملف
-- جدول الحالة أولًا: ماذا يعمل فعلًا وماذا لا.
-- ثم مشاكل رأيتها في الكود (بدون إصلاح).
-- ثم الخطوات التالية بالترتيب، وسؤال لك قبل كل خطوة.
+const ROLE_NAMES: Record<string, string> = {
+  center_admin: "مدير مركز",
+  branch_admin: "مشرف فرع",
+  teacher: "معلم",
+};
 
-## جدول الحالة
-| الميزة | الحالة | الدليل |
-|---|---|---|
-| تسجيل بإيميل/باسورد + دخول | يعمل | `registerAction`/`loginAction` + اختبار دخاني سابق |
-| دخول Google | يعمل (بالمفاتيح) | زر مشروط في `login/page.tsx` |
-| تأكيد الإيميل | يعمل (رابط في الـ logs) | `verifyEmailToken` + صفحة verify |
-| استعادة الباسورد | تعمل (رابط في الـ logs) | `requestPasswordReset`/`resetPassword` |
-| إرسال إيميل حقيقي | غير مبني | `sendAuthLink` تطبع فقط |
-| تسجيل الخروج (زر) | غير مبني | لا زر ولا مستدعٍ لـ `signOut` |
-| إنشاء مركز (transaction) | يعمل | `createCenter` + حد 3 + شرط التفعيل |
-| الانضمام بكود | يعمل | `consumeInvite` (ذري + إعادة فحص) |
-| إنشاء الدعوات من الواجهة | غير مبني | `createInvite` بلا صفحة |
-| إدارة الفريق/الأدوار | غير مبنية | `guardAdminChange` بلا واجهة |
-| الفروع (عرض) | يعمل جزئيًا | الداشبورد يعرضها؛ لا إنشاء فرع ثانٍ من الواجهة |
-| البرامج (اختيار عند الإنشاء) | يعمل | لا إدارة لاحقة (تفعيل/تعطيل) |
-| صفحة المنصة (أدمن عام) | تعمل | `platform/page.tsx` + seed |
-| بوابة ولي الأمر | غير مبنية | زر معطل فقط |
-| الطلاب/المجموعات/الحضور | غير مبنية | كارت «قريبًا» فقط |
-| UI foundation (شادن + فورمات + سمة + خطوط) | يعمل | كل الصفحات بالبطاقات + `/ui-demo` |
-| توكنات Sanad | تعمل | `globals.css` + `docs/sanad-tokens.md` |
-| الاختبارات الآلية | تعمل (19 ناجحة) | `npm run test` |
+export default async function TeamPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ created?: string; error?: string }>;
+}) {
+  
+  const ctx = await viewer();
+  if (ctx.kind !== "member") redirect("/verify-pending");
+  const sp = await searchParams;
+  const data = await teamData().catch(() => null);
+  if (!data) redirect("/dashboard");
+  const roleOptions =
+    data.role === "center_admin"
+      ? ["center_admin", "branch_admin", "teacher"]
+      : ["branch_admin", "teacher"];
+  const branchName = new Map(data.branches.map((b) => [b.id, b.name]));
+  return (
+    <div className="flex flex-col gap-4">
+      <h1 className="text-xl font-bold">الفريق</h1>
+      {sp.error && (
+        <p className="text-sm text-destructive">
+          تعذر تنفيذ العملية — تحقق من الصلاحيات
+        </p>
+      )}
+      {sp.created && (
+        <Card>
+          <CardHeader>
+            <CardTitle>الكود (يظهر مرة واحدة)</CardTitle>
+            <CardDescription className="text-lg font-bold" dir="ltr">
+              {sp.created}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CopyInvite code={sp.created} />
+          </CardContent>
+        </Card>
+      )}
+      <Card>
+        <CardHeader>
+          <CardTitle>دعوة جديدة</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form action={createInviteAction} className="flex flex-col gap-3">
+            <label className="text-sm">
+              الدور
+              <select
+                name="role"
+                className="mt-1 w-full rounded-md border p-2"
+                defaultValue="teacher"
+              >
+                {roleOptions.map((r) => (
+                  <option key={r} value={r}>
+                    {ROLE_NAMES[r]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {data.branches.length > 1 ? (
+              <label className="text-sm">
+                الفرع
+                <select
+                  name="branchId"
+                  className="mt-1 w-full rounded-md border p-2"
+                >
+                  {data.branches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : (
+              <input
+                type="hidden"
+                name="branchId"
+                value={data.branches[0]?.id ?? ""}
+              />
+            )}
+            <label className="text-sm">
+              المدة بالأيام (حتى 7)
+              <input
+                name="days"
+                type="number"
+                min={1}
+                max={7}
+                defaultValue={2}
+                className="mt-1 w-full rounded-md border p-2"
+                dir="ltr"
+              />
+            </label>
+            <Button type="submit">إنشاء الكود</Button>
+          </form>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>الدعوات الفعّالة</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2">
+          {data.invites.length === 0 && (
+            <p className="text-sm text-muted-foreground">لا دعوات فعّالة</p>
+          )}
+          {data.invites.map((i) => (
+            <form
+              key={i.id}
+              action={revokeInviteAction.bind(null, i.id)}
+              className="flex items-center justify-between gap-2 text-sm"
+            >
+              <span>
+                {ROLE_NAMES[i.role]} —{" "}
+                {i.branchId ? (branchName.get(i.branchId) ?? "") : "كل الفروع"}
+              </span>
+              <Button type="submit" variant="outline" size="sm">
+                إلغاء
+              </Button>
+            </form>
+          ))}
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>الأعضاء</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          {data.members.map((m) => (
+            <div
+              key={m.userId}
+              className="flex flex-col gap-1 border-b pb-2 text-sm"
+            >
+              <span>
+                {m.name} — {m.email} — {ROLE_NAMES[m.role]} —{" "}
+                {m.status === "active" ? "مفعّل" : "معطّل"}
+              </span>
+              <div className="flex gap-2">
+                <form
+                  action={updateMemberAction.bind(null, m.userId)}
+                  className="flex gap-2"
+                >
+                  <select
+                    name="role"
+                    defaultValue={m.role}
+                    className="rounded-md border p-1"
+                  >
+                    {roleOptions.map((r) => (
+                      <option key={r} value={r}>
+                        {ROLE_NAMES[r]}
+                      </option>
+                    ))}
+                  </select>
+                  <Button type="submit" variant="outline" size="sm">
+                    تغيير الدور
+                  </Button>
+                </form>
+                <form action={updateMemberAction.bind(null, m.userId)}>
+                  <input
+                    type="hidden"
+                    name="status"
+                    value={m.status === "active" ? "disabled" : "active"}
+                  />
+                  <Button type="submit" variant="outline" size="sm">
+                    {m.status === "active" ? "تعطيل" : "تفعيل"}
+                  </Button>
+                </form>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+-------------------
 
-## مشاكل وديون رأيتها (بدون إصلاح)
-1. `sessionVersion` يُرفع عند تغيير الباسورد لكن لا شيء يقارنه — «الخروج من كل الأجهزة» غير مفعّل فعليًا، والـ JWT لا يحمله أصلًا.
-2. لا زر خروج في أي صفحة — الجلسة تبقى حتى انتهائها.
-3. تحقق `branchIds` في الـ schema يعمل عند الإنشاء فقط وليس التحديث المباشر — الأمان الحالي يعتمد على مرور كل كتابة عبر الـ services.
-4. `guardAdminChange` يعدّ الأدمنز خارج transaction — سباق نظري موثق في الكود (`adminsVersion` موجود للحل لاحقًا).
-5. `getPlatformStats` تقرأ كل المراكز دفعة واحدة — تكفي الآن وتحتاج ترقيم صفحات لاحقًا.
-6. رابط التحقق/الاستعادة يُطبع في الـ logs — أي وصول للـ terminal يعني اختراق حسابات (مقبول للتطوير فقط).
+// من الجلسة والكوكي يبني سياق الصلاحيات للصفحة الحالية.
+import "server-only";
+import { cookies } from "next/headers";
+import { auth } from "@/lib/auth/config";
+import { getSessionContext } from "./session-context";
 
-## الخطوات التالية المقترحة
-1. **زر الخروج + تفعيل `sessionVersion`**: الهدف جلسات آمنة. يُبنى زر في الداشبورد ينادي `signOut`، وتُضاف مقارنة النسخة في `getSessionContext`. البدء من `dashboard/page.tsx` و`session-context.ts`. سؤال: هل الخروج من جهاز واحد أم كل الأجهزة؟
-2. **إنشاء الدعوات من الواجهة**: الهدف إدخال المعلمين فعليًا. تُبنى صفحة للمالك/المشرف تعرض `createInvite` وتُظهر الكود مرة واحدة. البدء من `services/invites.ts` وصفحة جديدة. سؤال: من يرى الأكواد النشطة ويلغيها؟
-3. **إدارة الفريق**: الهدف تفعيل `guardAdminChange`. صفحة أعضاء المركز (تغيير دور/تعطيل). البدء من `services/memberships.ts`. سؤال: هل المعلم يرى قائمة زملائه؟
-4. **الطلاب والمجموعات**: الهدف أول كيان تعليمي. جداول + صفحات جديدة بالنطاق نفسه. سؤال: هل الطالب يُسجَّل برقم هاتف ولي الأمر من البداية؟
+export async function viewer() {
+  const session = await auth();
+  if (!session?.user?.id) return { kind: "logged-out" } as const;
+  const jar = await cookies();
+  const activeOrg = jar.get("active_org")?.value ?? null;
+  return getSessionContext(
+    session.user.id,
+    activeOrg,
+    session.user.sessionVersion ?? null,
+  );
+}
+---------------
 
-## أسئلة قبل الخطوة التالية
-- أي خطوة من الأربع أولًا؟
-- هل أبني واجهة إنشاء الدعوات قبل إدارة الفريق أم معًا؟
----------------------+--------------------------------
-
-# المسارات (Flows)
-
-## كيف تقرأ هذا الملف
-- كل مسار رسمة نصية من الضغطة حتى الداتابيز والعودة.
-- تحت كل رسمة: الملف والدالة الفعليان لكل خطوة، وما يحدث عند الخطأ.
-- الأسماء حرفية كما في الكود.
-
-## 1) Auth Flow (التسجيل والدخول)
-
-### 1-أ) حساب جديد بإيميل وباسورد
-```
-زر «إنشاء الحساب»
-  → الفورم يتحقق محليًا (registerSchema)
-  → registerAction (register/actions.ts)
-  → registerAccount (services/auth-accounts.ts): إيميل مكرر؟ اسم/باسورد قصير؟
-  → User.create + VerificationToken.create (بصمة الرابط لا نصه)
-  → sendAuthLink: يطبع الرابط في الـ logs فقط (الإرسال الحقيقي لسه مش مبني)
-  → signIn("credentials") دخول تلقائي → تحويل /onboarding
-```
-- عند الخطأ: إيميل مكرر ← رسالة «هذا البريد مسجل بالفعل». حقول ناقصة ← «تحقق من الحقول».
-
-### 1-ب) الدخول بإيميل وباسورد
-```
-زر «دخول»
-  → loginAction (login/actions.ts) يتحقق من loginSchema
-  → signIn("credentials") (src/lib/auth/config.ts)
-  → authorize → verifyCredentials: يبحث بالإيميل + يقارن البصمة + يرفض غير active
-  → نجاح: JWT يُختم ويُحفظ في كوكي. فشل: رسالة «بيانات الدخول غير صحيحة أو الحساب موقوف»
-```
-- الـ JWT فيه `userId` فقط (سطر `token.userId` في callback الـ `jwt`). لا أدوار ولا مركز فيه.
-- الـ session تُبنى منه عند كل قراءة (`session.user.id`) — الملف `src/lib/auth/config.ts`.
-
-### 1-ج) الدخول بـ Google
-```
-زر «الدخول بـ Google» (يظهر فقط لو GOOGLE_CLIENT_ID موجود)
-  → googleAction في login/page.tsx → signIn("google")
-  → callback الـ signIn ينادي ensureGoogleUser: موجود؟ يرفض الموقوف ويثبّت التفعيل. جديد؟ ينشئه مفعّلًا
-  → تحويل /onboarding
-```
-
-### 1-د) تأكيد الإيميل (مبني ويعمل)
-```
-الرابط /verify?email&token (من الـ logs)
-  → verify/page.tsx تنادي verifyEmailToken
-  → تطابق البصمة + عدم الانتهاء → User.emailVerifiedAt + حذف التوكن لمرة واحدة
-  → «تم تفعيل بريدك» بزر إكمال، أو «الرابط غير صالح»
-```
-- التفعيل **شرط** إنشاء مركز (`createCenter` ترفض غير المفعّل).
-
-### 1-هـ) نسيان الباسورد (مبني ويعمل)
-```
-forgot → forgotAction → requestPasswordReset: لو الحساب موجود ينشئ توكن ساعتين ويطبع الرابط (صمت تام لو غير موجود)
-  → reset?email&token → resetAction → resetPassword: يبدّل البصمة + يرفع sessionVersion + يحذف التوكن → تحويل /login
-```
-- تحذير: رفع `sessionVersion` مكتوب لكن **لا شيء يقرأه** — الخروج من كل الأجهزة لسه مش مفعّل فعليًا (انظر STATUS_AND_NEXT).
-
-### تسجيل الخروج (لسه مش مبني)
-لا يوجد زر خروج في أي صفحة. الدالة `signOut` مُصدَّرة من الإعداد لكن بلا مستدعٍ.
-
-## 2) User Flow (رحلة المستخدم)
-```
-/ → register (حساب) → /onboarding
-  → الكارت 1 «إنشاء مركز جديد»: بيانات + برامج (واحد على الأقل + مخصص اختياري)
-      → createCenterAction → createCenter → كوكي active_org → /dashboard
-  → الكارت 2 «عندي كود دعوة»: كود من مشرف
-      → enterCodeAction → consumeInvite → كوكي active_org → /dashboard
-  → الكارت 3 «متابعة طفلي»: زر معطل (قريبًا) — لسه مش مبني
-  → لو له عضويات: أزرار «دخول <اسم المركز>» تثبت الكوكي عبر setActiveOrg
-/dashboard: اسم المركز + الدور + الفروع (تظهر فقط لو أكثر من فرع) + البرامج + كارت «قريبًا»
-```
-- إنشاء مركز بإيميل غير مفعّل ← رسالة «فعّل بريدك أولًا».
-- أكثر من 3 مراكز لنفس المنشئ ← رفض `FORBIDDEN`.
-
-## 3) API/Data Flow (مسار طلب كامل)
-```
-مثال: فتح /dashboard
-صفحة (app/dashboard/page.tsx)
-  → viewer() (services/viewer.ts): يقرأ الجلسة (auth) وكوكي active_org
-  → getSessionContext(userId, activeOrgId) (services/session-context.ts):
-     يقرأ User (الحالة؟ أدمن عام؟) ثم Membership (فعالة؟) ويبني {orgId, role, branchScope}
-  → getDashboard(ctx) (services/screens.ts):
-     التحقق zod كان في الـ action (للقراءة: لا مدخلات)
-     الصلاحيات: kind必须为 member وإلا تحويل (في الصفحة نفسها)
-     العزل: Org.findOne({_id, ...}) ضمنيًا + Branch.find(scopedFilter(ctx, "_id"))
-  → الرد: كائن بيانات عادي {orgName, role, branches, programs}
-     (ملاحظة: شكل Result الموحد معرّف لكن الأكشنات ترد {ok, message} مباشرة — انظر قسم غير المستخدم)
-```
-- القاعدة: `orgId` يأتي من السياق السيرفري دائمًا، والعميل لا يرسله أبدًا (الكوكي مجرد مؤشر يُتحقق منه).
-- أي `findById` مباشر ممنوع بموجب قاعدة ESLint (الـ models لا تُستورد إلا في services/scripts/tests).
-
-## 4) Context Flow (حالات السياق)
-```
-getSessionContext(userId, activeOrgId):
-  userId فارغ/تالف → خطأ UNAUTHENTICATED (الصفحة تحوّل إلى /login)
-  المستخدم غير موجود أو غير active → UNAUTHENTICATED
-  isPlatformAdmin → {kind: "platform"} (يُقبل فقط في /platform، وغيره يُحوَّل)
-  بلا active_org صالح → {kind: "onboarding"} (صفحات الداشبورد تحوّل إلى /onboarding)
-  بلا عضوية فعالة في المركز → خطأ FORBIDDEN
-  عضوية فعالة → {kind: "member", orgId, role, branchScope}
-     الدور center_admin ← نطاق all (كل الفروع)
-     غيره ← نطاق list (فروع العضوية فقط)
-```
-
-## 5) Create Org Flow (إنشاء مركز بالتفصيل)
-```
-createCenterAction (تحقق createCenterSchema + تحويل المخصص إلى custom:...)
-  → createCenter (services/orgs.ts):
-     1. تحقق داخلي ثانٍ + شرط الإيميل المفعّل + عد المراكز (3 كحد أقصى)
-     2. transaction واحدة (mongoose.startSession + withTransaction):
-        - Org.create (الاسم/التواصل/العنوان/createdByUserId)
-        - Branch.create (نفس المركز، الاسم ثابت «الفرع الرئيسي»)
-        - Membership.create (المنشئ center_admin بلا فروع)
-        - OrgProgram.create (صف لكل برنامج مختار)
-     3. عند أي فشل: الـ transaction تلغي الكل، والأكشن يرد رسالة عربية
-  → كوكي active_org = المركز الجديد → تحويل /dashboard
-```
-- عند الخطأ: رسالة الخدمة تُعرض كما هي بعد حذف بادئة `VALIDATION:`/`FORBIDDEN:`.
----------------------+--------------------------------
-
-# خريطة المشروع (للمبتدئ)
-
-## كيف تقرأ هذا الملف
-- القسم الأول فهرس: اضغط على أي رابط للقفز لقسمه.
-- الأسماء مكتوبة حرفيًا كما في الكود لتقدر تبحث عنها.
-- كلمة callers تعني "مين بينادي على الدالة"، وكلمة callees تعني "الدالة بتنادي على مين".
-
-## الفهرس
-- [شجرة المجلدات](#شجرة-المجلدات)
-- [طبقة app/ (الصفحات)](#طبقة-app-الصفحات)
-- [طبقة components/](#طبقة-components)
-- [طبقة lib/](#طبقة-lib)
-- [طبقة services/](#طبقة-services)
-- [طبقة db/models/](#طبقة-dbmodels)
-- [طبقة validators/](#طبقة-validators)
-- [طبقة scripts/](#طبقة-scripts)
-- [طبقة tests/](#طبقة-tests)
-- [الملفات الجذرية](#الملفات-الجذرية-config)
-- [جدول الـ Routes](#جدول-الـ-routes)
-- [جدول الـ Server Actions والـ API](#جدول-الـ-server-actions-والـ-api)
-- [موجود لكن غير مستخدم](#موجود-لكن-غير-مستخدم-حاليا)
-
-## شجرة المجلدات
-- `src/app/`: الصفحات التي يفتحها المستخدم في المتصفح. كل مجلد باسمه = عنوان في الموقع.
-- `src/components/ui/`: قطع جاهزة من مكتبة shadcn (زر، كارت، حقل إدخال). مولّدة آليًا — لا تعدلها بيدك.
-- `src/components/form/`: حقول فورمات جاهزة من صنع المشروع، كل حقل يُستخدم بسطر واحد.
-- `src/components/`: مكونات عامة من صنع المشروع (مبدل السمة...).
-- `src/lib/`: دوال صغيرة نقية. كلمة نقية تعني لا تفتح الداتابيز بنفسها.
-- `src/db/`: شكل الجداول (models) وطريقة الاتصال بالداتابيز.
-- `services/`: العقل. أي قراءة أو كتابة في الداتابيز تتم من هنا فقط، وبعده تُمنع في الصفحات (قاعدة ESLint).
-- `src/validators/`: قواعد التحقق (zod) المشتركة بين المتصفح والسيرفر.
-- `scripts/`: أوامر تُشغَّل من سطر الأوامر (terminal) وليست صفحات.
-- `tests/`: اختبارات آلية تتأكد أن العزل بين المراكز يعمل.
-- `docs/`: هذا التوثيق وملفات مرجعية أخرى.
-- `middleware.ts` (جذر): بوابة خفيفة تتحقق هل الزائر مسجل دخول أم لا.
-
-## طبقة app/ (الصفحات)
-كل صفحة ملف اسمه `page.tsx`. ملف `form.tsx` يعني فورم تفاعلي (Client Component — يعمل في المتصفح). ملف `actions.ts` يعني دوال سيرفر (Server Action — تعمل على السيرفر وتُستدعى من الفورم).
-
-- `src/app/page.tsx`: صفحة البداية. تعرض كارت «سَنَد» مع زري الدخول والحساب. لو مسجل دخول تحوله إلى `/onboarding`. لا تنادي services.
-- `src/app/layout.tsx`: الغلاف العام لكل الصفحات (الخطوط، الاتجاه RTL، السمة، التنبيهات). لا منطق فيه.
-- `src/app/loading.tsx`: شاشة تحميل (Skeleton — مستطيلات رمادية متحركة) تظهر أثناء فتح أي صفحة.
-- `src/app/not-found.tsx`: صفحة 404 بزر عودة للبداية.
-- `src/app/login/page.tsx`: كارت الدخول + زر Google (يظهر فقط لو مفاتيح Google موجودة). فيها `googleAction` تنادي `signIn("google")` من `src/lib/auth/config.ts`.
-- `src/app/login/form.tsx`: فورم الدخول. الدالة `LoginForm` تنادي `loginAction` من `./actions`، وعند الفشل تعرض الرسالة بـ `FormAlert` وتنبيه `toast`.
-- `src/app/login/actions.ts`: الدالة `loginAction(values)` تتحقق من `loginSchema` ثم تنادي `signIn("credentials")` من `src/lib/auth/config.ts`. عند النجاح تحول إلى `/onboarding`.
-- `src/app/register/page.tsx` + `form.tsx` (الدالة `RegisterForm`): نفس نمط الدخول.
-- `src/app/register/actions.ts`: الدالة `registerAction(values)` تتحقق من `registerSchema` ثم تنادي `registerAccount` من `services/auth-accounts.ts` (الخطأ `TAKEN` يعني الإيميل مسجل)، ثم دخول تلقائي ثم تحويل إلى `/onboarding`.
-- `src/app/forgot/page.tsx` + `form.tsx` (الدالة `ForgotForm`): تطلب الإيميل فقط.
-- `src/app/forgot/actions.ts`: الدالة `forgotAction(values)` تنادي `requestPasswordReset` من `services/auth-accounts.ts` وترد دائمًا بنجاح حتى لا تكشف وجود الحسابات.
-- `src/app/reset/page.tsx` + `form.tsx` (الدالة `ResetForm` تستقبل `email` و`token`): كلمة مرور جديدة.
-- `src/app/reset/actions.ts`: الدالة `resetAction(email, token, values)` تنادي `resetPassword` من `services/auth-accounts.ts`، وعند النجاح تحول إلى `/login`.
-- `src/app/verify/page.tsx`: صفحة تفعيل الإيميل من الرابط. تنادي `verifyEmailToken` من `services/auth-accounts.ts` وتعرض نجاحًا أو فشلًا مع زر مناسب.
-- `src/app/onboarding/page.tsx`: شاشة البداية بعد الدخول. تنادي `auth()` ثم `listMyMemberships` من `services/org-selection.ts`. تعرض أزرار «دخول» لكل عضوية (كل زر فورم صغير ينادي `setActiveOrg`) + 3 كروت: إنشاء مركز / عندي كود / متابعة طفلي (معطل).
-- `src/app/onboarding/actions.ts`: الدالة `setActiveOrg(formData)` تنادي `activateOrg` من `services/org-selection.ts` ثم تخزن كوكي `active_org` ثم تحول إلى `/dashboard`.
-- `src/app/onboarding/create-center/page.tsx`: كارت بخطوتين ظاهريًا وإرسال واحد.
-- `src/app/onboarding/create-center/form.tsx`: الدالة `CreateCenterForm` تستخدم `FormCheckboxes` للبرامج من `PROGRAM_CATALOG` في `src/lib/programs.ts` + حقل برنامج مخصص، وتنادي `createCenterAction`.
-- `src/app/onboarding/create-center/actions.ts`: الدالة `createCenterAction(values)` تتحقق من `createCenterSchema`، وتحول البرنامج المخصص إلى مفتاح `custom:...` عبر `customProgramKey`، ثم تنادي `createCenter` من `services/orgs.ts`، ثم تخزن كوكي `active_org` وتحول إلى `/dashboard`.
-- `src/app/onboarding/enter-code/page.tsx` + `form.tsx` (الدالة `EnterCodeForm`): حقل كود واحد.
-- `src/app/onboarding/enter-code/actions.ts`: الدالة `enterCodeAction(values)` تنادي `consumeInvite` من `services/invites.ts` ثم تخزن كوكي `active_org` وتحول إلى `/dashboard`.
-- `src/app/dashboard/page.tsx`: لوحة المركز. تنادي `viewer()` من `services/viewer.ts` (غير العضو يُحوَّل إلى `/onboarding`) ثم `getDashboard` من `services/screens.ts`. تعرض اسم المركز والدور والفروع (تظهر فقط لو أكثر من فرع) والبرامج وكارت «قريبًا» وزر تبديل المركز و`ThemeToggle`.
-- `src/app/platform/page.tsx`: شاشة المنصة للأدمن العام فقط. تنادي `viewer()` (غير المنصة يُحوَّل) ثم `getPlatformStats` من `services/screens.ts`. تعرض لكل مركز: الاسم والفروع والأعضاء والبرامج والتواصل — أرقام فقط بلا تفاصيل.
-- `src/app/ui-demo/page.tsx`: بوابة معرض المكونات. لو `NODE_ENV` يساوي `production` تعرض 404، وإلا تعرض `DemoSections` من `./demo`.
-- `src/app/ui-demo/demo.tsx`: الدالة `DemoSections` (عرض ثابت) + `DemoForm` (فورم تجريبي بإرسال وهمي) + `EditExample` (يحاكي تحميل سجل بعد ثانية لعرض وضع التعديل).
-- `src/app/api/auth/[...nextauth]/route.ts`: نقطة استقبال طلبات Auth.js (الدخول والجلسات). يصدّر `GET` و`POST` من `handlers` في `src/lib/auth/config.ts`.
-
-## طبقة components/
-- `src/components/ui/*` (17 ملفًا مولدًا): `button` `card` `input` `label` `textarea` `select` `radio-group` `checkbox` `switch` `field` `input-group` `sonner` `separator` `skeleton` `dropdown-menu` `direction` `spinner`. لا منطق مشروع فيها.
-- `src/components/form/field-shell.tsx`: `FieldShell` (عنوان + وصف + خطأ حول أي حقل) و`FormAlert` (رسالة خطأ على مستوى الفورم). مستدعاة من كل حقول الفورم.
-- `src/components/form/form-input.tsx`: `FormInput` (نص/إيميل/باسورد مع زر إظهار/رقم يفرق الفارغ عن الصفر/هاتف، أيقونات بداية/نهاية). مستدعاة من فورمات login/register/forgot/reset/create-center/enter-code.
-- `src/components/form/form-textarea.tsx`: `FormTextarea`. لا مستدعٍ لها حاليًا خارج `ui-demo`.
-- `src/components/form/form-select.tsx`: `FormSelect`. لا مستدعٍ لها حاليًا خارج `ui-demo`.
-- `src/components/form/form-radio-group.tsx`: `FormRadioGroup`. لا مستدعٍ لها حاليًا خارج `ui-demo`.
-- `src/components/form/form-checkbox.tsx`: `FormCheckbox` (مفرد) و`FormCheckboxes` (مجموعة، تُستخدم في فورم إنشاء المركز للبرامج).
-- `src/components/form/form-switch.tsx`: `FormSwitch`. لا مستدعٍ لها حاليًا خارج `ui-demo`.
-- `src/components/form/form-submit-button.tsx`: `FormSubmitButton` يعرض «جارٍ الحفظ…» ويُعطَّل أثناء الإرسال. مستدعاة من كل الفورمات.
-- `src/components/form/use-entity-form.ts`: `useEntityForm({schema, defaultValues, values})` — يبني الفورم مع `zodResolver`، ولو وصل `values` لاحقًا (وضع التعديل) يعيد الضبط عليها. مستدعاة من كل الفورمات.
-- `src/components/form/index.ts`: يعيد تصدير كل ما سبق فقط.
-- `src/components/theme-provider.tsx`: `ThemeProvider` (يغلّف `next-themes`). مستدعاة من `layout.tsx`.
-- `src/components/theme-toggle.tsx`: `ThemeToggle` (قائمة فاتح/داكن/النظام). مستدعاة من صفحة الداشبورد و`ui-demo`.
-- `src/lib/utils.ts`: الدالة `cn` (دمج أسماء CSS). مستدعاة من مكونات shadcn المولدة.
-
-## طبقة lib/
-- `src/lib/auth/config.ts`: إعداد Auth.js. يصدّر `handlers` (يستخدمه route الـ API) و`auth` (قراءة الجلسة — تستخدمه الصفحات والـ middleware) و`signIn`/`signOut` (يستخدمهما login/register). الدالة الداخلية `authorizeLogin` تنادي `verifyCredentials`. الـ callback `signIn` لحساب Google ينادي `ensureGoogleUser`. الـ callback `authorized` يسمح للمسارات العامة ويطلب جلسة لغيرها.
-- `src/lib/env.ts`: `getEnv()` تقرأ وتتحقق من متغيرات البيئة حسب `NODE_ENV`، و`__resetEnvCache()` للاختبارات فقط. مستدعاة من `instrumentation.ts` و`connectDB` و`invites.ts` و`auth-accounts.ts` و`dev-logger.ts`.
-- `src/lib/tenant/context.ts`: الأنواع فقط: `SessionContext` (ثلاث حالات: `platform` أدمن عام بلا مركز، `onboarding` مسجل بلا مركز، `member` عضو بمركز ودور ونطاق فروع) و`BranchScope` (`all` للمالك أو `list` بفروع محددة).
-- `src/lib/tenant/scopedFilter.ts`: `scopedFilter(ctx, branchField)` تبني فلتر `{orgId}` وتضيف شرط الفروع لو النطاق `list`. مستدعاة من `screens.ts` و`branches-read.ts`.
-- `src/lib/permissions/roles.ts`: `ROLES` و`can(role, action)` (جدول ثابت) و`rank(role)` (3/2/1 لمنع منح دور أعلى). مستدعاة من `invites.ts` و`memberships.ts` والاختبارات.
-- `src/lib/result.ts`: النوع `Result` والدالتان `ok` و`fail`. لا مستدعٍ لهما حاليًا.
-- `src/lib/invite-code.ts`: `generateInviteCode` (كود 8 حروف) و`normalizeInviteCode` (توحيد قبل المقارنة) و`hashInviteCode` (بصمة HMAC-SHA256 بالـ pepper). مستدعاة من `invites.ts` والاختبارات.
-- `src/lib/programs.ts`: `PROGRAM_CATALOG` (قرآن/تجويد/تربية/مقرأة/ملعب) و`customProgramKey` (تحويل الاسم المخصص إلى `custom:...`). مستدعاة من فورم وأكشن إنشاء المركز.
-- `src/lib/email/dev-logger.ts`: `sendAuthLink` تطبع رابط الإيميل في الـ logs (الإرسال الحقيقي لسه مش مبني). مستدعاة من `auth-accounts.ts`.
-
-## طبقة services/
-- `services/auth-accounts.ts`: `registerAccount` (إنشاء + رابط تفعيل، الخطأ `TAKEN` للإيميل المكرر) ← يناديها `registerAction`. `verifyEmailToken` ← صفحة verify. `requestPasswordReset` (صامتة لو الحساب غير موجود) ← `forgotAction`. `resetPassword` (ترفع `sessionVersion`) ← `resetAction`. `verifyCredentials` ← إعداد Auth.js. `ensureGoogleUser` ← إعداد Auth.js عند دخول Google.
-- `services/session-context.ts`: `getSessionContext(userId, activeOrgId)` تبني السياق من الداتابيز في كل طلب: بلا user ← `UNAUTHENTICATED`، أدمن عام ← `platform`، بلا مركز ← `onboarding`، بلا عضوية فعالة ← `FORBIDDEN`، وإلا `member` بالنطاق من الدور. تنادي `User` و`Membership`. يناديها `viewer`.
-- `services/viewer.ts`: `viewer()` تقرأ الجلسة (`auth`) وكوكي `active_org` ثم تنادي `getSessionContext`. تناديها صفحات dashboard وplatform.
-- `services/org-selection.ts`: `listMyMemberships(userId)` (عضوياتي الفعالة مع أسماء المراكز) ← صفحة onboarding. `activateOrg(userId, orgId)` (تتحقق من عضوية فعالة) ← أكشن `setActiveOrg`.
-- `services/orgs.ts`: `createCenter(userId, raw)` تتحقق داخليًا بـ schema خاص، تشترط إيميلًا مفعّلًا و3 مراكز كحد أقصى، ثم transaction واحدة تكتب Org + فرع «الفرع الرئيسي» + عضوية مالك + البرامج. يناديها أكشن إنشاء المركز.
-- `services/invites.ts`: `createInvite` (إنشاء كود بحد 20 نشطة، بلا مستدعٍ من الواجهة حاليًا) و`consumeInvite` (استهلاك ذري بشرط واحد ثم إعادة فحص صلاحية الداعي والفرع، ثم إنشاء عضوية أو إعادة تفعيل معطلة). تنادي `assertMembershipShape` و`assertBranchesInOrg`. ينادي `consumeInvite` أكشن إدخال الكود.
-- `services/memberships.ts`: `assertMembershipShape` (الفروع إجبارية للأدوار المحدودة) و`assertBranchesInOrg` (الفروع داخل نفس المركز) و`guardAdminChange` (حماية المنشئ وآخر أدمن — مع ملاحظة سباق مكتوبة في الكود) و`assertRankAllows`. تُستخدم في `invites.ts` والاختبارات فقط حاليًا.
-- `services/screens.ts`: `getDashboard(ctx)` (اسم المركز + الفروع بالنطاق + البرامج) ← الداشبورد. `getPlatformStats()` (أرقام كل المراكز) ← صفحة المنصة.
-- `services/branches-read.ts`: `listBranches(ctx)` خدمة صغيرة للاختبار فقط — لا تستخدمها الصفحات.
-
-## طبقة db/models/
-كلها تعريف شكل الجدول فقط (Mongoose Schema). الجداول الفعلية في MongoDB بأسماء جمع lowercase (users, orgs...).
-- `User.ts`: الهوية (اسم/إيميل فريد/صورة/باسورد مخفي `select:false`/حالة/أدمن عام/`sessionVersion`). تُقرأ من كل خدمات الحسابات والسياق.
-- `Org.ts`: المركز + `adminsVersion` (مخصص لمنع السباق لاحقًا) + منشئ المركز.
-- `Branch.ts`: الفرع (اسم فريد داخل المركز + حالة). فهرس `{orgId, name}` فريد.
-- `Membership.ts`: العضوية (مستخدم + مركز + دور + فروع + حالة). فهرس `{userId, orgId}` فريد. تحقق الفروع يعمل عند الإنشاء فقط وليس عند التحديث المباشر.
-- `Invite.ts`: الدعوة (كود مُبصَّم لا يُخزَّن نصًا + انتهاء + استخدام/إلغاء + `purgeAt` للحذف بعد 30 يومًا). الفرع إجباري لغير المالك.
-- `OrgProgram.ts`: برامج المركز المفعلة. فهرس `{orgId, programKey}` فريد.
-- `VerificationToken.ts`: روابط التفعيل والاستعادة لمرة واحدة (تُحذف بانتهائها).
-- `AuditLog.ts`: سجل الأحداث (يُحذف بعد 180 يومًا). لا كتابة فيه من أي service حاليًا.
-- `RateLimit.ts`: عدّادات الحماية (تُحذف بعد 24 ساعة). لا استخدام لها حاليًا.
-- `src/db/connection.ts`: `connectDB(uri?)` اتصال واحد مخزن يُعاد استخدامه، والفهارس تُبنى تلقائيًا خارج الإنتاج.
-
-## طبقة validators/
-- `common.ts`: قوالب (إيميل/باسورد/هاتف مصري/نص/رقم/اختيار/كود) برسائل عربية. `emptyTo` تحوّل `""` إلى `undefined`. غير المستخدمة حاليًا: `confirmPasswordRule` و`optionalPhoneRule` و`numberRule` (تُستخدم في `ui-demo` فقط `optionalNumberRule` و`selectRequired`).
-- `forms.ts`: ست schemas (دخول/حساب/نسيان/تعيين/مركز/كود) — نفس الكائن يُستخدم في الفورم (RHF) والأكشن (السيرفر).
-
-## طبقة scripts/
-- `scripts/seed-dev.ts`: `seedDev()` تنشئ مركزين تجريبيين (Dev Org A/B) بعضوية مالك لكل منهما. ترفض الإنتاج بدون `ALLOW_DEV_SEED=true`. التشغيل: `npm run seed:dev`.
-- `scripts/seed-super-admin.ts`: `seedSuperAdmin()` تنشئ/تحدّث أدمن المنصة من متغيرات البيئة (تعمل أكثر من مرة بأمان). التشغيل: `npm run seed:super-admin`.
-- `scripts/ensure-indexes.ts`: `ensureIndexes()` تبني الفهارس المعلنة بدون حذف (`createIndexes` فقط). التشغيل: `npm run db:indexes`.
-
-## طبقة tests/
-تعمل على داتابيز وهمية في الذاكرة (`mongodb-memory-server`) عبر `tests/helpers/db.ts` (الدوال `startMemoryDB` و`stopMemoryDB` و`clearDB`).
-- `uniques.test.ts`: خمسة اختبارات للفهارس الفريدة (إيميل/عضوية/فرع/برنامج/بصمة كود).
-- `membership-validation.test.ts`: اختباران (الفروع إجبارية للمحدودين، والمالك بلا فروع).
-- `roles.test.ts`: جدول الصلاحيات الثابت + حماية المنشئ وآخر أدمن + شرط الفرع في الدعوة.
-- `isolation.test.ts`: خمسة اختبارات أن كل مركز/فرع يرى بياناته فقط.
-- `seeds.test.ts`: اختباران (تكرار seed الأدمن آمن، ورفض seed-dev في الإنتاج).
-
-## الملفات الجذرية (config)
-- `package.json`: الأوامر (`dev/build/start/typecheck/lint/test/seed:*/db:indexes`) والمكتبات.
-- `middleware.ts`: يمرر الطلب لـ Auth.js، ويحمي `/dashboard/*` و`/onboarding/*` و`/platform/*` (غير المسجل يُحوَّل إلى `/login`).
-- `src/instrumentation.ts`: يعمل مرة عند إقلاع السيرفر ويتحقق من متغيرات البيئة بصوت عالٍ.
-- `eslint.config.mjs`: أهم قاعدة فيه تمنع استيراد الـ models خارج `services/` و`scripts/` و`tests/`.
-- `components.json`: إعداد shadcn (النمط الافتراضي + RTL).
-- `postcss.config.mjs` + `src/app/globals.css`: تنسيقات Tailwind وتوكنات Sanad (موثقة في `docs/sanad-tokens.md`).
-- `.env.example`: نسخة فارغة من الإعدادات (انسخها إلى `.env`).
-
-## جدول الـ Routes
-| المسار | النوع | الملف | من يدخله | ماذا يفعل |
-|---|---|---|---|---|
-| `/` | صفحة | `app/page.tsx` | عام | ترحيب + رابطا الدخول والحساب، والمسجل يُحوَّل |
-| `/login` | صفحة + فورم | `app/login/*` | عام | دخول إيميل/باسورد أو Google |
-| `/register` | صفحة + فورم | `app/register/*` | عام | حساب جديد + دخول تلقائي |
-| `/forgot` | صفحة + فورم | `app/forgot/*` | عام | طلب رابط الاستعادة (رد ثابت) |
-| `/reset?email&token` | صفحة + فورم | `app/reset/*` | عام (معه رابط) | كلمة مرور جديدة |
-| `/verify?email&token` | صفحة | `app/verify/page.tsx` | عام (معه رابط) | تفعيل الإيميل |
-| `/onboarding` | صفحة محمية | `app/onboarding/page.tsx` | مسجل | عضوياتي + 3 كروت |
-| `/onboarding/create-center` | صفحة + فورم | `app/onboarding/create-center/*` | مسجل (بإيميل مفعّل) | إنشاء مركز |
-| `/onboarding/enter-code` | صفحة + فورم | `app/onboarding/enter-code/*` | مسجل | الانضمام بكود |
-| `/dashboard` | صفحة محمية | `app/dashboard/page.tsx` | عضو بمركز | اسم المركز والدور والفروع والبرامج |
-| `/platform` | صفحة محمية | `app/platform/page.tsx` | أدمن عام فقط | أرقام كل المراكز |
-| `/ui-demo` | صفحة تطوير | `app/ui-demo/*` | غير الإنتاج فقط (404 في الإنتاج) | معرض المكونات |
-| `/api/auth/[...nextauth]` | API | route handler | عام | تسجيل الدخول والجلسات (Auth.js) |
-
-## جدول الـ Server Actions والـ API
-| الاسم | الملف | المدخلات | الـ service | المخرجات |
-|---|---|---|---|---|
-| `loginAction` | `login/actions.ts` | إيميل + باسورد | `signIn` (Auth.js) | تحويل إلى onboarding أو رسالة خطأ |
-| `registerAction` | `register/actions.ts` | اسم + إيميل + باسورد | `registerAccount` ثم `signIn` | تحويل أو رسالة (منها الإيميل المكرر) |
-| `forgotAction` | `forgot/actions.ts` | إيميل | `requestPasswordReset` | رسالة نجاح ثابتة دائمًا |
-| `resetAction` | `reset/actions.ts` | إيميل + توكن + باسورد | `resetPassword` | تحويل إلى login أو رسالة انتهاء |
-| `setActiveOrg` | `onboarding/actions.ts` | orgId (FormData) | `activateOrg` | كوكي `active_org` + تحويل إلى dashboard |
-| `createCenterAction` | `create-center/actions.ts` | بيانات المركز + برامج | `createCenter` | كوكي + تحويل إلى dashboard أو رسالة |
-| `enterCodeAction` | `enter-code/actions.ts` | كود | `consumeInvite` | كوكي + تحويل إلى dashboard أو رسالة |
-| `googleAction` | داخل `login/page.tsx` | — | `signIn("google")` | تحويل إلى onboarding |
-| `GET/POST /api/auth/*` | route handler | حسب Auth.js | الجلسات والـ JWT | جلسة/كوكي |
-
-## موجود لكن غير مستخدم حاليًا
-- `Result` و`ok` و`fail` في `src/lib/result.ts`: لا مستدعٍ (الأكشنات ترد بكائنات `{ok, message}` مباشرة).
-- `createInvite` في `services/invites.ts`: لا واجهة تنشئ دعوات بعد (الاستهلاك فقط هو المبني).
-- `listBranches` في `services/branches-read.ts`: للاختبارات فقط، لا صفحة تستخدمها.
-- `AuditLog` و`RateLimit`: معرفان وتُبنى فهارسهما فقط، بلا قراءة/كتابة.
-- `confirmPasswordRule` و`optionalPhoneRule` و`numberRule` في `validators/common.ts`: بلا استخدام خارج `ui-demo`.
-- `FormTextarea` و`FormSelect` و`FormRadioGroup` و`FormSwitch`: بلا استخدام خارج `ui-demo`.
-- `middleware.ts` يحمي المسارات لكن التفاصيل الدقيقة (الدور) تُفحص داخل كل صفحة.
-
----------------------+--------------------------------
-
-# الشاشات والصفحات
-
-## كيف تقرأ هذا الملف
-- صفحة لكل مسار موجود فعلًا في `src/app/`.
-- لكل صفحة: ماذا ترى، وماذا تفعل، وبياناتها من أين، وأين تذهب بعد كل إجراء.
-- آخر قسم للنوافص.
-
-## `/` — البداية (`app/page.tsx`)
-- ترى: كارت «سَنَد» + زري الدخول والحساب.
-- البيانات: الجلسة فقط. المسجل يُحوَّل تلقائيًا إلى `/onboarding`.
-- لا أفعال هنا.
-
-## `/login` — الدخول (`app/login/*`)
-- ترى: زر Google (مشروط بالمفاتيح) + حقلا الإيميل والباسورد (إظهار/إخفاء) + رابطا الحساب والنسيان.
-- الفعل: دخول ← نجاح يحول إلى `/onboarding`، فشل يعرض رسالة حمراء + تنبيهًا.
-- المكونات: `Card` و`LoginForm` (`FormInput` + `FormSubmitButton`).
-
-## `/register` — حساب جديد (`app/register/*`)
-- ترى: الاسم + الإيميل + الباسورد (مع تلميح 8 أحرف).
-- الفعل: إنشاء ← إنشاء الحساب + دخول تلقائي ← `/onboarding`. الإيميل المكرر رسالته الخاصة.
-- ملاحظة: رابط التفعيل يُطبع في الـ logs — افتح الـ terminal لتنسخه.
-
-## `/forgot` و`/reset` — الاستعادة (`app/forgot/*`, `app/reset/*`)
-- `/forgot`: إيميل واحد. الرد دائمًا «إن وُجد الحساب ستصلك رسالة» حتى لو لا حساب.
-- `/reset`: يفتح فقط برابط صحيح (`email`+`token`). حفظ ناجح ← `/login`. رابط منتهي ← رسالة تطلب رابطًا جديدًا.
-
-## `/verify` — التفعيل (`app/verify/page.tsx`)
-- لا فورم فيها: تعمل تلقائيًا من الرابط وتعرض نجاحًا بزر «أكمل» أو فشلًا بزر عودة.
-
-## `/onboarding` — البداية (`app/onboarding/*`)
-- ترى: ترحيبًا بالاسم + أزرار «دخول» لكل عضوية فعالة (تثبت الكوكي عبر `setActiveOrg` ثم `/dashboard`) + 3 كروت.
-- الكروت: إنشاء مركز (يعمل) / كود دعوة (يعمل) / متابعة طفلي (معطل).
-
-## `/onboarding/create-center` — إنشاء مركز (`app/onboarding/create-center/*`)
-- ترى: الاسم + التواصل + العنوان + برامج (checkboxes من الكتالوج) + مخصص + زر إنشاء.
-- الفعل: نجاح ← `/dashboard` (الكوكي يُثبَّت تلقائيًا). فشل ← رسالة (منها: فعّل بريدك، الحد 3 مراكز).
-- البيانات الخارجة: مركز + فرع رئيسي + عضوية مالك + برامج (transaction واحدة).
-
-## `/onboarding/enter-code` — الكود (`app/onboarding/enter-code/*`)
-- ترى: حقل كود واحد + زر انضمام.
-- الفعل: كود صحيح ← عضوية بالدور المحدد في الدعوة ← `/dashboard`. كود خاطئ/منتهي/مستخدم ← رسالة. العضو الحالي ← «أنت عضو بالفعل».
-
-## `/dashboard` — اللوحة (`app/dashboard/page.tsx`)
-- ترى: اسم المركز + دورك + مبدل السمة + الفروع (فقط لو أكثر من فرع) + البرامج + كارت «قريبًا» + زر تبديل المركز.
-- البيانات: من `getDashboard` بالنطاق الخاص بك (المعلم يرى فروعه فقط).
-- غير العضو يُحوَّل إلى `/onboarding`.
-
-## `/platform` — المنصة (`app/platform/page.tsx`)
-- ترى: بطاقة لكل مركز (اسم/فروع/أعضاء/برامج/تواصل) — أرقام فقط.
-- للأدمن العام فقط (يُزرع بالـ seed). غيره يُحوَّل إلى `/onboarding`.
-
-## `/ui-demo` — المعرض (`app/ui-demo/*`)
-- ترى: كل الأزرار والحالات وحقلي معطل/قراءة فقط وفورم تجريبي كامل (إنشاء وتعديل) وأزرار toast وهيكل تحميل ومبدل السمة.
-- للتطوير فقط: في الإنتاج تُرجع 404. غير مرتبطة من أي صفحة.
-
-## النواقص والـ placeholders
-- زر «متابعة طفلي»: معطل، لا صفحة ولا منطق له.
-- لا زر خروج في أي صفحة (تسجيل الخروج لسه مش مبني).
-- لا صفحة لإنشاء الدعوات (الاستهلاك مبني، الإنشاء بلا واجهة).
-- لا صفحة لإدارة الفريق/الأدوار/الفروع (الحماية `guardAdminChange` بلا واجهة).
-- الداشبورد يعرض «قريبًا» بدل الطلاب والمجموعات والحضور (غير مبنية).
-- لا صفحة إعدادات ولا ملف شخصي.
+// Builds context from the DB on every request. JWT carries userId only.
+// Four states: platform (stats only) | onboarding (no org yet) | unverified | member.
+export async function getSessionContext(
+  userId: string | null,
+  activeOrgId: string | null,
+  expectedSessionVersion?: number | null,
+): Promise<SessionContext> {
+  if (!userId || !Types.ObjectId.isValid(userId))
+    throw new Error("UNAUTHENTICATED");
+  const user = await User.findById(userId).select(
+    "status isPlatformAdmin sessionVersion email emailVerifiedAt",
+  );
+  if (!user || user.status !== "active") throw new Error("UNAUTHENTICATED");
+  if (
+    expectedSessionVersion !== undefined &&
+    expectedSessionVersion !== user.sessionVersion
+  ) {
+    throw new Error("UNAUTHENTICATED");
+  }
+  if (user.isPlatformAdmin) return { kind: "platform", userId };
+  if (!user.emailVerifiedAt)
+    return { kind: "unverified", userId, email: user.email };
+  if (!activeOrgId || !Types.ObjectId.isValid(activeOrgId))
+    return { kind: "onboarding", userId };
+  const membership = await Membership.findOne({
+    userId: user._id,
+    orgId: new Types.ObjectId(activeOrgId),
+    status: "active",
+  });
+  if (!membership) throw new Error("FORBIDDEN");
+  return {
+    kind: "member",
+    userId,
+    orgId: membership.orgId,
+    role: membership.role,
+    branchScope:
+      membership.role === "center_admin"
+        ? { mode: "all" }
+        : { mode: "list", branchIds: membership.branchIds },
+  };
+}
 ---------
-# دليل الاختبار اليدوي من المتصفح
+import type { Types } from "mongoose";
+import type { MembershipRole } from "@/db/models/Membership";
 
-## كيف تقرأ هذا الملف
-- خطوات تنفذها بنفسك بالترتيب من متصفحك.
-- كل سيناريو: الخطوات، ثم النتيجة المتوقعة، ثم أين تتأكد في الداتابيز.
-- كلمة collection تعني جدول في MongoDB.
+// Pure types only — no DB imports allowed in lib.
+export type BranchScope =
+  | { mode: "all" }
+  | { mode: "list"; branchIds: Types.ObjectId[] };
 
-## التشغيل
-1. انسخ `.env.example` إلى `.env` واملأ `MONGODB_URI_DEV` (رابط Atlas أو محلي) و`AUTH_SECRET` (أي نص طويل).
-2. `npm install` ثم `npm run dev` وافتح `http://localhost:3000`.
-3. سجّل حسابين من `/register` (مالك ومعلم). روابط التفعيل تُطبع في الـ terminal على شكل `[DEV-MAIL] ... url=...` — انسخ الرابط والصقه.
-4. ملاحظة: حسابات `seed-dev` (deva/devb) بلا كلمة مرور ولا تصلح للدخول — أنشئ حساباتك من الواجهة.
+export type SessionContext =
+  | { kind: "platform"; userId: string }
+  | { kind: "onboarding"; userId: string }
+  | { kind: "unverified"; userId: string; email: string }
+  | {
+      kind: "member";
+      userId: string;
+      orgId: Types.ObjectId;
+      role: MembershipRole;
+      branchScope: BranchScope;
+    };
 
-## السيناريوهات
-1. **تسجيل ودخول**: سجّل حسابًا ← متوقع: دخول تلقائي إلى `/onboarding` وصف `users` فيه سطرك. افتح رابط التفعيل من الـ logs ← متوقع: «تم تفعيل بريدك» وحقل `emailVerifiedAt` امتلأ.
-2. **إنشاء مركز**: فعّل الإيميل ثم «إنشاء مركز» (اسم + رقم مصري صحيح + برنامج واحد على الأقل) ← متوقع: `/dashboard` باسم مركزك. في الداتابيز: صف في جدول المراكز + صف «الفرع الرئيسي» في جدول الفروع + عضوية `center_admin` + صفوف البرامج.
-3. **إنشاء بلا تفعيل**: حساب جديد غير مفعّل يحاول إنشاء مركز ← متوقع: رسالة «فعّل بريدك أولًا» ولا صف جديد في `orgs`.
-4. **الدعوة والقبول**: من حساب المالك تحتاج كودًا — حاليًا لا واجهة لإنشائه (تولّده من دالة `createInvite` فقط). بالكود: سجّل حسابًا ثانيًا ← «عندي كود» ← أدخله ← متوقع: `/dashboard` بالدور المحدد، وفي جدول الدعوات صار `usedAt` ممتلئًا، وفي جدول العضويات عضوية جديدة.
-5. **العزل**: سجّل حسابًا في مركزين مختلفين ← بدّل بينهما بزر «تبديل المركز» ← متوقع: كل مركز يرى فروعه وبرامجه فقط. كوكي `active_org` في أدوات المطور (Application → Cookies) يتغير مع التبديل.
-6. **نسيان الباسورد**: `/forgot` بإيميلك ← انسخ رابط الـ logs ← عيّن باسوردًا ← متوقع: دخول بالجديد من `/login`.
 
-## حالات الخطأ
-- باسورد غلط ← «بيانات الدخول غير صحيحة أو الحساب موقوف» ولا دخول.
-- إيميل مكرر في التسجيل ← «هذا البريد مسجل بالفعل».
-- فتح `/dashboard` بلا دخول ← تحويل إلى `/login`. فتحه بحساب بلا مركز ← تحويل إلى `/onboarding`.
-- كوكي `active_org` فاسد (عدّله يدويًا) ← تحويل إلى `/onboarding` (السياق يرفضه).
-- كود مستخدم/منتهي ← «الكود غير صحيح أو منتهي أو مستخدم».
 
-## ما يمكن اختباره الآن وما لا
-- يعمل: التسجيل/الدخول/Google (بالمفاتيح)/التفعيل/الاستعادة/إنشاء مركز/القبول بكود/العزل/السمة والـ RTL.
-- لا يعمل: زر الخروج (غير موجود)، إنشاء الدعوات من الواجهة، إدارة الفريق، بوابة ولي الأمر، أي شيء في كارت «قريبًا».
+export async function teamData() {
+  const ctx = await teamCtx();
+  const pref = (await cookies()).get("active_branch")?.value ?? null;
+  const [branches, members, invites] = await Promise.all([
+    listBranches(ctx),
+    listMembers(ctx),
+    listInvites(ctx),
+  ]);
+  const validPref = branches.some((b) => String(b._id) === pref) ? pref : null;
+  return {
+    role: ctx.role,
+    branches: branches.map((b) => ({ id: String(b._id), name: b.name })),
+    members: validPref ? members.filter((m) => m.branchIds.includes(validPref)) : members,
+    invites: validPref ? invites.filter((i) => !i.branchId || i.branchId === validPref) : invites,
+  };
+}
 
-## التتبع
-- الـ logs: الـ terminal الذي يعمل فيه `npm run dev` (روابط الإيميل تبدأ بـ `[DEV-MAIL]`).
-- الكوكي: أدوات المطور ← Application ← Cookies ← `active_org` (معرف المركز) و`authjs.session-token` (الجلسة).
-- الداتابيز: `mongosh "رابط-الاتصال"` ثم `show collections` لرؤية أسماء الجداول الفعلية (مثل users/orgs/memberships)، ثم `db.users.find()`.
+async function teamCtx() {
+  const ctx = await viewer();
+  if (ctx.kind !== "member") redirect("/verify-pending");
+  if (ctx.role !== "center_admin" && ctx.role !== "branch_admin")
+    redirect("/dashboard");
+  return ctx;
+}
+
+// Minimal witness service for isolation tests: lists branches inside the caller's scope.
+// Branch identity IS _id here, so scope filters on _id (not branchId).
+export async function listBranches(ctx: SessionContext) {
+  if (ctx.kind !== "member") throw new Error("FORBIDDEN");
+  return Branch.find(scopedFilter(ctx, "_id")).sort({ name: 1 }).lean();
+}
+
+
+
+export async function listMembers(ctx: MemberCtx) {
+  requireTeamAccess(ctx);
+  await connectDB();
+  const memberships = await Membership.find(scopedFilter(ctx, "branchIds")).sort({ createdAt: 1 }).lean();
+  const users = await User.find({ _id: { $in: memberships.map((m) => m.userId) } })
+    .select("name email")
+    .lean();
+  const nameOf = new Map(users.map((u) => [String(u._id), { name: u.name, email: u.email }]));
+  return memberships.map((m) => ({
+    userId: String(m.userId),
+    ...(nameOf.get(String(m.userId)) ?? { name: "", email: "" }),
+    role: m.role,
+    branchIds: m.branchIds.map(String),
+    status: m.status,
+  }));
+}
+
+
+
+// الدعوات الفعّالة فقط (غير مستخدمة وغير منتهية وغير ملغاة)، بالنطاق.
+export async function listInvites(ctx: TeamCtx) {
+  requireTeamAccess(ctx);
+  await connectDB();
+  const invites = await Invite.find({
+    orgId: ctx.orgId,
+    ...branchFilter(ctx),
+    usedAt: null,
+    revokedAt: null,
+    expiresAt: { $gt: new Date() },
+  })
+    .sort({ createdAt: -1 })
+    .lean();
+  return invites.map((i) => ({
+    id: String(i._id),
+    role: i.role,
+    branchId: i.branchId ? String(i.branchId) : null,
+    expiresAt: i.expiresAt.toISOString(),
+  }));
+}
+
+
+
+// أكشنات الفريق: إنشاء/إلغاء دعوة + تغيير دور/تعطيل عضو — كلها بفحص سيرفر.
+"use server";
+
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { createInvite, listInvites, revokeInvite } from "@/services/invites";
+import { listBranches } from "@/services/branches-read";
+import { listMembers, updateMember } from "@/services/members";
+import { viewer } from "@/services/viewer";
+import { inviteFormSchema } from "@/validators/forms";
+
+async function teamCtx() {
+  const ctx = await viewer();
+  if (ctx.kind !== "member") redirect("/verify-pending");
+  if (ctx.role !== "center_admin" && ctx.role !== "branch_admin")
+    redirect("/dashboard");
+  return ctx;
+}
+
+export async function createInviteAction(formData: FormData) {
+  const ctx = await teamCtx();
+  const parsed = inviteFormSchema.safeParse({
+    role: String(formData.get("role") ?? ""),
+    branchId: formData.get("branchId")
+      ? String(formData.get("branchId"))
+      : null,
+    days: Number(formData.get("days") ?? 2),
+  });
+  if (!parsed.success) redirect("/dashboard/team?error=1");
+  try {
+    const { code } = await createInvite(
+      {
+        userId: ctx.userId,
+        orgId: ctx.orgId,
+        role: ctx.role,
+        branchIds:
+          ctx.branchScope.mode === "list" ? ctx.branchScope.branchIds : [],
+      },
+      parsed.data.role,
+      parsed.data.branchId ?? null,
+      parsed.data.days,
+    );
+    redirect(`/dashboard/team?created=${code}`);
+  } catch {
+    redirect("/dashboard/team?error=1");
+  }
+}
+
+export async function revokeInviteAction(inviteId: string) {
+  const ctx = await teamCtx();
+  try {
+    await revokeInvite(ctx, inviteId);
+  } catch {
+    redirect("/dashboard/team?error=1");
+  }
+  redirect("/dashboard/team");
+}
+
+export async function updateMemberAction(
+  targetUserId: string,
+  formData: FormData,
+) {
+  const ctx = await teamCtx();
+  const role = formData.get("role");
+  const status = formData.get("status");
+  try {
+    await updateMember(ctx, targetUserId, {
+      ...(role
+        ? { role: String(role) as "center_admin" | "branch_admin" | "teacher" }
+        : {}),
+      ...(status ? { status: String(status) as "active" | "disabled" } : {}),
+    });
+  } catch (e) {
+    redirect(
+      `/dashboard/team?error=${encodeURIComponent(e instanceof Error ? e.message : "1")}`,
+    );
+  }
+  redirect("/dashboard/team");
+}
+
+export async function teamData() {
+  const ctx = await teamCtx();
+  const pref = (await cookies()).get("active_branch")?.value ?? null;
+  const [branches, members, invites] = await Promise.all([
+    listBranches(ctx),
+    listMembers(ctx),
+    listInvites(ctx),
+  ]);
+  const validPref = branches.some((b) => String(b._id) === pref) ? pref : null;
+  return {
+    role: ctx.role,
+    branches: branches.map((b) => ({ id: String(b._id), name: b.name })),
+    members: validPref
+      ? members.filter((m) => m.branchIds.includes(validPref))
+      : members,
+    invites: validPref
+      ? invites.filter((i) => !i.branchId || i.branchId === validPref)
+      : invites,
+  };
+}

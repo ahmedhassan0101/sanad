@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { Inter, Tajawal } from "next/font/google";
-import { DirectionProvider } from "@/components/ui/direction";
-import { Toaster } from "@/components/ui/sonner";
-import { ThemeProvider } from "@/components/theme-provider";
+import { Providers } from "@/components/providers";
 import "./globals.css";
 
-// اللاتينية بـ Inter والعربية تسقط تلقائيًا على Tajawal (لا حروف عربية في Inter).
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 const tajawal = Tajawal({
   subsets: ["arabic", "latin"],
   weight: ["400", "500", "700", "800"],
@@ -19,14 +21,20 @@ export const metadata: Metadata = {
   description: "Sanad — mosque and Quran center management",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="ar" dir="rtl" suppressHydrationWarning className={`${inter.variable} ${tajawal.variable}`}>
+    <html
+      lang="ar"
+      dir="rtl"
+      suppressHydrationWarning
+      className={`${inter.variable} ${tajawal.variable}`}
+    >
       <body>
-        <ThemeProvider>
-          <DirectionProvider direction="rtl">{children}</DirectionProvider>
-          <Toaster />
-        </ThemeProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

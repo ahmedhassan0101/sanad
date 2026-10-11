@@ -9,10 +9,13 @@ import type { SessionContext } from "@/lib/tenant/context";
 export async function getSessionContext(
   userId: string | null,
   activeOrgId: string | null,
-  expectedSessionVersion?: number | null
+  expectedSessionVersion?: number | null,
 ): Promise<SessionContext> {
-  if (!userId || !Types.ObjectId.isValid(userId)) throw new Error("UNAUTHENTICATED");
-  const user = await User.findById(userId).select("status isPlatformAdmin sessionVersion email emailVerifiedAt");
+  if (!userId || !Types.ObjectId.isValid(userId))
+    throw new Error("UNAUTHENTICATED");
+  const user = await User.findById(userId).select(
+    "status isPlatformAdmin sessionVersion email emailVerifiedAt",
+  );
   if (!user || user.status !== "active") throw new Error("UNAUTHENTICATED");
   if (
     expectedSessionVersion !== undefined &&
@@ -21,8 +24,10 @@ export async function getSessionContext(
     throw new Error("UNAUTHENTICATED");
   }
   if (user.isPlatformAdmin) return { kind: "platform", userId };
-  if (!user.emailVerifiedAt) return { kind: "unverified", userId, email: user.email };
-  if (!activeOrgId || !Types.ObjectId.isValid(activeOrgId)) return { kind: "onboarding", userId };
+  if (!user.emailVerifiedAt)
+    return { kind: "unverified", userId, email: user.email };
+  if (!activeOrgId || !Types.ObjectId.isValid(activeOrgId))
+    return { kind: "onboarding", userId };
   const membership = await Membership.findOne({
     userId: user._id,
     orgId: new Types.ObjectId(activeOrgId),
