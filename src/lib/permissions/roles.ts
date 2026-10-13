@@ -15,9 +15,32 @@ const MATRIX: Record<Role, Set<string>> = {
     "member:disable",
     "program:manage",
     "settings:manage",
+    "student:create",
+    "student:edit",
+    "student:archive",
+    "student:report",
+    "student:import",
+    "student:delete",
   ]),
-  branch_admin: new Set(["member:invite-teacher", "member:disable-teacher"]),
-  teacher: new Set(["attendance:write", "progress:write"]),
+  branch_admin: new Set([
+    "member:invite-teacher",
+    "member:disable-teacher",
+    "student:create",
+    "student:edit",
+    "student:archive",
+    "student:report",
+    "student:import",
+    "student:delete",
+  ]),
+  teacher: new Set([
+    "attendance:write",
+    "progress:write",
+    "student:create",
+    "student:edit",
+    "student:archive",
+    "student:report",
+    "student:import",
+  ]),
 };
 
 export type Action =
@@ -30,7 +53,13 @@ export type Action =
   | "program:manage"
   | "settings:manage"
   | "attendance:write"
-  | "progress:write";
+  | "progress:write"
+  | "student:create"
+  | "student:edit"
+  | "student:archive"
+  | "student:report"
+  | "student:import"
+  | "student:delete";
 
 export function can(role: Role, action: Action): boolean {
   return MATRIX[role]?.has(action) ?? false;

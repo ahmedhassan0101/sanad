@@ -36,6 +36,17 @@ describe("role matrix (static)", () => {
     expect(can("teacher", "member:disable")).toBe(false);
   });
 
+  it("student permissions: all manage, only managers delete", () => {
+    for (const action of ["student:create", "student:edit", "student:archive", "student:report", "student:import"] as const) {
+      expect(can("center_admin", action)).toBe(true);
+      expect(can("branch_admin", action)).toBe(true);
+      expect(can("teacher", action)).toBe(true);
+    }
+    expect(can("center_admin", "student:delete")).toBe(true);
+    expect(can("branch_admin", "student:delete")).toBe(true);
+    expect(can("teacher", "student:delete")).toBe(false);
+  });
+
   it("no one grants above their level", () => {
     expect(() => assertRankAllows("branch_admin", "center_admin")).toThrow("FORBIDDEN");
     expect(() => assertRankAllows("center_admin", "teacher")).not.toThrow();

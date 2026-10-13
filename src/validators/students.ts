@@ -1,0 +1,85 @@
+// مخططات الطلاب المشتركة (عميل + سيرفر) — مبنية على القوالب والثوابت.
+import { z } from "zod";
+import {
+  GENDERS,
+  GUARDIAN_RELATIONS,
+  LEVELS,
+  getSurah,
+  isValidAyah,
+} from "@/constants/students";
+import {
+  emptyTo,
+  nameRule,
+  optionalPhoneRule,
+  optionalString,
+  phoneRule,
+} from "./common";
+
+// تاريخ YYYY-MM-DD فقط (يُحوَّل لظهر UTC في الخدمة بلا انزياح يوم).
+export const birthDateRule = emptyTo(
+  z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "التاريخ غير صحيح")
+    .optional(),
+);
+
+export function toBirthDate(s: string | undefined): Date | null {
+  if (!s) return null;
+  const [y, m, d] = s.split("-").map(Number);
+  const dt = new Date(Date.UTC(y!, m! - 1, d!, 12));
+  return Number.isNaN(dt.getTime()) ? null : dt;
+}
+
+const quranPositionRule = z
+  .object({
+    surah: z.number().int().min(1).max(114),
+    ayah: z.number().int().min(1, "الآية تبدأ من 1"),
+  })
+  .superRefine((v, ctx) => {
+    if (!isValidAyah(v.surah, v.ayah)) {
+      const s = getSurah(v.surah);
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["ayah"],
+        message: s ? `عدد آيات السورة: ${s.ayahs}` : "السورة غير صحيحة",
+      });
+    }
+  });
+
+const guardianRule = z.object({
+  relation: GUARDIAN_RELATIONS.zod(),
+  phone: phoneRule("رقم ولي الأمر"),
+});
+
+const imageRule = z.object({
+  url: z.string().url("رابط الصورة غير صحيح"),
+  publicId: z.string().min(1),
+});
+
+const baseFields = {
+  name: nameRule,
+  gender: GENDERS.zod(),
+  level: LEVELS.zod().default("beginner"),
+  birthDate: birthDateRule,
+  phone: optionalPhoneRule("هاتف الطالب"),
+  address: optionalString(200),
+  notes: optionalString(1000),
+  guardians: z.array(guardianRule).max(4, "4 أولياء كحد أقصى").default([]),
+  image: imageRule.optional(),
+};
+
+export const createStudentSchema = z.object({
+  ...baseFields,
+  branchId: z.string().optional(),
+  hifz: quranPositionRule.optional(),
+  confirmDuplicate: z.boolean().optional(),
+});
+export type CreateStudentInput = z.infer<typeof createStudentSchema>;
+
+export const updateStudentSchema = z.object({
+  ...baseFields,
+  level: LEVELS.zod(),
+  hifzPosition: quranPositionRule.optional(),
+  confirmDuplicate: z.boolean().optional(),
+});
+export type UpdateStudentInput = z.infer<typeof updateStudentSchema>;
