@@ -46,7 +46,7 @@ const quranPositionRule = z
     }
   });
 
-const guardianRule = z.object({
+export const guardianRule = z.object({
   relation: GUARDIAN_RELATIONS.zod(),
   phone: phoneRule("رقم ولي الأمر"),
 });
@@ -83,3 +83,16 @@ export const updateStudentSchema = z.object({
   confirmDuplicate: z.boolean().optional(),
 });
 export type UpdateStudentInput = z.infer<typeof updateStudentSchema>;
+
+// مخطط الفورم الموحد (إنشاء/تعديل): الحقلان معًا اختياريان، والواجهة تعرض أحدهما.
+// الأكشن يحوّل القيم إلى مخطط الإنشاء أو التعديل قبل الخدمة.
+export const studentFormSchema = z.object({
+  ...baseFields,
+  level: LEVELS.zod(),
+  guardians: z.array(guardianRule).max(4, "4 أولياء كحد أقصى"),
+  branchId: z.string().optional(),
+  hifz: quranPositionRule.optional(),
+  hifzPosition: quranPositionRule.optional(),
+  confirmDuplicate: z.boolean().optional(),
+});
+export type StudentFormInput = z.infer<typeof studentFormSchema>;
