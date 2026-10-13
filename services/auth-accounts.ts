@@ -28,7 +28,7 @@ export async function sendVerificationEmail(emailRaw: string) {
   const email = emailRaw.toLowerCase().trim();
   await checkRateLimit(
     `verify:${email}`,
-    3600_000,
+    3600_000, // after 1 hour, allow 3 attempts
     3,
     "RATE_LIMITED: أعد المحاولة بعد ساعة",
   );

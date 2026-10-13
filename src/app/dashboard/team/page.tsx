@@ -17,12 +17,7 @@ import {
   updateMemberAction,
 } from "./actions";
 import { CopyInvite } from "./copy-button";
-
-const ROLE_NAMES: Record<string, string> = {
-  center_admin: "مدير مركز",
-  branch_admin: "مشرف فرع",
-  teacher: "معلم",
-};
+import { ROLE_NAMES_AR as ROLE_NAMES } from "@/constants/students";
 
 export default async function TeamPage({
   searchParams,

@@ -6,12 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDashboard } from "@/services/screens";
 import { readBranchPref } from "@/services/branch-pref";
 import { viewer } from "@/services/viewer";
-
-const ROLE_NAMES: Record<string, string> = {
-  center_admin: "مدير المركز",
-  branch_admin: "مشرف فرع",
-  teacher: "معلم",
-};
+import { ROLE_NAMES_AR as ROLE_NAMES } from "@/constants/students";
 
 export default async function DashboardPage() {
   const ctx = await viewer();
