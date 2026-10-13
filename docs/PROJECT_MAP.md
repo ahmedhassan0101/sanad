@@ -58,21 +58,42 @@
 - `src/app/onboarding/create-center/actions.ts`: الدالة `createCenterAction(values)` تتحقق من `createCenterSchema`، وتحول البرنامج المخصص إلى مفتاح `custom:...` عبر `customProgramKey`، ثم تنادي `createCenter` من `services/orgs.ts`، ثم تخزن كوكي `active_org` وتحول إلى `/dashboard`.
 - `src/app/onboarding/enter-code/page.tsx` + `form.tsx` (الدالة `EnterCodeForm`): حقل كود واحد.
 - `src/app/onboarding/enter-code/actions.ts`: الدالة `enterCodeAction(values)` تنادي `consumeInvite` من `services/invites.ts` ثم تخزن كوكي `active_org` وتحول إلى `/dashboard`.
-- `src/app/dashboard/page.tsx`: لوحة المركز. تنادي `viewer()` من `services/viewer.ts` (غير العضو يُحوَّل إلى `/onboarding`) ثم `getDashboard` من `services/screens.ts`. تعرض اسم المركز والدور والفروع (تظهر فقط لو أكثر من فرع) والبرامج وكارت «قريبًا» وزر تبديل المركز و`ThemeToggle`.
+- `src/app/dashboard/page.tsx`: الرئيسية (ترحيب + ملخص الفروع والبرامج + زر الفريق للمشرفين). تنادي `viewer()` ثم `getDashboard`.
+- `src/app/dashboard/layout.tsx`: إطار الداشبورد (علوي + جانبي + محتوى) للأعضاء فقط.
+- `src/app/dashboard/topbar.tsx`: `Topbar` (اسم المركز + مبدّل المركز/الفرع + قائمة المستخدم خروج/سمة).
+- `src/app/dashboard/sidebar.tsx`: `MobileSidebar` (درج تحت xl) و`DesktopSidebar` (عناصر حسب الدور).
+- `src/app/dashboard/team/page.tsx` + `actions.ts` (`createInviteAction`/`revokeInviteAction`/`updateMemberAction`/`teamData`) + `copy-button.tsx` (`CopyInvite`): صفحة الفريق للمشرفين فقط.
+- `src/app/dashboard/students/page.tsx`: القائمة (إحصائيات + فلاتر nuqs + جدول + ترقيم). تنادي `getStudentStats` و`listStudents`.
+- `src/app/dashboard/students/_toolbar.tsx`: `StudentsToolbar` (بحث debounce + فلاتر عبر nuqs).
+- `src/app/dashboard/students/actions.ts`: `createStudentAction`/`updateStudentAction`/`deleteStudentAction`/`regenerateCodeAction` (ترجع `StudentActionResult`) و`archiveStudentAction`/`restoreStudentAction` (redirect) و`uploadStudentImageAction` (FormData).
+- `src/app/dashboard/students/_student-form.tsx`: `StudentForm` الواحد للإنشاء والتعديل (حقول + أولياء `useFieldArray` + حوار التكرار).
+- `src/app/dashboard/students/new/page.tsx`: إضافة (فورم فارغ + فرع حسب التعدد).
+- `src/app/dashboard/students/[id]/page.tsx`: البطاقة (معلومات/أولياء/حفظ/كود ولي الأمر مع نسخ وتجديد/ملاحظات/أنشطة وتقارير placeholder) + تعديل/أرشفة/حذف نهائي بتأكيد الاسم.
+- `src/app/dashboard/students/[id]/_actions-ui.tsx`: `DeleteStudentButton` و`RegenerateCodeButton` و`CopyTextButton`.
+- `src/app/dashboard/students/[id]/edit/page.tsx`: نفس الفورم بقيم السجل (hifzPosition فقط للحفظ).
+- `src/app/dashboard/students|groups|attendance|settings/page.tsx`: صفحات «قريبًا» (الإعدادات ترفض المعلم).
+- `src/app/dashboard/loading.tsx` و`not-found.tsx` و`placeholder.tsx` (`PlaceholderPage`).
+- `src/app/verify-pending/page.tsx` + `actions.ts` (`resendAction` بحد 3/ساعة) + `resend-button.tsx`: انتظار التفعيل الإجباري.
+- `src/app/dashboard/actions.ts`: `logoutAction` (جهاز واحد) و`setBranchPrefAction` (كوكي `active_branch`).
 - `src/app/platform/page.tsx`: شاشة المنصة للأدمن العام فقط. تنادي `viewer()` (غير المنصة يُحوَّل) ثم `getPlatformStats` من `services/screens.ts`. تعرض لكل مركز: الاسم والفروع والأعضاء والبرامج والتواصل — أرقام فقط بلا تفاصيل.
 - `src/app/ui-demo/page.tsx`: بوابة معرض المكونات. لو `NODE_ENV` يساوي `production` تعرض 404، وإلا تعرض `DemoSections` من `./demo`.
 - `src/app/ui-demo/demo.tsx`: الدالة `DemoSections` (عرض ثابت) + `DemoForm` (فورم تجريبي بإرسال وهمي) + `EditExample` (يحاكي تحميل سجل بعد ثانية لعرض وضع التعديل).
 - `src/app/api/auth/[...nextauth]/route.ts`: نقطة استقبال طلبات Auth.js (الدخول والجلسات). يصدّر `GET` و`POST` من `handlers` في `src/lib/auth/config.ts`.
 
 ## طبقة components/
-- `src/components/ui/*` (17 ملفًا مولدًا): `button` `card` `input` `label` `textarea` `select` `radio-group` `checkbox` `switch` `field` `input-group` `sonner` `separator` `skeleton` `dropdown-menu` `direction` `spinner`. لا منطق مشروع فيها.
+- `src/components/ui/*` (20 ملفًا مولدًا): السابق + `popover` `command` `dialog`. لا منطق مشروع فيها.
+- `src/components/stat-card.tsx`: `StatCard` (رقم واحد). مستدعاة من قائمة الطلاب.
+- `src/components/empty-state.tsx`: `EmptyState` (عنوان + وصف + زر). مستدعاة من قائمة الطلاب.
 - `src/components/form/field-shell.tsx`: `FieldShell` (عنوان + وصف + خطأ حول أي حقل) و`FormAlert` (رسالة خطأ على مستوى الفورم). مستدعاة من كل حقول الفورم.
 - `src/components/form/form-input.tsx`: `FormInput` (نص/إيميل/باسورد مع زر إظهار/رقم يفرق الفارغ عن الصفر/هاتف، أيقونات بداية/نهاية). مستدعاة من فورمات login/register/forgot/reset/create-center/enter-code.
-- `src/components/form/form-textarea.tsx`: `FormTextarea`. لا مستدعٍ لها حاليًا خارج `ui-demo`.
-- `src/components/form/form-select.tsx`: `FormSelect`. لا مستدعٍ لها حاليًا خارج `ui-demo`.
+- `src/components/form/form-textarea.tsx`: `FormTextarea` (تُستخدم في فورم الطالب).
+- `src/components/form/form-select.tsx`: `FormSelect` (تُستخدم في فورم الطالب: النوع/المستوى/الفرع/الصلة).
 - `src/components/form/form-radio-group.tsx`: `FormRadioGroup`. لا مستدعٍ لها حاليًا خارج `ui-demo`.
 - `src/components/form/form-checkbox.tsx`: `FormCheckbox` (مفرد) و`FormCheckboxes` (مجموعة، تُستخدم في فورم إنشاء المركز للبرامج).
 - `src/components/form/form-switch.tsx`: `FormSwitch`. لا مستدعٍ لها حاليًا خارج `ui-demo`.
+- `src/components/form/form-date-picker.tsx`: `FormDatePicker` (سنة/شهر/يوم بقوائم، للأعمار 4–18). مستدعاة من فورم الطالب.
+- `src/components/form/quran-position-field.tsx`: `QuranPositionField` (سورة ببحث + آية بحد أقصى). مستدعاة من فورم الطالب.
+- `src/components/form/form-image-upload.tsx`: `FormImageUpload` (رفع فوري بمعاينة عبر دالة تُمرَّر). مستدعاة من فورم الطالب.
 - `src/components/form/form-submit-button.tsx`: `FormSubmitButton` يعرض «جارٍ الحفظ…» ويُعطَّل أثناء الإرسال. مستدعاة من كل الفورمات.
 - `src/components/form/use-entity-form.ts`: `useEntityForm({schema, defaultValues, values})` — يبني الفورم مع `zodResolver`، ولو وصل `values` لاحقًا (وضع التعديل) يعيد الضبط عليها. مستدعاة من كل الفورمات.
 - `src/components/form/index.ts`: يعيد تصدير كل ما سبق فقط.
@@ -83,21 +104,30 @@
 ## طبقة lib/
 - `src/lib/auth/config.ts`: إعداد Auth.js. يصدّر `handlers` (يستخدمه route الـ API) و`auth` (قراءة الجلسة — تستخدمه الصفحات والـ middleware) و`signIn`/`signOut` (يستخدمهما login/register). الدالة الداخلية `authorizeLogin` تنادي `verifyCredentials`. الـ callback `signIn` لحساب Google ينادي `ensureGoogleUser`. الـ callback `authorized` يسمح للمسارات العامة ويطلب جلسة لغيرها.
 - `src/lib/env.ts`: `getEnv()` تقرأ وتتحقق من متغيرات البيئة حسب `NODE_ENV`، و`__resetEnvCache()` للاختبارات فقط. مستدعاة من `instrumentation.ts` و`connectDB` و`invites.ts` و`auth-accounts.ts` و`dev-logger.ts`.
-- `src/lib/tenant/context.ts`: الأنواع فقط: `SessionContext` (ثلاث حالات: `platform` أدمن عام بلا مركز، `onboarding` مسجل بلا مركز، `member` عضو بمركز ودور ونطاق فروع) و`BranchScope` (`all` للمالك أو `list` بفروع محددة).
+- `src/lib/tenant/context.ts`: الأنواع فقط: `SessionContext` (أربع حالات: `platform` و`onboarding` و`unverified` ببريدها و`member` بعضوية ودور ونطاق فروع).
+- `src/lib/students.ts`: `normalizeArabic` (تشكيل/تطويل/همزات) و`isProfileIncomplete` + `incompleteFilter` (نفس الشرط للداتابيز) و`calcAge`.
+- `src/lib/cloudinary.ts`: `isCloudinaryEnabled` و`uploadStudentImage` (مجلد `{orgId}/students`) و`deleteStudentImage` (أفضل جهد). مستدعاة من أكشنات وخدمات الطلاب.
+- `src/lib/invite-code.ts`: `generateInviteCode` (8) و`generateCode(length)` (كود ولي الأمر 10) و`normalizeInviteCode` و`hashInviteCode`. مستدعاة من `invites.ts` و`students.ts` والاختبارات.
 - `src/lib/tenant/scopedFilter.ts`: `scopedFilter(ctx, branchField)` تبني فلتر `{orgId}` وتضيف شرط الفروع لو النطاق `list`. مستدعاة من `screens.ts` و`branches-read.ts`.
-- `src/lib/permissions/roles.ts`: `ROLES` و`can(role, action)` (جدول ثابت) و`rank(role)` (3/2/1 لمنع منح دور أعلى). مستدعاة من `invites.ts` و`memberships.ts` والاختبارات.
-- `src/lib/result.ts`: النوع `Result` والدالتان `ok` و`fail`. لا مستدعٍ لهما حاليًا.
-- `src/lib/invite-code.ts`: `generateInviteCode` (كود 8 حروف) و`normalizeInviteCode` (توحيد قبل المقارنة) و`hashInviteCode` (بصمة HMAC-SHA256 بالـ pepper). مستدعاة من `invites.ts` والاختبارات.
+- `src/lib/permissions/roles.ts`: `ROLES` و`can(role, action)` (جدول ثابت يشمل إجراءات الطلاب) و`rank(role)` (3/2/1 لمنع منح دور أعلى). مستدعاة من `invites.ts` و`memberships.ts` و`students.ts` والصفحات والاختبارات.
+- `src/constants/students.ts`: `defineOptions` (مفاتيح + عربي تُشتق منها الأنواع وzod وMongoose وخيارات الواجهة) ومجموعات GENDERS/LEVELS/STATUS/القرابة/الاتجاه/التجويد و`ROLE_NAMES_AR` (المصدر الوحيد، teacher=مشرف) و`QURAN_SURAHS` (114 سورة من Quran.com API) مع `getSurah` و`isValidAyah`.
+- `src/lib/result.ts`: النوع `Result` والدالتان `ok` و`fail`. لا مستدعٍ لهما حاليًا (أكشنات الطلاب ترد شكلًا متوافقًا موسعًا بحقل `code`).
+- `src/lib/invite-code.ts`: `generateInviteCode` (8 حروف) و`generateCode(length)` (كود ولي الأمر 10) و`normalizeInviteCode` و`hashInviteCode` (بصمة HMAC بالـ pepper). مستدعاة من `invites.ts` و`students.ts` والاختبارات.
 - `src/lib/programs.ts`: `PROGRAM_CATALOG` (قرآن/تجويد/تربية/مقرأة/ملعب) و`customProgramKey` (تحويل الاسم المخصص إلى `custom:...`). مستدعاة من فورم وأكشن إنشاء المركز.
-- `src/lib/email/dev-logger.ts`: `sendAuthLink` تطبع رابط الإيميل في الـ logs (الإرسال الحقيقي لسه مش مبني). مستدعاة من `auth-accounts.ts`.
+- `src/lib/email/dev-logger.ts`: `sendAuthLink` ترسل عبر Resend عند التفعيل (قالب عربي RTL)، وتطبع الرابط خارج الإنتاج. مستدعاة من `auth-accounts.ts`.
 
 ## طبقة services/
 - `services/auth-accounts.ts`: `registerAccount` (إنشاء + رابط تفعيل، الخطأ `TAKEN` للإيميل المكرر) ← يناديها `registerAction`. `verifyEmailToken` ← صفحة verify. `requestPasswordReset` (صامتة لو الحساب غير موجود) ← `forgotAction`. `resetPassword` (ترفع `sessionVersion`) ← `resetAction`. `verifyCredentials` ← إعداد Auth.js. `ensureGoogleUser` ← إعداد Auth.js عند دخول Google.
-- `services/session-context.ts`: `getSessionContext(userId, activeOrgId)` تبني السياق من الداتابيز في كل طلب: بلا user ← `UNAUTHENTICATED`، أدمن عام ← `platform`، بلا مركز ← `onboarding`، بلا عضوية فعالة ← `FORBIDDEN`، وإلا `member` بالنطاق من الدور. تنادي `User` و`Membership`. يناديها `viewer`.
+- `services/session-context.ts`: `getSessionContext(userId, activeOrgId, expectedSessionVersion?)` تبني السياق من الداتابيز في كل طلب: بلا user ← `UNAUTHENTICATED`، نسخة جلسة قديمة ← `UNAUTHENTICATED`، أدمن عام ← `platform`، بلا تفعيل ← `unverified`، بلا مركز ← `onboarding`، بلا عضوية فعالة ← `FORBIDDEN`، وإلا `member` بالنطاق من الدور. تنادي `User` و`Membership`. يناديها `viewer`.
 - `services/viewer.ts`: `viewer()` تقرأ الجلسة (`auth`) وكوكي `active_org` ثم تنادي `getSessionContext`. تناديها صفحات dashboard وplatform.
-- `services/org-selection.ts`: `listMyMemberships(userId)` (عضوياتي الفعالة مع أسماء المراكز) ← صفحة onboarding. `activateOrg(userId, orgId)` (تتحقق من عضوية فعالة) ← أكشن `setActiveOrg`.
+- `services/org-selection.ts`: `listMyMemberships(userId)` ← صفحة onboarding. `activateOrg` (تتحقق من عضوية فعالة + تفعيل) ← أكشن `setActiveOrg`. `activateBranchPref` (فرع ضمن النطاق) ← أكشن تفضيل الفرع.
+- `services/branch-pref.ts`: `readBranchPref()` تقرأ كوكي `active_branch` (تُتحقق عند الحفظ لا القراءة).
 - `services/orgs.ts`: `createCenter(userId, raw)` تتحقق داخليًا بـ schema خاص، تشترط إيميلًا مفعّلًا و3 مراكز كحد أقصى، ثم transaction واحدة تكتب Org + فرع «الفرع الرئيسي» + عضوية مالك + البرامج. يناديها أكشن إنشاء المركز.
-- `services/invites.ts`: `createInvite` (إنشاء كود بحد 20 نشطة، بلا مستدعٍ من الواجهة حاليًا) و`consumeInvite` (استهلاك ذري بشرط واحد ثم إعادة فحص صلاحية الداعي والفرع، ثم إنشاء عضوية أو إعادة تفعيل معطلة). تنادي `assertMembershipShape` و`assertBranchesInOrg`. ينادي `consumeInvite` أكشن إدخال الكود.
+- `services/invites.ts`: `createInvite` (بحد 20 نشطة + شرط التفعيل) ← صفحة الفريق. `consumeInvite` (ذري + إعادة فحص + شرط التفعيل، ويعيد تفعيل المعطلة) ← أكشن الكود. `listInvites`/`revokeInvite` (بالنطاق) ← صفحة الفريق.
+- `services/members.ts`: `listMembers` (بالنطاق) و`updateMember` (تغيير دور/تعطيل بحماية المنشئ وآخر أدمن) ← صفحة الفريق.
+- `services/team.ts`: `getTeamData(ctx, pref)` (ليست أكشن — تُستدعى من الصفحة) تجمع الفروع والأعضاء والدعوات مع فلتر الفرع.
+- `services/rate-limit.ts`: `checkRateLimit(key, windowMs, max, message)` (عدّادات RateLimit) ← إعادة الإرسال وطلب الاستعادة.
+- `services/students.ts`: `listStudents` (بحث مطبّع/هواتف + فلاتر + ترقيم 20) و`getStudent` و`getStudentStats` و`createStudent` (تحذير `duplicate` + كود ولي أمر فريد) و`updateStudent` (الموضع فقط للحفظ) و`archiveStudent`/`restoreStudent` و`deleteStudentPermanently` (مؤرشف + مدراء فقط + حذف الصورة) و`regenerateParentCode`. الفرع من النطاق سيرفرًا (الوحيد تلقائيًا).
 - `services/memberships.ts`: `assertMembershipShape` (الفروع إجبارية للأدوار المحدودة) و`assertBranchesInOrg` (الفروع داخل نفس المركز) و`guardAdminChange` (حماية المنشئ وآخر أدمن — مع ملاحظة سباق مكتوبة في الكود) و`assertRankAllows`. تُستخدم في `invites.ts` والاختبارات فقط حاليًا.
 - `services/screens.ts`: `getDashboard(ctx)` (اسم المركز + الفروع بالنطاق + البرامج) ← الداشبورد. `getPlatformStats()` (أرقام كل المراكز) ← صفحة المنصة.
 - `services/branches-read.ts`: `listBranches(ctx)` خدمة صغيرة للاختبار فقط — لا تستخدمها الصفحات.
@@ -110,6 +140,7 @@
 - `Membership.ts`: العضوية (مستخدم + مركز + دور + فروع + حالة). فهرس `{userId, orgId}` فريد. تحقق الفروع يعمل عند الإنشاء فقط وليس عند التحديث المباشر.
 - `Invite.ts`: الدعوة (كود مُبصَّم لا يُخزَّن نصًا + انتهاء + استخدام/إلغاء + `purgeAt` للحذف بعد 30 يومًا). الفرع إجباري لغير المالك.
 - `OrgProgram.ts`: برامج المركز المفعلة. فهرس `{orgId, programKey}` فريد.
+- `Student.ts`: الطالب (فرع واحد إجباري، `nameSearch`، أولياء بلا أسماء ≤4، حفظ بداية/حالي، `parentCode` فريد، صورة، أرشفة). فهارس: `{orgId, branchId, status, createdAt}` و`{orgId, branchId, nameSearch}`.
 - `VerificationToken.ts`: روابط التفعيل والاستعادة لمرة واحدة (تُحذف بانتهائها).
 - `AuditLog.ts`: سجل الأحداث (يُحذف بعد 180 يومًا). لا كتابة فيه من أي service حاليًا.
 - `RateLimit.ts`: عدّادات الحماية (تُحذف بعد 24 ساعة). لا استخدام لها حاليًا.
@@ -117,10 +148,11 @@
 
 ## طبقة validators/
 - `common.ts`: قوالب (إيميل/باسورد/هاتف مصري/نص/رقم/اختيار/كود) برسائل عربية. `emptyTo` تحوّل `""` إلى `undefined`. غير المستخدمة حاليًا: `confirmPasswordRule` و`optionalPhoneRule` و`numberRule` (تُستخدم في `ui-demo` فقط `optionalNumberRule` و`selectRequired`).
-- `forms.ts`: ست schemas (دخول/حساب/نسيان/تعيين/مركز/كود) — نفس الكائن يُستخدم في الفورم (RHF) والأكشن (السيرفر).
+- `src/validators/students.ts`: `birthDateRule` (نص YYYY-MM-DD) و`toBirthDate` (ظهر UTC) و`guardianRule` و`createStudentSchema`/`updateStudentSchema` (مشتركة عميل+سيرفر) و`studentFormSchema` (موحدة للفورم).
+- `forms.ts`: ست schemas (دخول/حساب/نسيان/تعيين/مركز/كود) + `inviteFormSchema` (دور/فرع/مدة) — نفس الكائن يُستخدم في الفورم (RHF) والأكشن (السيرفر).
 
 ## طبقة scripts/
-- `scripts/seed-dev.ts`: `seedDev()` تنشئ مركزين تجريبيين (Dev Org A/B) بعضوية مالك لكل منهما. ترفض الإنتاج بدون `ALLOW_DEV_SEED=true`. التشغيل: `npm run seed:dev`.
+- `scripts/seed-dev.ts`: `seedDev()` تنشئ مركزين تجريبيين (Dev Org A/B) بعضوية مالك لكل منهما + 50 طالبًا وهميًا في الأول. ترفض الإنتاج بدون `ALLOW_DEV_SEED=true`. التشغيل: `npm run seed:dev`.
 - `scripts/seed-super-admin.ts`: `seedSuperAdmin()` تنشئ/تحدّث أدمن المنصة من متغيرات البيئة (تعمل أكثر من مرة بأمان). التشغيل: `npm run seed:super-admin`.
 - `scripts/ensure-indexes.ts`: `ensureIndexes()` تبني الفهارس المعلنة بدون حذف (`createIndexes` فقط). التشغيل: `npm run db:indexes`.
 
@@ -131,6 +163,13 @@
 - `roles.test.ts`: جدول الصلاحيات الثابت + حماية المنشئ وآخر أدمن + شرط الفرع في الدعوة.
 - `isolation.test.ts`: خمسة اختبارات أن كل مركز/فرع يرى بياناته فقط.
 - `seeds.test.ts`: اختباران (تكرار seed الأدمن آمن، ورفض seed-dev في الإنتاج).
+- `constants.test.ts`: ثوابت السور (114 سورة ومجموع 6236) ودوالها ومجموعات الخيارات.
+- `student-utils.test.ts`: التطبيع وتطابق الدالة مع فلتر Mongo والعمر.
+- `students.test.ts`: عزل القراءة/الكتابة + البحث + التكرار + الحذف النهائي + الكود + الإحصائيات + التعديل.
+- `session-version.test.ts`: قبول المطابق ورفض القديم + حالة `unverified`.
+- `team.test.ts`: الدعوات (إنشاء/حد/إلغاء بالنطاق) + حماية الأعضاء.
+- `verification.test.ts`: رفض غير المفعّل + استبدال التسجيل + مسح باسورد Google + رحلة كاملة.
+- `google-login.test.ts` و`invite-flow.test.ts`: هوية Google ودورة الدعوة (أُضيفتا لاحقًا).
 
 ## الملفات الجذرية (config)
 - `package.json`: الأوامر (`dev/build/start/typecheck/lint/test/seed:*/db:indexes`) والمكتبات.
@@ -150,10 +189,17 @@
 | `/forgot` | صفحة + فورم | `app/forgot/*` | عام | طلب رابط الاستعادة (رد ثابت) |
 | `/reset?email&token` | صفحة + فورم | `app/reset/*` | عام (معه رابط) | كلمة مرور جديدة |
 | `/verify?email&token` | صفحة | `app/verify/page.tsx` | عام (معه رابط) | تفعيل الإيميل |
-| `/onboarding` | صفحة محمية | `app/onboarding/page.tsx` | مسجل | عضوياتي + 3 كروت |
+| `/verify-pending` | صفحة | `app/verify-pending/*` | مسجل غير مفعّل فقط | رسالة + إعادة إرسال (3/ساعة) + خروج |
+| `/onboarding` | صفحة محمية | `app/onboarding/page.tsx` | مسجل مفعّل | عضوياتي + 3 كروت |
 | `/onboarding/create-center` | صفحة + فورم | `app/onboarding/create-center/*` | مسجل (بإيميل مفعّل) | إنشاء مركز |
 | `/onboarding/enter-code` | صفحة + فورم | `app/onboarding/enter-code/*` | مسجل | الانضمام بكود |
-| `/dashboard` | صفحة محمية | `app/dashboard/page.tsx` | عضو بمركز | اسم المركز والدور والفروع والبرامج |
+| `/dashboard` | صفحة محمية (بهيكل) | `app/dashboard/*` | عضو بمركز | ترحيب + ملخص + شريط علوي/جانبي |
+| `/dashboard/team` | صفحة + فورمات | `app/dashboard/team/*` | مشرفون فقط (سيرفر) | دعوات + أعضاء + إلغاء + أدوار |
+| `/dashboard/students` | صفحة + فلاتر | `app/dashboard/students/*` | عضو (تقرير) | إحصائيات + جدول + ترقيم + أرشفة |
+| `/dashboard/students/new` | صفحة + فورم | `new/*` | `student:create` | إضافة طالب (فرع حسب التعدد) |
+| `/dashboard/students/[id]` | صفحة | `[id]/*` | عضو | البطاقة + كود ولي الأمر + إجراءات |
+| `/dashboard/students/[id]/edit` | صفحة + فورم | `[id]/edit/*` | `student:edit` | نفس الفورم (الموضع فقط للحفظ) |
+| `/dashboard/students|groups|attendance|settings` | placeholder | `app/dashboard/*` | عضو (الإعدادات لغير المعلم) | «قريبًا» |
 | `/platform` | صفحة محمية | `app/platform/page.tsx` | أدمن عام فقط | أرقام كل المراكز |
 | `/ui-demo` | صفحة تطوير | `app/ui-demo/*` | غير الإنتاج فقط (404 في الإنتاج) | معرض المكونات |
 | `/api/auth/[...nextauth]` | API | route handler | عام | تسجيل الدخول والجلسات (Auth.js) |
@@ -169,13 +215,20 @@
 | `createCenterAction` | `create-center/actions.ts` | بيانات المركز + برامج | `createCenter` | كوكي + تحويل إلى dashboard أو رسالة |
 | `enterCodeAction` | `enter-code/actions.ts` | كود | `consumeInvite` | كوكي + تحويل إلى dashboard أو رسالة |
 | `googleAction` | داخل `login/page.tsx` | — | `signIn("google")` | تحويل إلى onboarding |
+| `logoutAction` / `setBranchPrefAction` | `dashboard/actions.ts` | — / فرع | `signOut` / `activateBranchPref` | تحويل إلى login / dashboard |
+| `resendAction` | `verify-pending/actions.ts` | — | `resendVerification` | نجاح أو رسالة حد |
+| `createInviteAction` / `revokeInviteAction` / `updateMemberAction` | `team/actions.ts` | دور/فرع/مدة / id / دور+حالة | `createInvite` / `revokeInvite` / `updateMember` | كود مرة واحدة أو تحويل برسالة |
+| `createStudentAction` / `updateStudentAction` | `students/actions.ts` | حقول الفورم | `createStudent` / `updateStudent` | تحويل للتفاصيل أو تحذير تكرار |
+| `deleteStudentAction` / `regenerateCodeAction` | `students/actions.ts` | id | `deleteStudentPermanently` / `regenerateParentCode` | تحويل أو رسالة |
+| `archiveStudentAction` / `restoreStudentAction` | `students/actions.ts` | id | `archiveStudent` / `restoreStudent` | تحديث الصفحة |
+| `uploadStudentImageAction` | `students/actions.ts` | ملف (FormData) | Cloudinary لمجلد المركز | رابط ومعرف أو رسالة |
 | `GET/POST /api/auth/*` | route handler | حسب Auth.js | الجلسات والـ JWT | جلسة/كوكي |
 
 ## موجود لكن غير مستخدم حاليًا
-- `Result` و`ok` و`fail` في `src/lib/result.ts`: لا مستدعٍ (الأكشنات ترد بكائنات `{ok, message}` مباشرة).
-- `createInvite` في `services/invites.ts`: لا واجهة تنشئ دعوات بعد (الاستهلاك فقط هو المبني).
-- `listBranches` في `services/branches-read.ts`: للاختبارات فقط، لا صفحة تستخدمها.
-- `AuditLog` و`RateLimit`: معرفان وتُبنى فهارسهما فقط، بلا قراءة/كتابة.
+- `Result` و`ok` و`fail` في `src/lib/result.ts`: لا مستدعٍ مباشر (أكشنات الطلاب ترد شكلًا متوافقًا موسعًا بحقلي `code` و`duplicate`).
+- `listBranches` في `services/branches-read.ts`: تُستخدم في صفحات الطلاب والفريق والاختبارات.
+- `AuditLog`: معرّف ويُبنى فهرسه فقط، بلا قراءة/كتابة.
 - `confirmPasswordRule` و`optionalPhoneRule` و`numberRule` في `validators/common.ts`: بلا استخدام خارج `ui-demo`.
-- `FormTextarea` و`FormSelect` و`FormRadioGroup` و`FormSwitch`: بلا استخدام خارج `ui-demo`.
+- `FormRadioGroup` و`FormSwitch`: بلا استخدام خارج `ui-demo`.
+- `PROGRESS_TRENDS` و`TAJWEED_RATINGS`: ثوابت للمستقبل (التقارير)، بلا استخدام بعد.
 - `middleware.ts` يحمي المسارات لكن التفاصيل الدقيقة (الدور) تُفحص داخل كل صفحة.
