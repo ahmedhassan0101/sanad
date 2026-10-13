@@ -44,9 +44,13 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
-        <span className="flex size-12 items-center justify-center rounded-full bg-muted text-xl font-bold">
-          {student.name.trim().charAt(0)}
-        </span>
+        {student.image?.url ? (
+          <img src={student.image.url} alt={student.name} className="size-12 rounded-full object-cover" />
+        ) : (
+          <span className="flex size-12 items-center justify-center rounded-full bg-muted text-xl font-bold">
+            {student.name.trim().charAt(0)}
+          </span>
+        )}
         <div>
           <h1 className="text-xl font-bold">{student.name}</h1>
           <p className="text-sm text-muted-foreground">

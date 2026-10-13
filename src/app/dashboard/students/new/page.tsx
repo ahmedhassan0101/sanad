@@ -1,6 +1,7 @@
 // صفحة إضافة طالب جديد.
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { isCloudinaryEnabled } from "@/lib/cloudinary";
 import { can } from "@/lib/permissions/roles";
 import { listBranches } from "@/services/branches-read";
 import { viewer } from "@/services/viewer";
@@ -26,6 +27,7 @@ export default async function NewStudentPage() {
             showBranch={branches.length > 1}
             hifzMode="create"
             submitLabel="إضافة الطالب"
+            imageEnabled={isCloudinaryEnabled()}
             submit={createStudentAction}
           />
         </CardContent>

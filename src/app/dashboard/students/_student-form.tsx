@@ -16,6 +16,7 @@ import {
 import {
   FormAlert,
   FormDatePicker,
+  FormImageUpload,
   FormInput,
   FormSelect,
   FormSubmitButton,
@@ -23,6 +24,7 @@ import {
   QuranPositionField,
   useEntityForm,
 } from "@/components/form";
+import { uploadStudentImageAction } from "./actions";
 import { GENDERS, GUARDIAN_RELATIONS, LEVELS } from "@/constants/students";
 import { studentFormSchema, type StudentFormInput } from "@/validators/students";
 
@@ -55,6 +57,7 @@ export function StudentForm({
   showBranch,
   hifzMode,
   submitLabel,
+  imageEnabled,
   submit,
 }: {
   defaultValues: Partial<StudentFormInput>;
@@ -62,6 +65,7 @@ export function StudentForm({
   showBranch: boolean;
   hifzMode: "create" | "edit";
   submitLabel: string;
+  imageEnabled: boolean;
   submit: (values: StudentFormInput) => Promise<StudentSubmitResult>;
 }) {
   const form = useEntityForm({
@@ -89,6 +93,19 @@ export function StudentForm({
     <>
       <form onSubmit={form.handleSubmit(send)} noValidate className="flex flex-col gap-4">
         <FormAlert message={serverError} />
+        {imageEnabled && (
+          <FormImageUpload
+            control={form.control}
+            name="image"
+            label="الصورة (اختياري)"
+            description="jpeg أو png أو webp حتى 2MB"
+            upload={async (file: File) => {
+              const fd = new FormData();
+              fd.append("file", file);
+              return uploadStudentImageAction(fd);
+            }}
+          />
+        )}
         {showBranch && (
           <FormSelect
             control={form.control}

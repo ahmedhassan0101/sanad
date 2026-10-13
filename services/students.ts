@@ -6,6 +6,7 @@ import { Branch } from "@/db/models/Branch";
 import { Student } from "@/db/models/Student";
 import { generateCode } from "@/lib/invite-code";
 import { can, type Action } from "@/lib/permissions/roles";
+import { deleteStudentImage } from "@/lib/cloudinary";
 import { incompleteFilter, normalizeArabic } from "@/lib/students";
 import type { SessionContext } from "@/lib/tenant/context";
 import { scopedFilter } from "@/lib/tenant/scopedFilter";
@@ -152,6 +153,7 @@ export async function createStudent(ctx: MemberCtx, input: CreateStudentInput): 
     address: input.address || null,
     notes: input.notes || null,
     guardians: input.guardians,
+    image: input.image ?? null,
     hifzStart: hifz,
     hifzPosition: hifz,
     parentCode: await uniqueParentCode(),
@@ -180,7 +182,14 @@ export async function updateStudent(ctx: MemberCtx, id: string, input: UpdateStu
   student.address = input.address || null;
   student.notes = input.notes || null;
   student.guardians = input.guardians;
-  if (input.image !== undefined) student.image = input.image ?? null;
+  if (input.image !== undefined) {
+    const old = student.image?.publicId;
+    const next = input.image ?? null;
+    student.image = next;
+    if (old && (!next || next.publicId !== old)) {
+      await deleteStudentImage(old);
+    }
+  }
   if (input.hifzPosition) student.hifzPosition = { ...input.hifzPosition };
   await student.save();
   return { status: "updated", id: String(student._id) } as const;
@@ -218,8 +227,9 @@ export async function deleteStudentPermanently(ctx: MemberCtx, id: string) {
     throw new Error("NOT_FOUND");
   }
   if (student.status !== "archived") throw new Error("VALIDATION: احذف المؤرشف فقط — أرشف الطالب أولًا");
-  // حذف الصورة من التخزين يُنفَّذ في A7.
+  const publicId = student.image?.publicId;
   await Student.deleteOne({ _id: student._id });
+  if (publicId) await deleteStudentImage(publicId);
 }
 
 export async function regenerateParentCode(ctx: MemberCtx, id: string) {

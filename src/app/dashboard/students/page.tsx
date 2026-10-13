@@ -107,9 +107,13 @@ export default async function StudentsPage({
                     <tr key={String(s._id)} className="border-b last:border-0">
                       <td className="p-2">
                         <span className="flex items-center gap-2">
-                          <span className="flex size-8 items-center justify-center rounded-full bg-muted font-bold">
-                            {s.name.trim().charAt(0)}
-                          </span>
+                          {s.image?.url ? (
+                            <img src={s.image.url} alt="" className="size-8 rounded-full object-cover" />
+                          ) : (
+                            <span className="flex size-8 items-center justify-center rounded-full bg-muted font-bold">
+                              {s.name.trim().charAt(0)}
+                            </span>
+                          )}
                           {s.name}
                           {incomplete && (
                             <span className="rounded-full bg-warning-muted px-2 py-0.5 text-xs text-warning-muted-foreground">

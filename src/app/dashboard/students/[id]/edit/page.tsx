@@ -2,6 +2,7 @@
 import { notFound, redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { can } from "@/lib/permissions/roles";
+import { isCloudinaryEnabled } from "@/lib/cloudinary";
 import { listBranches } from "@/services/branches-read";
 import { getStudent } from "@/services/students";
 import { viewer } from "@/services/viewer";
@@ -47,6 +48,7 @@ export default async function EditStudentPage({ params }: { params: Promise<{ id
                 relation: g.relation as OptionKey<typeof GUARDIAN_RELATIONS>,
                 phone: g.phone,
               })),
+              image: student.image ?? undefined,
               hifzPosition: student.hifzPosition
                 ? { surah: student.hifzPosition.surah, ayah: student.hifzPosition.ayah }
                 : undefined,
@@ -55,6 +57,7 @@ export default async function EditStudentPage({ params }: { params: Promise<{ id
             showBranch={false}
             hifzMode="edit"
             submitLabel="حفظ التعديلات"
+            imageEnabled={isCloudinaryEnabled()}
             submit={(values) => updateStudentAction(id, values)}
           />
         </CardContent>

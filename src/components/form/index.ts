@@ -1,5 +1,6 @@
 export { FieldShell, FormAlert } from "./field-shell";
 export { FormDatePicker } from "./form-date-picker";
+export { FormImageUpload } from "./form-image-upload";
 export { FormInput } from "./form-input";
 export { FormTextarea } from "./form-textarea";
 export { FormSelect } from "./form-select";

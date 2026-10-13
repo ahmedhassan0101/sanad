@@ -11,6 +11,7 @@ import {
   restoreStudent,
   updateStudent,
 } from "@/services/students";
+import { isCloudinaryEnabled, uploadStudentImage } from "@/lib/cloudinary";
 import { viewer } from "@/services/viewer";
 import {
   createStudentSchema,
@@ -74,8 +75,7 @@ export async function deleteStudentAction(id: string): Promise<StudentActionResu
   redirect("/dashboard/students");
 }
 
-export async function regenerateCodeAction(id: string): Promise<StudentActionResult & { parentCode?: string }> {
-  const ctx = await memberCtx();
+export async function regenerateCodeAction(id: string): Promise<StudentActionResult & { parentCode?: string }> {  const ctx = await memberCtx();
   try {
     const { parentCode } = await regenerateParentCode(ctx, id);
     revalidatePath(`/dashboard/students/${id}`);
@@ -105,4 +105,25 @@ export async function restoreStudentAction(id: string): Promise<void> {
     redirect("/dashboard/students?error=1");
   }
   revalidatePath("/dashboard/students");
+}
+
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+// رفع صورة طالب: فحص النوع والحجم ثم رفع موقّع لمجلد المركز.
+export async function uploadStudentImageAction(
+  formData: FormData,
+): Promise<{ ok: true; url: string; publicId: string } | { ok: false; message: string }> {
+  const ctx = await memberCtx();
+  if (!isCloudinaryEnabled()) return { ok: false, message: "رفع الصور غير مفعّل" };
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) return { ok: false, message: "اختر ملفًا" };
+  if (!IMAGE_TYPES.includes(file.type)) return { ok: false, message: "نوع الصورة يجب أن يكون jpeg أو png أو webp" };
+  if (file.size > 2 * 1024 * 1024) return { ok: false, message: "حجم الصورة 2MB كحد أقصى" };
+  try {
+    const bytes = Buffer.from(await file.arrayBuffer());
+    const { url, publicId } = await uploadStudentImage(String(ctx.orgId), bytes, file.name);
+    return { ok: true, url, publicId };
+  } catch {
+    return { ok: false, message: "تعذر الرفع — حاول مجددًا" };
+  }
 }

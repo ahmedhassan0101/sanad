@@ -26,6 +26,9 @@ const baseSchema = z.object({
     .transform((v) => v === "true"),
   SEED_SUPER_ADMIN_EMAIL: z.string().optional(),
   SEED_SUPER_ADMIN_PASSWORD: z.string().optional(),
+  CLOUDINARY_CLOUD_NAME: z.string().optional(),
+  CLOUDINARY_API_KEY: z.string().optional(),
+  CLOUDINARY_API_SECRET: z.string().optional(),
 });
 
 export type Env = {
