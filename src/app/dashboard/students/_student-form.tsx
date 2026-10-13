@@ -26,7 +26,10 @@ import {
 } from "@/components/form";
 import { uploadStudentImageAction } from "./actions";
 import { GENDERS, GUARDIAN_RELATIONS, LEVELS } from "@/constants/students";
-import { studentFormSchema, type StudentFormInput } from "@/validators/students";
+import {
+  studentFormSchema,
+  type StudentFormInput,
+} from "@/validators/students";
 
 export interface StudentSubmitResult {
   ok: boolean;
@@ -74,7 +77,10 @@ export function StudentForm({
   });
   const [serverError, setServerError] = useState<string | null>(null);
   const [dup, setDup] = useState<{ id: string; name: string } | null>(null);
-  const { fields, append, remove } = useFieldArray({ control: form.control, name: "guardians" });
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "guardians",
+  });
 
   const send = async (values: StudentFormInput) => {
     setServerError(null);
@@ -91,7 +97,11 @@ export function StudentForm({
 
   return (
     <>
-      <form onSubmit={form.handleSubmit(send)} noValidate className="flex flex-col gap-4">
+      <form
+        onSubmit={form.handleSubmit(send)}
+        noValidate
+        className="flex flex-col gap-4"
+      >
         <FormAlert message={serverError} />
         {imageEnabled && (
           <FormImageUpload
@@ -115,13 +125,41 @@ export function StudentForm({
             options={branches.map((b) => ({ value: b.id, label: b.name }))}
           />
         )}
-        <FormInput control={form.control} name="name" label="الاسم" type="text" required placeholder="الاسم رباعيًا" />
+        <FormInput
+          control={form.control}
+          name="name"
+          label="الاسم"
+          type="text"
+          required
+          placeholder="الاسم رباعيًا"
+        />
         <div className="grid grid-cols-2 gap-2">
-          <FormSelect control={form.control} name="gender" label="النوع" required options={GENDERS.options} />
-          <FormSelect control={form.control} name="level" label="المستوى" required options={LEVELS.options} />
+          <FormSelect
+            control={form.control}
+            name="gender"
+            label="النوع"
+            required
+            options={GENDERS.options}
+          />
+          <FormSelect
+            control={form.control}
+            name="level"
+            label="المستوى"
+            required
+            options={LEVELS.options}
+          />
         </div>
-        <FormDatePicker control={form.control} name="birthDate" label="تاريخ الميلاد" />
-        <FormInput control={form.control} name="phone" label="هاتف الطالب (اختياري)" type="tel" />
+        <FormDatePicker
+          control={form.control}
+          name="birthDate"
+          label="تاريخ الميلاد"
+        />
+        <FormInput
+          control={form.control}
+          name="phone"
+          label="هاتف الطالب (اختياري)"
+          type="tel"
+        />
         <div className="flex flex-col gap-2">
           <p className="text-sm font-medium">أولياء الأمور (حتى 4)</p>
           {fields.map((f, i) => (
@@ -135,7 +173,12 @@ export function StudentForm({
                 />
               </div>
               <div className="flex-1">
-                <FormInput control={form.control} name={`guardians.${i}.phone` as const} label="الهاتف" type="tel" />
+                <FormInput
+                  control={form.control}
+                  name={`guardians.${i}.phone` as const}
+                  label="الهاتف"
+                  type="tel"
+                />
               </div>
               <Button type="button" variant="outline" onClick={() => remove(i)}>
                 حذف
@@ -143,17 +186,41 @@ export function StudentForm({
             </div>
           ))}
           {fields.length < 4 && (
-            <Button type="button" variant="outline" onClick={() => append({ relation: "father", phone: "" })}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => append({ relation: "father", phone: "" })}
+            >
               إضافة ولي أمر
             </Button>
           )}
         </div>
-        <FormInput control={form.control} name="address" label="العنوان (اختياري)" type="text" />
-        <FormTextarea control={form.control} name="notes" label="الملاحظات (اختياري)" rows={3} />
+        <FormInput
+          control={form.control}
+          name="address"
+          label="العنوان (اختياري)"
+          type="text"
+        />
+        <FormTextarea
+          control={form.control}
+          name="notes"
+          label="الملاحظات (اختياري)"
+          rows={3}
+        />
         {hifzMode === "create" ? (
-          <QuranPositionField control={form.control} name="hifz" label="موضع الحفظ الحالي (اختياري)" description="يُسجَّل كبداية وحالي معًا" />
+          <QuranPositionField
+            control={form.control}
+            name="hifz"
+            label="موضع الحفظ الحالي (اختياري)"
+            description="يُسجَّل كبداية وحالي معًا"
+          />
         ) : (
-          <QuranPositionField control={form.control} name="hifzPosition" label="موضع الحفظ الحالي (اختياري)" description="التعديل هنا لا يغيّر البداية" />
+          <QuranPositionField
+            control={form.control}
+            name="hifzPosition"
+            label="موضع الحفظ الحالي (اختياري)"
+            description="التعديل هنا لا يغيّر البداية"
+          />
         )}
         <FormSubmitButton form={form}>{submitLabel}</FormSubmitButton>
       </form>
@@ -166,7 +233,11 @@ export function StudentForm({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setDup(null)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDup(null)}
+            >
               تراجع
             </Button>
             <Button

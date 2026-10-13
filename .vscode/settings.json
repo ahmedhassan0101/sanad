@@ -1,4 +1,18 @@
 {
-  "cSpell.words": ["sanad", "Tahoma", "Tajawal"],
+  "cSpell.words": [
+    "hifz",
+    "sanad",
+    "SURAHS",
+    "Tahoma",
+    "Tajawal",
+    "TAJWEED",
+    "الأحقاف",
+    "الإنشقاق",
+    "الإنفطار",
+    "الفلاتر",
+    "المؤرشفون",
+    "النشطون",
+    "مؤرشف"
+  ],
   "js/ts.tsdk.path": "node_modules\\typescript\\lib"
 }

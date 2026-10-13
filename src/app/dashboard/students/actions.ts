@@ -1,4 +1,3 @@
-// أكشنات سريعة من القائمة: أرشفة/استرجاع — نفس نمط redirect الموجود في المشروع.
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -32,18 +31,29 @@ async function memberCtx() {
   return ctx;
 }
 
-export async function createStudentAction(values: StudentFormInput): Promise<StudentActionResult> {
+export async function createStudentAction(
+  values: StudentFormInput,
+): Promise<StudentActionResult> {
   const ctx = await memberCtx();
   const parsed = createStudentSchema.safeParse(values);
-  if (!parsed.success) return { ok: false, message: "تحقق من الحقول ثم حاول مجددًا" };
+  if (!parsed.success)
+    return { ok: false, message: "تحقق من الحقول ثم حاول مجددًا" };
   try {
     const res = await createStudent(ctx, parsed.data);
     if (res.status === "duplicate") {
-      return { ok: false, message: "يوجد طالب مشابه", code: "DUPLICATE_WARNING", duplicate: res.duplicate };
+      return {
+        ok: false,
+        message: "يوجد طالب مشابه",
+        code: "DUPLICATE_WARNING",
+        duplicate: res.duplicate,
+      };
     }
     redirect(`/dashboard/students/${res.id}`);
   } catch (e) {
-    return { ok: false, message: e instanceof Error ? e.message : "تعذر الحفظ" };
+    return {
+      ok: false,
+      message: e instanceof Error ? e.message : "تعذر الحفظ",
+    };
   }
 }
 
@@ -53,35 +63,55 @@ export async function updateStudentAction(
 ): Promise<StudentActionResult> {
   const ctx = await memberCtx();
   const parsed = updateStudentSchema.safeParse(values);
-  if (!parsed.success) return { ok: false, message: "تحقق من الحقول ثم حاول مجددًا" };
+  if (!parsed.success)
+    return { ok: false, message: "تحقق من الحقول ثم حاول مجددًا" };
   try {
     const res = await updateStudent(ctx, id, parsed.data);
     if (res.status === "duplicate") {
-      return { ok: false, message: "يوجد طالب مشابه", code: "DUPLICATE_WARNING", duplicate: res.duplicate };
+      return {
+        ok: false,
+        message: "يوجد طالب مشابه",
+        code: "DUPLICATE_WARNING",
+        duplicate: res.duplicate,
+      };
     }
     redirect(`/dashboard/students/${id}`);
   } catch (e) {
-    return { ok: false, message: e instanceof Error ? e.message : "تعذر الحفظ" };
+    return {
+      ok: false,
+      message: e instanceof Error ? e.message : "تعذر الحفظ",
+    };
   }
 }
 
-export async function deleteStudentAction(id: string): Promise<StudentActionResult> {
+export async function deleteStudentAction(
+  id: string,
+): Promise<StudentActionResult> {
   const ctx = await memberCtx();
   try {
     await deleteStudentPermanently(ctx, id);
   } catch (e) {
-    return { ok: false, message: e instanceof Error ? e.message : "تعذر الحذف" };
+    return {
+      ok: false,
+      message: e instanceof Error ? e.message : "تعذر الحذف",
+    };
   }
   redirect("/dashboard/students");
 }
 
-export async function regenerateCodeAction(id: string): Promise<StudentActionResult & { parentCode?: string }> {  const ctx = await memberCtx();
+export async function regenerateCodeAction(
+  id: string,
+): Promise<StudentActionResult & { parentCode?: string }> {
+  const ctx = await memberCtx();
   try {
     const { parentCode } = await regenerateParentCode(ctx, id);
     revalidatePath(`/dashboard/students/${id}`);
     return { ok: true, message: "تم التجديد", parentCode };
   } catch (e) {
-    return { ok: false, message: e instanceof Error ? e.message : "تعذر التجديد" };
+    return {
+      ok: false,
+      message: e instanceof Error ? e.message : "تعذر التجديد",
+    };
   }
 }
 
@@ -109,19 +139,28 @@ export async function restoreStudentAction(id: string): Promise<void> {
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-// رفع صورة طالب: فحص النوع والحجم ثم رفع موقّع لمجلد المركز.
 export async function uploadStudentImageAction(
   formData: FormData,
-): Promise<{ ok: true; url: string; publicId: string } | { ok: false; message: string }> {
+): Promise<
+  { ok: true; url: string; publicId: string } | { ok: false; message: string }
+> {
   const ctx = await memberCtx();
-  if (!isCloudinaryEnabled()) return { ok: false, message: "رفع الصور غير مفعّل" };
+  if (!isCloudinaryEnabled())
+    return { ok: false, message: "رفع الصور غير مفعّل" };
   const file = formData.get("file");
-  if (!(file instanceof File) || file.size === 0) return { ok: false, message: "اختر ملفًا" };
-  if (!IMAGE_TYPES.includes(file.type)) return { ok: false, message: "نوع الصورة يجب أن يكون jpeg أو png أو webp" };
-  if (file.size > 2 * 1024 * 1024) return { ok: false, message: "حجم الصورة 2MB كحد أقصى" };
+  if (!(file instanceof File) || file.size === 0)
+    return { ok: false, message: "اختر ملفًا" };
+  if (!IMAGE_TYPES.includes(file.type))
+    return { ok: false, message: "نوع الصورة يجب أن يكون jpeg أو png أو webp" };
+  if (file.size > 2 * 1024 * 1024)
+    return { ok: false, message: "حجم الصورة 2MB كحد أقصى" };
   try {
     const bytes = Buffer.from(await file.arrayBuffer());
-    const { url, publicId } = await uploadStudentImage(String(ctx.orgId), bytes, file.name);
+    const { url, publicId } = await uploadStudentImage(
+      String(ctx.orgId),
+      bytes,
+      file.name,
+    );
     return { ok: true, url, publicId };
   } catch {
     return { ok: false, message: "تعذر الرفع — حاول مجددًا" };

@@ -13,13 +13,37 @@ import {
 import { GENDERS, LEVELS, STUDENT_STATUS } from "@/constants/students";
 
 export function StudentsToolbar() {
-  const [q, setQ] = useQueryState("q", parseAsString.withOptions({ clearOnDefault: true, throttleMs: 400 }).withDefault(""));
-  const [level, setLevel] = useQueryState("level", parseAsString.withOptions({ clearOnDefault: true }).withDefault(""));
-  const [gender, setGender] = useQueryState("gender", parseAsString.withOptions({ clearOnDefault: true }).withDefault(""));
-  const [status, setStatus] = useQueryState("status", parseAsString.withDefault("active"));
-  const [incomplete, setIncomplete] = useQueryState("incomplete", parseAsBoolean.withDefault(false));
+  const [q, setQ] = useQueryState(
+    "q",
+    parseAsString
+      .withOptions({ clearOnDefault: true, throttleMs: 400 })
+      .withDefault(""),
+  );
+  const [level, setLevel] = useQueryState(
+    "level",
+    parseAsString.withOptions({ clearOnDefault: true }).withDefault(""),
+  );
+  const [gender, setGender] = useQueryState(
+    "gender",
+    parseAsString.withOptions({ clearOnDefault: true }).withDefault(""),
+  );
+  const [status, setStatus] = useQueryState(
+    "status",
+    parseAsString.withDefault("active"),
+  );
+  const [incomplete, setIncomplete] = useQueryState(
+    "incomplete",
+    parseAsBoolean.withDefault(false),
+  );
 
-  const pick = (label: string, value: string, onChange: (v: string | null) => void, allLabel: string, options: { value: string; label: string }[], allowAll = true) => (
+  const pick = (
+    label: string,
+    value: string,
+    onChange: (v: string | null) => void,
+    allLabel: string,
+    options: { value: string; label: string }[],
+    allowAll = true,
+  ) => (
     <label className="flex min-w-36 flex-1 flex-col gap-1 text-sm">
       {label}
       <Select value={value} onValueChange={onChange}>
@@ -46,9 +70,28 @@ export function StudentsToolbar() {
         placeholder="بحث بالاسم أو الهاتف…"
       />
       <div className="flex flex-wrap gap-2">
-        {pick("المستوى", level || "__all", (v) => setLevel(v === "__all" ? null : v), "الكل", LEVELS.options)}
-        {pick("النوع", gender || "__all", (v) => setGender(v === "__all" ? null : v), "الكل", GENDERS.options)}
-        {pick("الحالة", status, (v) => setStatus(v), "الكل", STUDENT_STATUS.options, false)}
+        {pick(
+          "المستوى",
+          level || "__all",
+          (v) => setLevel(v === "__all" ? null : v),
+          "الكل",
+          LEVELS.options,
+        )}
+        {pick(
+          "النوع",
+          gender || "__all",
+          (v) => setGender(v === "__all" ? null : v),
+          "الكل",
+          GENDERS.options,
+        )}
+        {pick(
+          "الحالة",
+          status,
+          (v) => setStatus(v),
+          "الكل",
+          STUDENT_STATUS.options,
+          false,
+        )}
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"

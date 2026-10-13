@@ -6,7 +6,12 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/empty-state";
 import { StatCard } from "@/components/stat-card";
-import { GENDERS, LEVELS, STUDENT_STATUS, getSurah } from "@/constants/students";
+import {
+  GENDERS,
+  LEVELS,
+  STUDENT_STATUS,
+  getSurah,
+} from "@/constants/students";
 import { can } from "@/lib/permissions/roles";
 import { calcAge, isProfileIncomplete } from "@/lib/students";
 import { getStudentStats, listStudents } from "@/services/students";
@@ -17,7 +22,10 @@ import { archiveStudentAction, restoreStudentAction } from "./actions";
 const validOrUndefined = (v: string | undefined, keys: readonly string[]) =>
   v && (keys as readonly string[]).includes(v) ? v : undefined;
 
-function pageHref(sp: Record<string, string | undefined>, page: number): string {
+function pageHref(
+  sp: Record<string, string | undefined>,
+  page: number,
+): string {
   const params = new URLSearchParams();
   for (const [k, v] of Object.entries(sp)) if (v) params.set(k, v);
   params.set("page", String(page));
@@ -81,11 +89,14 @@ export default async function StudentsPage({
         </CardContent>
       </Card>
       {items.length === 0 ? (
-        <EmptyState title="لا طلاب" description="جرّب تغيير الفلاتر أو أضف طالبًا جديدًا" />
+        <EmptyState
+          title="لا طلاب"
+          description="جرّب تغيير الفلاتر أو أضف طالبًا جديدًا"
+        />
       ) : (
         <Card>
           <CardContent className="overflow-x-auto p-0">
-            <table className="w-full min-w-[720px] text-sm">
+            <table className="w-full min-w-180 text-sm">
               <thead>
                 <tr className="border-b text-muted-foreground">
                   <th className="p-2 text-start">الاسم</th>
@@ -108,7 +119,11 @@ export default async function StudentsPage({
                       <td className="p-2">
                         <span className="flex items-center gap-2">
                           {s.image?.url ? (
-                            <img src={s.image.url} alt="" className="size-8 rounded-full object-cover" />
+                            <img
+                              src={s.image.url}
+                              alt=""
+                              className="size-8 rounded-full object-cover"
+                            />
                           ) : (
                             <span className="flex size-8 items-center justify-center rounded-full bg-muted font-bold">
                               {s.name.trim().charAt(0)}
@@ -133,20 +148,43 @@ export default async function StudentsPage({
                         {s.guardians[0]?.phone ?? "—"}
                       </td>
                       <td className="p-2 text-muted-foreground">—</td>
-                      <td className="p-2">{surah ? `${surah.name} (${pos!.ayah})` : "—"}</td>
+                      <td className="p-2">
+                        {surah ? `${surah.name} (${pos!.ayah})` : "—"}
+                      </td>
                       <td className="p-2">
                         <span className="flex gap-2">
-                          <Link href={`/dashboard/students/${s._id}`} className="underline underline-offset-4">
+                          <Link
+                            href={`/dashboard/students/${s._id}`}
+                            className="underline underline-offset-4"
+                          >
                             عرض
                           </Link>
                           {canEdit && (
-                            <Link href={`/dashboard/students/${s._id}/edit`} className="underline underline-offset-4">
+                            <Link
+                              href={`/dashboard/students/${s._id}/edit`}
+                              className="underline underline-offset-4"
+                            >
                               تعديل
                             </Link>
                           )}
                           {canArchive && (
-                            <form action={s.status === "active" ? archiveStudentAction.bind(null, String(s._id)) : restoreStudentAction.bind(null, String(s._id))}>
-                              <button type="submit" className="underline underline-offset-4">
+                            <form
+                              action={
+                                s.status === "active"
+                                  ? archiveStudentAction.bind(
+                                      null,
+                                      String(s._id),
+                                    )
+                                  : restoreStudentAction.bind(
+                                      null,
+                                      String(s._id),
+                                    )
+                              }
+                            >
+                              <button
+                                type="submit"
+                                className="underline underline-offset-4"
+                              >
                                 {s.status === "active" ? "أرشفة" : "استرجاع"}
                               </button>
                             </form>
@@ -164,7 +202,10 @@ export default async function StudentsPage({
       {pages > 1 && (
         <div className="flex items-center justify-center gap-4 text-sm">
           {page > 1 ? (
-            <Link href={pageHref(sp, page - 1)} className="underline underline-offset-4">
+            <Link
+              href={pageHref(sp, page - 1)}
+              className="underline underline-offset-4"
+            >
               السابق
             </Link>
           ) : (
@@ -174,7 +215,10 @@ export default async function StudentsPage({
             {page} / {pages}
           </span>
           {page < pages ? (
-            <Link href={pageHref(sp, page + 1)} className="underline underline-offset-4">
+            <Link
+              href={pageHref(sp, page + 1)}
+              className="underline underline-offset-4"
+            >
               التالي
             </Link>
           ) : (
