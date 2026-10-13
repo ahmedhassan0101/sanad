@@ -53,6 +53,17 @@ export async function syncStudentPosition(studentId: Types.ObjectId) {
   await student.save();
 }
 
+export async function getReport(ctx: MemberCtx, reportId: string) {
+  requirePerm(ctx, "student:report");
+  if (!Types.ObjectId.isValid(reportId)) throw new Error("NOT_FOUND");
+  await connectDB();
+  const report = await ProgressReport.findOne({ _id: reportId, orgId: ctx.orgId }).lean();
+  if (!report) throw new Error("NOT_FOUND");
+  const student = await Student.findOne({ _id: report.studentId, orgId: ctx.orgId }).select("_id branchId");
+  if (!student || !inScope(ctx, student.branchId)) throw new Error("NOT_FOUND");
+  return report;
+}
+
 export interface ReportListQuery {
   page?: number;
   pageSize?: number;
