@@ -10,7 +10,12 @@ export function normalizeInviteCode(raw: string): string {
 }
 
 export function generateInviteCode(): string {
-  const bytes = randomBytes(8);
+  return generateCode(8);
+}
+
+// مولّد عام بأي طول (يُستخدم لكود ولي الأمر: 10 حروف).
+export function generateCode(length: number): string {
+  const bytes = randomBytes(length);
   let out = "";
   for (const b of bytes) out += ALPHABET[b % ALPHABET.length];
   return out;
