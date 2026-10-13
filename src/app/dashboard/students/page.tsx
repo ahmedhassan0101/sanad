@@ -13,7 +13,9 @@ import {
   getSurah,
 } from "@/constants/students";
 import { can } from "@/lib/permissions/roles";
+import { daysAgoLabel } from "@/lib/progress";
 import { calcAge, isProfileIncomplete } from "@/lib/students";
+import { getLatestReportKeys } from "@/services/progress-reports";
 import { getStudentStats, listStudents } from "@/services/students";
 import { viewer } from "@/services/viewer";
 import { StudentsToolbar } from "./_toolbar";
@@ -55,6 +57,10 @@ export default async function StudentsPage({
     getStudentStats(ctx),
     listStudents(ctx, query),
   ]);
+  const latestKeys = await getLatestReportKeys(
+    ctx,
+    items.map((s) => s._id),
+  );
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const canEdit = can(ctx.role, "student:edit");
   const canArchive = can(ctx.role, "student:archive");
@@ -106,6 +112,7 @@ export default async function StudentsPage({
                   <th className="p-2 text-start">هاتف ولي الأمر</th>
                   <th className="p-2 text-start">الأنشطة</th>
                   <th className="p-2 text-start">موضع الحفظ</th>
+                  <th className="p-2 text-start">آخر تقرير</th>
                   <th className="p-2 text-start">إجراءات</th>
                 </tr>
               </thead>
@@ -150,6 +157,9 @@ export default async function StudentsPage({
                       <td className="p-2 text-muted-foreground">—</td>
                       <td className="p-2">
                         {surah ? `${surah.name} (${pos!.ayah})` : "—"}
+                      </td>
+                      <td className="p-2 text-muted-foreground">
+                        {daysAgoLabel(latestKeys.get(String(s._id)) ?? null)}
                       </td>
                       <td className="p-2">
                         <span className="flex gap-2">

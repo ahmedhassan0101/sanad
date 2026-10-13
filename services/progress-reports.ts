@@ -64,6 +64,20 @@ export async function getReport(ctx: MemberCtx, reportId: string) {
   return report;
 }
 
+export async function getLatestReportKeys(
+  ctx: MemberCtx,
+  studentIds: Types.ObjectId[] | string[],
+): Promise<Map<string, string>> {
+  if (studentIds.length === 0) return new Map();
+  await connectDB();
+  const rows = await ProgressReport.aggregate<{ _id: Types.ObjectId; reportDateKey: string }>([
+    { $match: { orgId: ctx.orgId, studentId: { $in: studentIds } } },
+    { $sort: { reportDateKey: -1, createdAt: -1 } },
+    { $group: { _id: "$studentId", reportDateKey: { $first: "$reportDateKey" } } },
+  ]);
+  return new Map(rows.map((r) => [String(r._id), r.reportDateKey]));
+}
+
 export interface ReportListQuery {
   page?: number;
   pageSize?: number;

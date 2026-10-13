@@ -1,6 +1,6 @@
 // اختبار حسابات التقارير: نفس السورة، عبر السور، عكسي، متطابق، ومنتصف الليل بالقاهرة.
 import { describe, expect, it } from "vitest";
-import { ayahIndex, ayahsBetween, formatRange, todayKeyCairo } from "../src/lib/progress";
+import { ayahIndex, ayahsBetween, daysAgoLabel, formatRange, todayKeyCairo } from "../src/lib/progress";
 
 describe("ayahIndex", () => {
   it("starts at 1 and accumulates", () => {
@@ -34,6 +34,17 @@ describe("formatRange", () => {
       "من (سورة الإخلاص آية 1) إلى (سورة الناس آية 6) — 14 آية",
     );
     expect(formatRange({ surah: 112, ayah: 9 }, { surah: 112, ayah: 1 })).toBeNull();
+  });
+});
+
+describe("daysAgoLabel", () => {
+  it("labels today, yesterday, days and missing", () => {
+    expect(daysAgoLabel(null)).toBe("لا يوجد");
+    expect(daysAgoLabel("2026-06-01", "2026-06-01")).toBe("اليوم");
+    expect(daysAgoLabel("2026-05-31", "2026-06-01")).toBe("أمس");
+    expect(daysAgoLabel("2026-05-20", "2026-06-01")).toBe("منذ 12 يوم");
+    expect(daysAgoLabel("2030-01-01", "2026-06-01")).toBe("لا يوجد");
+    expect(daysAgoLabel("not-a-date", "2026-06-01")).toBe("لا يوجد");
   });
 });
 

@@ -38,6 +38,18 @@ export function formatRange(
   return `من (سورة ${fs.name} آية ${from.ayah}) إلى (سورة ${ts.name} آية ${to.ayah}) — ${n} آية`;
 }
 
+// «منذ N يوم» من مفتاح التاريخ — نقية وقابلة للاختبار.
+export function daysAgoLabel(reportDateKey: string | null, today = todayKeyCairo()): string {
+  if (!reportDateKey) return "لا يوجد";
+  const diff = Math.round(
+    (Date.parse(`${today}T12:00:00Z`) - Date.parse(`${reportDateKey}T12:00:00Z`)) / 86400000,
+  );
+  if (Number.isNaN(diff) || diff < 0) return "لا يوجد";
+  if (diff === 0) return "اليوم";
+  if (diff === 1) return "أمس";
+  return `منذ ${diff} يوم`;
+}
+
 // مفتاح اليوم بتوقيت القاهرة بصيغة YYYY-MM-DD.
 export function todayKeyCairo(now = new Date()): string {
   const parts = new Intl.DateTimeFormat("en-CA", {
