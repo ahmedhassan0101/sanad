@@ -4,6 +4,7 @@ import { Types } from "mongoose";
 import { connectDB } from "@/db/connection";
 import { Branch } from "@/db/models/Branch";
 import { Student } from "@/db/models/Student";
+import { ProgressReport } from "@/db/models/ProgressReport";
 import { generateCode } from "@/lib/invite-code";
 import { can, type Action } from "@/lib/permissions/roles";
 import { deleteStudentImage } from "@/lib/cloudinary";
@@ -228,6 +229,7 @@ export async function deleteStudentPermanently(ctx: MemberCtx, id: string) {
   }
   if (student.status !== "archived") throw new Error("VALIDATION: احذف المؤرشف فقط — أرشف الطالب أولًا");
   const publicId = student.image?.publicId;
+  await ProgressReport.deleteMany({ studentId: student._id, orgId: ctx.orgId });
   await Student.deleteOne({ _id: student._id });
   if (publicId) await deleteStudentImage(publicId);
 }

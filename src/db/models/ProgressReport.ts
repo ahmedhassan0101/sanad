@@ -18,6 +18,8 @@ export interface ProgressReportDoc extends Document {
   trend: string;
   notes: string | null;
   createdByUserId: Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const positionSchema = new Schema<ReportPosition>(
