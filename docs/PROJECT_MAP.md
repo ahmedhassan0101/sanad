@@ -126,6 +126,8 @@
 - `services/invites.ts`: `createInvite` (بحد 20 نشطة + شرط التفعيل) ← صفحة الفريق. `consumeInvite` (ذري + إعادة فحص + شرط التفعيل، ويعيد تفعيل المعطلة) ← أكشن الكود. `listInvites`/`revokeInvite` (بالنطاق) ← صفحة الفريق.
 - `services/members.ts`: `listMembers` (بالنطاق) و`updateMember` (تغيير دور/تعطيل بحماية المنشئ وآخر أدمن) ← صفحة الفريق.
 - `services/team.ts`: `getTeamData(ctx, pref)` (ليست أكشن — تُستدعى من الصفحة) تجمع الفروع والأعضاء والدعوات مع فلتر الفرع.
+- `services/progress-reports.ts`: `listReports` (السابق + الآيات باستعلام واحد) و`getReport` و`createReport`/`updateReport`/`deleteReport` (مع `syncStudentPosition`) و`getLatestReportKeys` (تجميع واحد لصفوف الصفحة).
+- `src/validators/reports.ts`: `reportPositionRule` (يتحقق ضد عدد الآيات) و`createReportSchema`/`updateReportSchema` (مشتركة عميل+سيرفر).
 - `services/rate-limit.ts`: `checkRateLimit(key, windowMs, max, message)` (عدّادات RateLimit) ← إعادة الإرسال وطلب الاستعادة.
 - `services/students.ts`: `listStudents` (بحث مطبّع/هواتف + فلاتر + ترقيم 20) و`getStudent` و`getStudentStats` و`createStudent` (تحذير `duplicate` + كود ولي أمر فريد) و`updateStudent` (الموضع فقط للحفظ) و`archiveStudent`/`restoreStudent` و`deleteStudentPermanently` (مؤرشف + مدراء فقط + حذف الصورة) و`regenerateParentCode`. الفرع من النطاق سيرفرًا (الوحيد تلقائيًا).
 - `services/memberships.ts`: `assertMembershipShape` (الفروع إجبارية للأدوار المحدودة) و`assertBranchesInOrg` (الفروع داخل نفس المركز) و`guardAdminChange` (حماية المنشئ وآخر أدمن — مع ملاحظة سباق مكتوبة في الكود) و`assertRankAllows`. تُستخدم في `invites.ts` والاختبارات فقط حاليًا.
@@ -141,6 +143,8 @@
 - `Invite.ts`: الدعوة (كود مُبصَّم لا يُخزَّن نصًا + انتهاء + استخدام/إلغاء + `purgeAt` للحذف بعد 30 يومًا). الفرع إجباري لغير المالك.
 - `OrgProgram.ts`: برامج المركز المفعلة. فهرس `{orgId, programKey}` فريد.
 - `Student.ts`: الطالب (فرع واحد إجباري، `nameSearch`، أولياء بلا أسماء ≤4، حفظ بداية/حالي، `parentCode` فريد، صورة، أرشفة). فهارس: `{orgId, branchId, status, createdAt}` و`{orgId, branchId, nameSearch}`.
+- `ProgressReport.ts`: التقرير (موضع إجباري + مراجعة + تجويد + اتجاه يدوي + ملاحظات + مفتاح يوم القاهرة). فهرسان للطالب والفرع. الإنجاز والسابق يُحسبان عرضًا.
+- `src/lib/progress.ts`: `ayahIndex` (1..6236) و`ayahsBetween` (مطلق بلا حكم) و`formatRange` و`todayKeyCairo` و`daysAgoLabel`.
 - `VerificationToken.ts`: روابط التفعيل والاستعادة لمرة واحدة (تُحذف بانتهائها).
 - `AuditLog.ts`: سجل الأحداث (يُحذف بعد 180 يومًا). لا كتابة فيه من أي service حاليًا.
 - `RateLimit.ts`: عدّادات الحماية (تُحذف بعد 24 ساعة). لا استخدام لها حاليًا.
@@ -164,6 +168,8 @@
 - `isolation.test.ts`: خمسة اختبارات أن كل مركز/فرع يرى بياناته فقط.
 - `seeds.test.ts`: اختباران (تكرار seed الأدمن آمن، ورفض seed-dev في الإنتاج).
 - `constants.test.ts`: ثوابت السور (114 سورة ومجموع 6236) ودوالها ومجموعات الخيارات.
+- `progress.test.ts`: حسابات الآيات (نفس/عبر/عكسي/متطابق/منتصف الليل) و`daysAgoLabel`.
+- `progress-reports.test.ts`: المصفوفة + العزل + تزامن الموضع + حساب المتتاليات + المؤرشف والحذف.
 - `student-utils.test.ts`: التطبيع وتطابق الدالة مع فلتر Mongo والعمر.
 - `students.test.ts`: عزل القراءة/الكتابة + البحث + التكرار + الحذف النهائي + الكود + الإحصائيات + التعديل.
 - `session-version.test.ts`: قبول المطابق ورفض القديم + حالة `unverified`.
@@ -197,6 +203,10 @@
 | `/dashboard/team` | صفحة + فورمات | `app/dashboard/team/*` | مشرفون فقط (سيرفر) | دعوات + أعضاء + إلغاء + أدوار |
 | `/dashboard/students` | صفحة + فلاتر | `app/dashboard/students/*` | عضو (تقرير) | إحصائيات + جدول + ترقيم + أرشفة |
 | `/dashboard/students/new` | صفحة + فورم | `new/*` | `student:create` | إضافة طالب (فرع حسب التعدد) |
+| `/dashboard/students/[id]` | صفحة | `[id]/*` | عضو | البطاقة + ملخص وقائمة التقارير + كود ولي الأمر + إجراءات |
+| `/dashboard/students/[id]/edit` | صفحة + فورم | `[id]/edit/*` | `student:edit` | نفس الفورم (الحفظ: الموضع فقط) |
+| `/dashboard/students/[id]/reports/new` | صفحة + فورم | `[id]/reports/*` | `report:create` | تقرير جديد (الموضع معبأ بالحالي) |
+| `/dashboard/students/[id]/reports/[reportId]/edit` | صفحة + فورم | `[reportId]/edit/*` | `report:edit` | نفس الفورم بقيم التقرير |
 | `/dashboard/students/[id]` | صفحة | `[id]/*` | عضو | البطاقة + كود ولي الأمر + إجراءات |
 | `/dashboard/students/[id]/edit` | صفحة + فورم | `[id]/edit/*` | `student:edit` | نفس الفورم (الموضع فقط للحفظ) |
 | `/dashboard/students|groups|attendance|settings` | placeholder | `app/dashboard/*` | عضو (الإعدادات لغير المعلم) | «قريبًا» |
@@ -221,6 +231,7 @@
 | `createStudentAction` / `updateStudentAction` | `students/actions.ts` | حقول الفورم | `createStudent` / `updateStudent` | تحويل للتفاصيل أو تحذير تكرار |
 | `deleteStudentAction` / `regenerateCodeAction` | `students/actions.ts` | id | `deleteStudentPermanently` / `regenerateParentCode` | تحويل أو رسالة |
 | `archiveStudentAction` / `restoreStudentAction` | `students/actions.ts` | id | `archiveStudent` / `restoreStudent` | تحديث الصفحة |
+| `createReportAction` / `updateReportAction` / `deleteReportAction` | `[id]/reports/actions.ts` | حقول التقرير / id | `createReport` / `updateReport` / `deleteReport` | تحويل لبطاقة الطالب أو رسالة |
 | `uploadStudentImageAction` | `students/actions.ts` | ملف (FormData) | Cloudinary لمجلد المركز | رابط ومعرف أو رسالة |
 | `GET/POST /api/auth/*` | route handler | حسب Auth.js | الجلسات والـ JWT | جلسة/كوكي |
 
