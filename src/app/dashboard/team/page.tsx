@@ -1,30 +1,20 @@
 // صفحة الفريق: دعوات + أعضاء — للمشرفين فقط (الفحص في السيرفر).
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cookies } from "next/headers";
 import { viewer } from "@/services/viewer";
 import { getTeamData } from "@/services/team";
-import {
-  createInviteAction,
-  revokeInviteAction,
-  updateMemberAction,
-} from "./actions";
-import { CopyInvite } from "./copy-button";
+import { revokeInviteAction } from "./actions";
+import { InviteForm } from "./_invite-form";
+import { MembersCard } from "./_members";
 import { ROLE_NAMES_AR as ROLE_NAMES } from "@/constants/students";
 
 export default async function TeamPage({
   searchParams,
 }: {
-  searchParams: Promise<{ created?: string; error?: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
-  
   const ctx = await viewer();
   if (ctx.kind !== "member") redirect("/verify-pending");
   if (ctx.role !== "center_admin" && ctx.role !== "branch_admin")
@@ -33,10 +23,11 @@ export default async function TeamPage({
   const pref = (await cookies()).get("active_branch")?.value ?? null;
   const data = await getTeamData(ctx, pref).catch(() => null);
   if (!data) redirect("/dashboard");
-  const roleOptions =
+  const roleValues =
     data.role === "center_admin"
       ? ["center_admin", "branch_admin", "supervisor"]
       : ["branch_admin", "supervisor"];
+  const roles = roleValues.map((r) => ({ value: r, label: ROLE_NAMES[r] ?? r }));
   const branchName = new Map(data.branches.map((b) => [b.id, b.name]));
   return (
     <div className="flex flex-col gap-4">
@@ -46,76 +37,7 @@ export default async function TeamPage({
           {sp.error === "1" ? "تعذر تنفيذ العملية — تحقق من الصلاحيات" : sp.error}
         </p>
       )}
-      {sp.created && (
-        <Card>
-          <CardHeader>
-            <CardTitle>الكود (يظهر مرة واحدة)</CardTitle>
-            <CardDescription className="text-lg font-bold" dir="ltr">
-              {sp.created}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CopyInvite code={sp.created} />
-          </CardContent>
-        </Card>
-      )}
-      <Card>
-        <CardHeader>
-          <CardTitle>دعوة جديدة</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form action={createInviteAction} className="flex flex-col gap-3">
-            <label className="text-sm">
-              الدور
-              <select
-                name="role"
-                className="mt-1 w-full rounded-md border p-2"
-                defaultValue="supervisor"
-              >
-                {roleOptions.map((r) => (
-                  <option key={r} value={r}>
-                    {ROLE_NAMES[r]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {data.branches.length > 1 ? (
-              <label className="text-sm">
-                الفرع
-                <select
-                  name="branchId"
-                  className="mt-1 w-full rounded-md border p-2"
-                >
-                  {data.branches.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : (
-              <input
-                type="hidden"
-                name="branchId"
-                value={data.branches[0]?.id ?? ""}
-              />
-            )}
-            <label className="text-sm">
-              المدة بالأيام (حتى 7)
-              <input
-                name="days"
-                type="number"
-                min={1}
-                max={7}
-                defaultValue={2}
-                className="mt-1 w-full rounded-md border p-2"
-                dir="ltr"
-              />
-            </label>
-            <Button type="submit">إنشاء الكود</Button>
-          </form>
-        </CardContent>
-      </Card>
+      <InviteForm roles={roles} branches={data.branches} />
       <Card>
         <CardHeader>
           <CardTitle>الدعوات الفعّالة</CardTitle>
@@ -141,55 +63,7 @@ export default async function TeamPage({
           ))}
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>الأعضاء</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          {data.members.map((m) => (
-            <div
-              key={m.userId}
-              className="flex flex-col gap-1 border-b pb-2 text-sm"
-            >
-              <span>
-                {m.name} — {m.email} — {ROLE_NAMES[m.role]} —{" "}
-                {m.status === "active" ? "مفعّل" : "معطّل"}
-              </span>
-              <div className="flex gap-2">
-                <form
-                  action={updateMemberAction.bind(null, m.userId)}
-                  className="flex gap-2"
-                >
-                  <select
-                    name="role"
-                    defaultValue={m.role}
-                    className="rounded-md border p-1"
-                  >
-                    {roleOptions.map((r) => (
-                      <option key={r} value={r}>
-                        {ROLE_NAMES[r]}
-                      </option>
-                    ))}
-                  </select>
-                  <Button type="submit" variant="outline" size="sm">
-                    تغيير الدور
-                  </Button>
-                </form>
-                <form action={updateMemberAction.bind(null, m.userId)}>
-                  <input
-                    type="hidden"
-                    name="status"
-                    value={m.status === "active" ? "disabled" : "active"}
-                  />
-                  <Button type="submit" variant="outline" size="sm">
-                    {m.status === "active" ? "تعطيل" : "تفعيل"}
-                  </Button>
-                </form>
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      <MembersCard members={data.members} roles={roles} />
     </div>
   );
 }

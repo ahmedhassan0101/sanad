@@ -1,12 +1,15 @@
 // أكشنات الفريق: إنشاء/إلغاء دعوة + تغيير دور/تعطيل عضو — كلها بفحص سيرفر.
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { createInvite, revokeInvite } from "@/services/invites";
 import { updateMember } from "@/services/members";
 import { viewer } from "@/services/viewer";
 import { inviteFormSchema } from "@/validators/forms";
+
+// مدة الدعوة ثابتة: 48 ساعة.
+const INVITE_DAYS = 2;
 
 async function teamCtx() {
   const ctx = await viewer();
@@ -26,19 +29,22 @@ function publicMessage(e: unknown, fallback: string) {
   return fallback;
 }
 
-export async function createInviteAction(formData: FormData) {
+export type InviteState = { ok: boolean; code?: string; message?: string };
+
+export async function createInviteAction(
+  _prev: InviteState,
+  formData: FormData,
+): Promise<InviteState> {
   const ctx = await teamCtx();
   const parsed = inviteFormSchema.safeParse({
     role: String(formData.get("role") ?? ""),
     branchId: formData.get("branchId")
       ? String(formData.get("branchId"))
       : null,
-    days: Number(formData.get("days") ?? 2),
   });
-  if (!parsed.success) redirect("/dashboard/team?error=1");
-  let code: string;
+  if (!parsed.success) return { ok: false, message: "تحقق من الحقول ثم حاول مجددًا" };
   try {
-    ({ code } = await createInvite(
+    const { code } = await createInvite(
       {
         userId: ctx.userId,
         orgId: ctx.orgId,
@@ -48,14 +54,14 @@ export async function createInviteAction(formData: FormData) {
       },
       parsed.data.role,
       parsed.data.branchId ?? null,
-      parsed.data.days,
-    ));
+      INVITE_DAYS,
+    );
+    revalidatePath("/dashboard/team");
+    return { ok: true, code };
   } catch (e) {
-    if (isRedirectError(e)) throw e;
     console.error("createInviteAction failed:", e);
-    redirect(`/dashboard/team?error=${encodeURIComponent(publicMessage(e, "تعذر إنشاء الدعوة"))}`);
+    return { ok: false, message: publicMessage(e, "تعذر إنشاء الدعوة") };
   }
-  redirect(`/dashboard/team?created=${code}`);
 }
 
 export async function revokeInviteAction(inviteId: string) {
@@ -63,11 +69,10 @@ export async function revokeInviteAction(inviteId: string) {
   try {
     await revokeInvite(ctx, inviteId);
   } catch (e) {
-    if (isRedirectError(e)) throw e;
     console.error("revokeInviteAction failed:", e);
     redirect(`/dashboard/team?error=${encodeURIComponent(publicMessage(e, "تعذر إلغاء الدعوة"))}`);
   }
-  redirect("/dashboard/team");
+  revalidatePath("/dashboard/team");
 }
 
 export async function updateMemberAction(
@@ -85,9 +90,8 @@ export async function updateMemberAction(
       ...(status ? { status: String(status) as "active" | "disabled" } : {}),
     });
   } catch (e) {
-    if (isRedirectError(e)) throw e;
     console.error("updateMemberAction failed:", e);
     redirect(`/dashboard/team?error=${encodeURIComponent(publicMessage(e, "تعذر تحديث العضو"))}`);
   }
-  redirect("/dashboard/team");
+  revalidatePath("/dashboard/team");
 }
