@@ -25,7 +25,7 @@ let ids: {
   a1: Types.ObjectId;
   a2: Types.ObjectId;
   ownerA: Types.ObjectId;
-  teacherA: Types.ObjectId;
+  supervisorA: Types.ObjectId;
   studentA: Types.ObjectId;
   studentB: Types.ObjectId;
 };
@@ -35,7 +35,7 @@ type Ctx = Parameters<typeof listReports>[0];
 function memberCtx(
   userId: Types.ObjectId,
   orgId: Types.ObjectId,
-  role: "center_admin" | "branch_admin" | "teacher",
+  role: "center_admin" | "branch_admin" | "supervisor",
   branchIds: Types.ObjectId[],
 ): Ctx {
   return {
@@ -67,7 +67,7 @@ beforeEach(async () => {
   const mk = async (name: string, email: string) =>
     User.create({ name, email, emailVerifiedAt: new Date() });
   const ownerA = await mk("OwnerA", "oa@r.test");
-  const teacherA = await mk("TeacherA", "ta@r.test");
+  const supervisorA = await mk("TeacherA", "ta@r.test");
   const ownerB = await mk("OwnerB", "ob@r.test");
   const orgA = await Org.create({ name: "A", contactPhone: "01", createdByUserId: ownerA._id });
   const orgB = await Org.create({ name: "B", contactPhone: "01", createdByUserId: ownerB._id });
@@ -76,7 +76,7 @@ beforeEach(async () => {
   const b1 = await Branch.create({ orgId: orgB._id, name: "B1" });
   await Membership.create({ userId: ownerA._id, orgId: orgA._id, role: "center_admin" });
   await Membership.create({ userId: ownerB._id, orgId: orgB._id, role: "center_admin" });
-  await Membership.create({ userId: teacherA._id, orgId: orgA._id, role: "teacher", branchIds: [a1._id] });
+  await Membership.create({ userId: supervisorA._id, orgId: orgA._id, role: "supervisor", branchIds: [a1._id] });
   const mkStudent = (orgId: Types.ObjectId, branchId: Types.ObjectId, name: string) =>
     Student.create({
       orgId,
@@ -92,15 +92,15 @@ beforeEach(async () => {
     });
   const studentA = await mkStudent(orgA._id, a1._id, "طالب أ");
   const studentB = await mkStudent(orgB._id, b1._id, "طالب ب");
-  ids = { orgA: orgA._id, orgB: orgB._id, a1: a1._id, a2: a2._id, ownerA: ownerA._id, teacherA: teacherA._id, studentA: studentA._id, studentB: studentB._id };
+  ids = { orgA: orgA._id, orgB: orgB._id, a1: a1._id, a2: a2._id, ownerA: ownerA._id, supervisorA: supervisorA._id, studentA: studentA._id, studentB: studentB._id };
 });
 
 describe("matrix", () => {
   it("all roles create/edit, only managers delete", () => {
     expect(can("center_admin", "report:create")).toBe(true);
     expect(can("branch_admin", "report:edit")).toBe(true);
-    expect(can("teacher", "report:create")).toBe(true);
-    expect(can("teacher", "report:delete")).toBe(false);
+    expect(can("supervisor", "report:create")).toBe(true);
+    expect(can("supervisor", "report:delete")).toBe(false);
     expect(can("branch_admin", "report:delete")).toBe(true);
   });
 });
@@ -114,11 +114,11 @@ describe("isolation", () => {
       "center_admin",
       [],
     );
-    const teacherA = memberCtx(ids.teacherA, ids.orgA, "teacher", [ids.a1]);
+    const supervisorA = memberCtx(ids.supervisorA, ids.orgA, "supervisor", [ids.a1]);
     await createReport(ownerA, String(ids.studentA), { ...reportInput });
     await expect(listReports(ownerB, String(ids.studentA))).rejects.toThrow("NOT_FOUND");
     await expect(createReport(ownerB, String(ids.studentA), { ...reportInput })).rejects.toThrow("NOT_FOUND");
-    // teacher out of branch scope cannot touch A2 student
+    // supervisor out of branch scope cannot touch A2 student
     const s2 = await Student.create({
       orgId: ids.orgA,
       branchId: ids.a2,
@@ -129,9 +129,9 @@ describe("isolation", () => {
       guardians: [],
       parentCode: "CODE-A2",
     });
-    await expect(listReports(teacherA, String(s2._id))).rejects.toThrow("NOT_FOUND");
+    await expect(listReports(supervisorA, String(s2._id))).rejects.toThrow("NOT_FOUND");
     await expect(
-      createReport(teacherA, String(s2._id), { ...reportInput }),
+      createReport(supervisorA, String(s2._id), { ...reportInput }),
     ).rejects.toThrow("NOT_FOUND");
   });
 });
@@ -180,13 +180,13 @@ describe("consecutive math", () => {
 
 describe("archived + delete rules", () => {
   it("rejects reports for archived students; delete removes reports", async () => {
-    const u = { ownerA: ids.ownerA, teacherA: ids.teacherA };
+    const u = { ownerA: ids.ownerA, supervisorA: ids.supervisorA };
     const ctx = memberCtx(u.ownerA, ids.orgA, "center_admin", []);
     await archiveStudent(ctx, String(ids.studentA));
     await expect(createReport(ctx, String(ids.studentA), { ...reportInput })).rejects.toThrow(
       "مؤرشف",
     );
-    const tctx = memberCtx(u.teacherA, ids.orgA, "teacher", [ids.a1]);
+    const tctx = memberCtx(u.supervisorA, ids.orgA, "supervisor", [ids.a1]);
     await expect(deleteReport(tctx, "000000000000000000000000")).rejects.toThrow();
     await deleteStudentPermanently(ctx, String(ids.studentA));
     expect(await ProgressReport.countDocuments({ studentId: ids.studentA })).toBe(0);

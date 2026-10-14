@@ -29,7 +29,7 @@ const inviteSchema = new Schema<InviteDoc>(
     },
     role: {
       type: String,
-      enum: ["center_admin", "branch_admin", "teacher"],
+      enum: ["center_admin", "branch_admin", "supervisor"],
       required: true,
     },
     codeHash: { type: String, required: true, unique: true },

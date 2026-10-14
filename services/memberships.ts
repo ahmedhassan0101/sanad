@@ -8,7 +8,7 @@ import { rank } from "@/lib/permissions/roles";
 // Shape validation for every membership write (schema validators don't run on
 // updateOne/findOneAndUpdate, so services enforce this instead).
 export function assertMembershipShape(role: MembershipRole, branchIds: Types.ObjectId[]) {
-  if ((role === "branch_admin" || role === "teacher") && branchIds.length < 1) {
+  if ((role === "branch_admin" || role === "supervisor") && branchIds.length < 1) {
     throw new Error("VALIDATION: scoped roles require at least one branch");
   }
 }

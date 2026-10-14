@@ -20,7 +20,7 @@ type Ctx = Parameters<typeof listStudents>[0];
 function memberCtx(
   userId: Types.ObjectId,
   orgId: Types.ObjectId,
-  role: "center_admin" | "branch_admin" | "teacher",
+  role: "center_admin" | "branch_admin" | "supervisor",
   branchIds: Types.ObjectId[],
 ): Ctx {
   return {
@@ -32,7 +32,7 @@ function memberCtx(
   };
 }
 
-let users: { adminA: Types.ObjectId; adminB: Types.ObjectId; teacher: Types.ObjectId };
+let users: { adminA: Types.ObjectId; adminB: Types.ObjectId; supervisor: Types.ObjectId };
 
 beforeAll(async () => {
   replSet = await startMemoryDB();
@@ -48,7 +48,7 @@ beforeEach(async () => {
     User.create({ name, email, emailVerifiedAt: new Date() });
   const adminA = await mk("AdminA", "aa@bulk.test");
   const adminB = await mk("AdminB", "ab@bulk.test");
-  const teacher = await mk("Teacher", "tt@bulk.test");
+  const supervisor = await mk("Teacher", "tt@bulk.test");
   const orgA = await Org.create({ name: "A", contactPhone: "01", createdByUserId: adminA._id });
   const orgB = await Org.create({ name: "B", contactPhone: "01", createdByUserId: adminB._id });
   const a1 = await Branch.create({ orgId: orgA._id, name: "A1" });
@@ -56,8 +56,8 @@ beforeEach(async () => {
   await Branch.create({ orgId: orgB._id, name: "B1" });
   await Membership.create({ userId: adminA._id, orgId: orgA._id, role: "center_admin" });
   await Membership.create({ userId: adminB._id, orgId: orgB._id, role: "center_admin" });
-  await Membership.create({ userId: teacher._id, orgId: orgA._id, role: "teacher", branchIds: [a1._id] });
-  users = { adminA: adminA._id, adminB: adminB._id, teacher: teacher._id };
+  await Membership.create({ userId: supervisor._id, orgId: orgA._id, role: "supervisor", branchIds: [a1._id] });
+  users = { adminA: adminA._id, adminB: adminB._id, supervisor: supervisor._id };
   ids = { orgA: orgA._id, orgB: orgB._id, a1: a1._id, a2: a2._id };
 });
 
@@ -111,10 +111,10 @@ describe("createStudentsBulk", () => {
     expect(res.map((r) => r.status)).toEqual(["saved", "invalid", "saved"]);
     expect(res[1]!.errors.length).toBeGreaterThan(0);
     expect(await Student.countDocuments({ orgId: ids.orgA })).toBe(2);
-    // teacher خارج الفرع مرفوض، ومركز آخر لا يرى شيئًا
-    const teacher = memberCtx(users.teacher, ids.orgA, "teacher", [ids.a1]);
+    // supervisor خارج الفرع مرفوض، ومركز آخر لا يرى شيئًا
+    const supervisor = memberCtx(users.supervisor, ids.orgA, "supervisor", [ids.a1]);
     await expect(
-      createStudentsBulk(teacher, [row("x")], { branchId: String(ids.a2) }),
+      createStudentsBulk(supervisor, [row("x")], { branchId: String(ids.a2) }),
     ).rejects.toThrow("FORBIDDEN");
     const adminB = memberCtx(users.adminB, ids.orgB, "center_admin", []);
     expect((await listStudents(adminB, {})).total).toBe(0);

@@ -12,7 +12,7 @@ import { listMembers, updateMember } from "../services/members";
 let replSet: MongoMemoryReplSet;
 let ids: { owner: Types.ObjectId; mgr: Types.ObjectId; tch: Types.ObjectId; org: Types.ObjectId; b1: Types.ObjectId; b2: Types.ObjectId };
 
-function ctx(userId: Types.ObjectId, orgId: Types.ObjectId, role: "center_admin" | "branch_admin" | "teacher", branchIds: Types.ObjectId[]) {
+function ctx(userId: Types.ObjectId, orgId: Types.ObjectId, role: "center_admin" | "branch_admin" | "supervisor", branchIds: Types.ObjectId[]) {
   return {
     kind: "member" as const,
     userId: String(userId),
@@ -41,16 +41,16 @@ beforeEach(async () => {
   const b2 = await Branch.create({ orgId: org._id, name: "B2" });
   await Membership.create({ userId: owner._id, orgId: org._id, role: "center_admin" });
   await Membership.create({ userId: mgr._id, orgId: org._id, role: "branch_admin", branchIds: [b1._id] });
-  await Membership.create({ userId: tch._id, orgId: org._id, role: "teacher", branchIds: [b1._id] });
+  await Membership.create({ userId: tch._id, orgId: org._id, role: "supervisor", branchIds: [b1._id] });
   ids = { owner: owner._id, mgr: mgr._id, tch: tch._id, org: org._id, b1: b1._id, b2: b2._id };
 });
 
 describe("team invites", () => {
-  it("center creates teacher invite; branch_admin cannot create center_admin", async () => {
+  it("center creates supervisor invite; branch_admin cannot create center_admin", async () => {
     const c = ctx(ids.owner, ids.org, "center_admin", []);
     const { code } = await createInvite(
       { userId: String(ids.owner), orgId: ids.org, role: "center_admin", branchIds: [] },
-      "teacher",
+      "supervisor",
       String(ids.b1),
       2
     );
@@ -68,12 +68,12 @@ describe("team invites", () => {
     expect((await listInvites(m)).length).toBe(1);
   });
 
-  it("teacher cannot list invites; branch_admin cannot revoke other branch invite", async () => {
-    const t = ctx(ids.tch, ids.org, "teacher", [ids.b1]);
+  it("supervisor cannot list invites; branch_admin cannot revoke other branch invite", async () => {
+    const t = ctx(ids.tch, ids.org, "supervisor", [ids.b1]);
     await expect(listInvites(t)).rejects.toThrow("FORBIDDEN");
     await createInvite(
       { userId: String(ids.owner), orgId: ids.org, role: "center_admin", branchIds: [] },
-      "teacher",
+      "supervisor",
       String(ids.b2),
       2
     );
@@ -85,15 +85,15 @@ describe("team invites", () => {
   it("invite limit is 20 per branch", async () => {
     const g = { userId: String(ids.owner), orgId: ids.org, role: "center_admin" as const, branchIds: [] as Types.ObjectId[] };
     for (let i = 0; i < 20; i++) {
-      await createInvite(g, "teacher", String(ids.b1), 2);
+      await createInvite(g, "supervisor", String(ids.b1), 2);
     }
-    await expect(createInvite(g, "teacher", String(ids.b1), 2)).rejects.toThrow("FORBIDDEN");
+    await expect(createInvite(g, "supervisor", String(ids.b1), 2)).rejects.toThrow("FORBIDDEN");
   });
 });
 
 describe("team members", () => {
-  it("teacher blocked; creator protected; last admin blocked", async () => {
-    const t = ctx(ids.tch, ids.org, "teacher", [ids.b1]);
+  it("supervisor blocked; creator protected; last admin blocked", async () => {
+    const t = ctx(ids.tch, ids.org, "supervisor", [ids.b1]);
     await expect(listMembers(t)).rejects.toThrow("FORBIDDEN");
     const c = ctx(ids.owner, ids.org, "center_admin", []);
     const members = await listMembers(c);

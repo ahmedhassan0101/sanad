@@ -1,7 +1,7 @@
 import type { MembershipRole } from "@/db/models/Membership";
 
 // Single source of truth for roles. No role checks outside can() + membership guards.
-export const ROLES = ["center_admin", "branch_admin", "teacher"] as const;
+export const ROLES = ["center_admin", "branch_admin", "supervisor"] as const;
 
 export type Role = MembershipRole;
 
@@ -38,7 +38,7 @@ const MATRIX: Record<Role, Set<string>> = {
     "report:edit",
     "report:delete",
   ]),
-  teacher: new Set([
+  supervisor: new Set([
     "attendance:write",
     "progress:write",
     "student:create",

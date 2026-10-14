@@ -68,7 +68,7 @@ describe("email verification enforcement", () => {
     const br = await Branch.findOne({ orgId });
     const { code } = await createInvite(
       { userId: String(o!._id), orgId: new Types.ObjectId(orgId), role: "center_admin", branchIds: [] },
-      "teacher",
+      "supervisor",
       String(br!._id),
       2
     );

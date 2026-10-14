@@ -35,8 +35,8 @@ export default async function TeamPage({
   if (!data) redirect("/dashboard");
   const roleOptions =
     data.role === "center_admin"
-      ? ["center_admin", "branch_admin", "teacher"]
-      : ["branch_admin", "teacher"];
+      ? ["center_admin", "branch_admin", "supervisor"]
+      : ["branch_admin", "supervisor"];
   const branchName = new Map(data.branches.map((b) => [b.id, b.name]));
   return (
     <div className="flex flex-col gap-4">
@@ -70,7 +70,7 @@ export default async function TeamPage({
               <select
                 name="role"
                 className="mt-1 w-full rounded-md border p-2"
-                defaultValue="teacher"
+                defaultValue="supervisor"
               >
                 {roleOptions.map((r) => (
                   <option key={r} value={r}>

@@ -31,6 +31,6 @@ describe("quran constants", () => {
     expect(GENDERS.labelOf("male")).toBe("ذكر");
     expect(GENDERS.zod().parse("female")).toBe("female");
     expect(() => LEVELS.zod().parse("unknown")).toThrow();
-    expect(ROLE_NAMES_AR.teacher).toBe("مشرف");
+    expect(ROLE_NAMES_AR.supervisor).toBe("مشرف");
   });
 });

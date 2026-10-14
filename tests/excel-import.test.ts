@@ -26,7 +26,7 @@ type Ctx = Parameters<typeof listStudents>[0];
 function memberCtx(
   userId: Types.ObjectId,
   orgId: Types.ObjectId,
-  role: "center_admin" | "branch_admin" | "teacher",
+  role: "center_admin" | "branch_admin" | "supervisor",
   branchIds: Types.ObjectId[],
 ): Ctx {
   return {
@@ -38,7 +38,7 @@ function memberCtx(
   };
 }
 
-let users: { adminA: Types.ObjectId; adminB: Types.ObjectId; teacher: Types.ObjectId };
+let users: { adminA: Types.ObjectId; adminB: Types.ObjectId; supervisor: Types.ObjectId };
 
 async function workbookToBuffer(build: (ws: ExcelJS.Worksheet) => void): Promise<ArrayBuffer> {
   const wb = new ExcelJS.Workbook();
@@ -64,7 +64,7 @@ beforeEach(async () => {
     User.create({ name, email, emailVerifiedAt: new Date() });
   const adminA = await mk("AdminA", "aa@imp.test");
   const adminB = await mk("AdminB", "ab@imp.test");
-  const teacher = await mk("Teacher", "tt@imp.test");
+  const supervisor = await mk("Teacher", "tt@imp.test");
   const orgA = await Org.create({ name: "A", contactPhone: "01", createdByUserId: adminA._id });
   const orgB = await Org.create({ name: "B", contactPhone: "01", createdByUserId: adminB._id });
   const a1 = await Branch.create({ orgId: orgA._id, name: "A1" });
@@ -72,8 +72,8 @@ beforeEach(async () => {
   await Branch.create({ orgId: orgB._id, name: "B1" });
   await Membership.create({ userId: adminA._id, orgId: orgA._id, role: "center_admin" });
   await Membership.create({ userId: adminB._id, orgId: orgB._id, role: "center_admin" });
-  await Membership.create({ userId: teacher._id, orgId: orgA._id, role: "teacher", branchIds: [a1._id] });
-  users = { adminA: adminA._id, adminB: adminB._id, teacher: teacher._id };
+  await Membership.create({ userId: supervisor._id, orgId: orgA._id, role: "supervisor", branchIds: [a1._id] });
+  users = { adminA: adminA._id, adminB: adminB._id, supervisor: supervisor._id };
   ids = { orgA: orgA._id, orgB: orgB._id, a1: a1._id };
 });
 
@@ -148,7 +148,7 @@ describe("toCreateInput", () => {
 });
 
 describe("preview matches commit, perms and isolation hold", () => {
-  it("preview flags, commit saves valid only, teacher out of scope forbidden", async () => {
+  it("preview flags, commit saves valid only, supervisor out of scope forbidden", async () => {
     const adminA = memberCtx(users.adminA, ids.orgA, "center_admin", []);
     const buf = await workbookToBuffer((ws) => {
       ws.addRow(HEADERS);
@@ -167,7 +167,7 @@ describe("preview matches commit, perms and isolation hold", () => {
     );
     expect(saved.every((r) => r.status === "saved")).toBe(true);
     expect(await Student.countDocuments({ orgId: ids.orgA })).toBe(1);
-    const teacher = memberCtx(users.teacher, ids.orgA, "teacher", [ids.a1]);
-    await expect(previewBulkImport(teacher, parsed, { branchId: undefined })).rejects.toThrow();
+    const supervisor = memberCtx(users.supervisor, ids.orgA, "supervisor", [ids.a1]);
+    await expect(previewBulkImport(supervisor, parsed, { branchId: undefined })).rejects.toThrow();
   });
 });

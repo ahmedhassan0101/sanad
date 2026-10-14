@@ -27,7 +27,7 @@ type Ctx = Parameters<typeof listStudents>[0];
 function memberCtx(
   userId: Types.ObjectId,
   orgId: Types.ObjectId,
-  role: "center_admin" | "branch_admin" | "teacher",
+  role: "center_admin" | "branch_admin" | "supervisor",
   branchIds: Types.ObjectId[],
 ): Ctx {
   return {
@@ -67,7 +67,7 @@ beforeEach(async () => {
     User.create({ name, email, emailVerifiedAt: new Date() });
   const adminA = await mk("AdminA", "aa@t.test");
   const adminB = await mk("AdminB", "ab@t.test");
-  const teacher = await mk("Teacher", "tt@t.test");
+  const supervisor = await mk("Teacher", "tt@t.test");
   const orgA = await Org.create({ name: "A", contactPhone: "01", createdByUserId: adminA._id });
   const orgB = await Org.create({ name: "B", contactPhone: "01", createdByUserId: adminB._id });
   const a1 = await Branch.create({ orgId: orgA._id, name: "A1" });
@@ -75,18 +75,18 @@ beforeEach(async () => {
   const b1 = await Branch.create({ orgId: orgB._id, name: "B1" });
   await Membership.create({ userId: adminA._id, orgId: orgA._id, role: "center_admin" });
   await Membership.create({ userId: adminB._id, orgId: orgB._id, role: "center_admin" });
-  await Membership.create({ userId: teacher._id, orgId: orgA._id, role: "teacher", branchIds: [a1._id] });
+  await Membership.create({ userId: supervisor._id, orgId: orgA._id, role: "supervisor", branchIds: [a1._id] });
   ids = { orgA: orgA._id, orgB: orgB._id, a1: a1._id, a2: a2._id, b1: b1._id };
   (globalThis as Record<string, unknown>).__seedUsers = {
     adminA: adminA._id,
     adminB: adminB._id,
-    teacher: teacher._id,
+    supervisor: supervisor._id,
   };
 });
 
 function users() {
   return (globalThis as unknown as {
-    __seedUsers: { adminA: Types.ObjectId; adminB: Types.ObjectId; teacher: Types.ObjectId };
+    __seedUsers: { adminA: Types.ObjectId; adminB: Types.ObjectId; supervisor: Types.ObjectId };
   }).__seedUsers;
 }
 
@@ -95,17 +95,17 @@ describe("isolation", () => {
     const u = users();
     const adminA = memberCtx(u.adminA, ids.orgA, "center_admin", []);
     const adminB = memberCtx(u.adminB, ids.orgB, "center_admin", []);
-    const teacher = memberCtx(u.teacher, ids.orgA, "teacher", [ids.a1]);
+    const supervisor = memberCtx(u.supervisor, ids.orgA, "supervisor", [ids.a1]);
     const created = await createStudent(adminA, { ...baseInput, branchId: String(ids.a1) });
     expect(created.status).toBe("created");
     const id = (created as { id: string }).id;
     await expect(getStudent(adminB, id)).rejects.toThrow("NOT_FOUND");
-    const found = await getStudent(teacher, id);
+    const found = await getStudent(supervisor, id);
     expect(found.name).toBe("أحمد محمد");
     const inA2 = await createStudent(adminA, { ...baseInput, name: "طالب ثان", branchId: String(ids.a2) });
-    await expect(getStudent(teacher, (inA2 as { id: string }).id)).rejects.toThrow("NOT_FOUND");
+    await expect(getStudent(supervisor, (inA2 as { id: string }).id)).rejects.toThrow("NOT_FOUND");
     await expect(
-      createStudent(teacher, { ...baseInput, name: "طالب ثالث", branchId: String(ids.a2) }),
+      createStudent(supervisor, { ...baseInput, name: "طالب ثالث", branchId: String(ids.a2) }),
     ).rejects.toThrow("FORBIDDEN");
   });
 });
@@ -142,12 +142,12 @@ describe("permanent delete", () => {
   it("requires archived status and manager role", async () => {
     const u = users();
     const adminA = memberCtx(u.adminA, ids.orgA, "center_admin", []);
-    const teacher = memberCtx(u.teacher, ids.orgA, "teacher", [ids.a1]);
+    const supervisor = memberCtx(u.supervisor, ids.orgA, "supervisor", [ids.a1]);
     const created = await createStudent(adminA, { ...baseInput, branchId: String(ids.a1) });
     const id = (created as { id: string }).id;
     await expect(deleteStudentPermanently(adminA, id)).rejects.toThrow("VALIDATION");
     await archiveStudent(adminA, id);
-    await expect(deleteStudentPermanently(teacher, id)).rejects.toThrow("FORBIDDEN");
+    await expect(deleteStudentPermanently(supervisor, id)).rejects.toThrow("FORBIDDEN");
     await deleteStudentPermanently(adminA, id);
     expect(await Student.countDocuments({ _id: id })).toBe(0);
   });

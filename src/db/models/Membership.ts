@@ -1,6 +1,6 @@
 import { Schema, model, models, type Document, type Model, type Types } from "mongoose";
 
-export type MembershipRole = "center_admin" | "branch_admin" | "teacher";
+export type MembershipRole = "center_admin" | "branch_admin" | "supervisor";
 export type MembershipStatus = "active" | "disabled";
 
 export interface MembershipDoc extends Document {
@@ -19,7 +19,7 @@ const membershipSchema = new Schema<MembershipDoc>(
     orgId: { type: Schema.Types.ObjectId, ref: "Org", required: true },
     role: {
       type: String,
-      enum: ["center_admin", "branch_admin", "teacher"],
+      enum: ["center_admin", "branch_admin", "supervisor"],
       required: true,
     },
     branchIds: {
@@ -27,7 +27,7 @@ const membershipSchema = new Schema<MembershipDoc>(
       default: [],
       validate: {
         validator(this: MembershipDoc, v: Types.ObjectId[]) {
-          if (this.role === "branch_admin" || this.role === "teacher") {
+          if (this.role === "branch_admin" || this.role === "supervisor") {
             return Array.isArray(v) && v.length >= 1;
           }
           return true;

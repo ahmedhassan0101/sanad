@@ -19,20 +19,20 @@ afterAll(async () => {
 beforeEach(clearDB);
 
 describe("membership branch validation", () => {
-  it("branch_admin and teacher require at least one branch", async () => {
+  it("branch_admin and supervisor require at least one branch", async () => {
     const u = await User.create({ name: "U", email: "m@example.com" });
     const org = await Org.create({ name: "O", contactPhone: "01", createdByUserId: u._id });
     await expect(
       Membership.create({ userId: u._id, orgId: org._id, role: "branch_admin", branchIds: [] })
     ).rejects.toThrow(/at least one branch/);
     await expect(
-      Membership.create({ userId: u._id, orgId: org._id, role: "teacher", branchIds: [] })
+      Membership.create({ userId: u._id, orgId: org._id, role: "supervisor", branchIds: [] })
     ).rejects.toThrow(/at least one branch/);
   });
 
   it("owner works without branchIds, scoped roles work with one", async () => {
     const ownerUser = await User.create({ name: "Owner", email: "m2-owner@example.com" });
-    const teacherUser = await User.create({ name: "Teacher", email: "m2-teacher@example.com" });
+    const supervisorUser = await User.create({ name: "Teacher", email: "m2-supervisor@example.com" });
     const org = await Org.create({ name: "O", contactPhone: "01", createdByUserId: ownerUser._id });
     const br = await Branch.create({ orgId: org._id, name: "Main" });
     const owner = await Membership.create({
@@ -42,9 +42,9 @@ describe("membership branch validation", () => {
     });
     expect(owner.branchIds).toHaveLength(0);
     const t = await Membership.create({
-      userId: teacherUser._id,
+      userId: supervisorUser._id,
       orgId: org._id,
-      role: "teacher",
+      role: "supervisor",
       branchIds: [br._id],
     });
     expect(t.branchIds).toHaveLength(1);

@@ -80,7 +80,7 @@ export async function updateMemberAction(
   try {
     await updateMember(ctx, targetUserId, {
       ...(role
-        ? { role: String(role) as "center_admin" | "branch_admin" | "teacher" }
+        ? { role: String(role) as "center_admin" | "branch_admin" | "supervisor" }
         : {}),
       ...(status ? { status: String(status) as "active" | "disabled" } : {}),
     });

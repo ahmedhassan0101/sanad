@@ -20,11 +20,11 @@ import { cn } from "@/lib/utils";
 function itemsFor(role: string) {
   return [
     { href: "/dashboard", label: "الرئيسية", icon: Home, show: true },
-    { href: "/dashboard/team", label: "الفريق", icon: Users, show: role !== "teacher" },
+    { href: "/dashboard/team", label: "الفريق", icon: Users, show: role !== "supervisor" },
     { href: "/dashboard/students", label: "الطلاب", icon: GraduationCap, show: true },
     { href: "/dashboard/groups", label: "المجموعات", icon: BookOpen, show: true },
     { href: "/dashboard/attendance", label: "الحضور", icon: ClipboardCheck, show: true },
-    { href: "/dashboard/settings", label: "الإعدادات", icon: Settings, show: role !== "teacher" },
+    { href: "/dashboard/settings", label: "الإعدادات", icon: Settings, show: role !== "supervisor" },
   ].filter((i) => i.show);
 }
 

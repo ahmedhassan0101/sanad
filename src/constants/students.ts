@@ -83,7 +83,7 @@ export const TAJWEED_RATINGS = defineOptions(
 export const ROLE_NAMES_AR: Record<string, string> = {
   center_admin: "مدير مركز",
   branch_admin: "مدير فرع",
-  teacher: "مشرف",
+  supervisor: "مشرف",
 };
 
 const RAW_SURAHS: ReadonlyArray<readonly [number, string, number]> = [

@@ -10,7 +10,7 @@ import { getSessionContext } from "../services/session-context";
 import { listBranches } from "../services/branches-read";
 
 let replSet: MongoMemoryReplSet;
-let ids: { aAdmin: string; aOrg: string; teacher: string; bOrg: string; b1: string };
+let ids: { aAdmin: string; aOrg: string; supervisor: string; bOrg: string; b1: string };
 
 async function makeOrg(orgName: string, branchNames: string[], adminEmail: string) {
   const admin = await User.create({ name: `${orgName} admin`, email: adminEmail, emailVerifiedAt: new Date() });
@@ -37,17 +37,17 @@ beforeEach(async () => {
   await clearDB();
   const a = await makeOrg("OrgA", ["A1", "A2"], "a@example.com");
   const b = await makeOrg("OrgB", ["B1"], "b@example.com");
-  const teacher = await User.create({ name: "T1", email: "t1@example.com", emailVerifiedAt: new Date() });
+  const supervisor = await User.create({ name: "T1", email: "t1@example.com", emailVerifiedAt: new Date() });
   await Membership.create({
-    userId: teacher._id,
+    userId: supervisor._id,
     orgId: a.org._id,
-    role: "teacher",
+    role: "supervisor",
     branchIds: [a.branches[0]!._id],
   });
   ids = {
     aAdmin: String(a.admin._id),
     aOrg: String(a.org._id),
-    teacher: String(teacher._id),
+    supervisor: String(supervisor._id),
     bOrg: String(b.org._id),
     b1: String(b.branches[0]!._id),
   };
@@ -59,8 +59,8 @@ describe("tenant isolation", () => {
     expect((await listBranches(ctx)).map((b) => b.name).sort()).toEqual(["A1", "A2"]);
   });
 
-  it("teacher of A1 lists only A1", async () => {
-    const ctx = await getSessionContext(ids.teacher, ids.aOrg);
+  it("supervisor of A1 lists only A1", async () => {
+    const ctx = await getSessionContext(ids.supervisor, ids.aOrg);
     expect((await listBranches(ctx)).map((b) => b.name)).toEqual(["A1"]);
   });
 

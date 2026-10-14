@@ -51,7 +51,7 @@ const ownerCtx = () => ({
 
 describe("invite lifecycle", () => {
   it("create → consume → second consume fails", async () => {
-    const { code } = await createInvite(granter(), "teacher", String(ids.b1), 2);
+    const { code } = await createInvite(granter(), "supervisor", String(ids.b1), 2);
     const joined = await consumeInvite(String(newcomer), code);
     expect(joined.orgId).toBe(String(ids.org));
     await expect(consumeInvite(String(newcomer), code)).rejects.toThrow();
@@ -61,7 +61,7 @@ describe("invite lifecycle", () => {
   });
 
   it("revoked invite is excluded from list and cannot be consumed", async () => {
-    const { code } = await createInvite(granter(), "teacher", String(ids.b1), 2);
+    const { code } = await createInvite(granter(), "supervisor", String(ids.b1), 2);
     const before = await listInvites(ownerCtx());
     const target = before.find((i) => i.id);
     await revokeInvite(ownerCtx(), target!.id);
