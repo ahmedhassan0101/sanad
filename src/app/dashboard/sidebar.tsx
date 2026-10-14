@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
   BookOpen,
+  Building2,
   ClipboardCheck,
   GraduationCap,
   Home,
@@ -24,6 +25,7 @@ function itemsFor(role: string) {
     { href: "/dashboard/team", label: "الفريق", icon: Users, show: role !== "supervisor" },
     { href: "/dashboard/students", label: "الطلاب", icon: GraduationCap, show: true },
     { href: "/dashboard/teachers", label: "المعلمون", icon: Presentation, show: true },
+    { href: "/dashboard/branches", label: "الفروع", icon: Building2, show: role === "center_admin" },
     { href: "/dashboard/groups", label: "المجموعات", icon: BookOpen, show: true },
     { href: "/dashboard/attendance", label: "الحضور", icon: ClipboardCheck, show: true },
     { href: "/dashboard/settings", label: "الإعدادات", icon: Settings, show: role !== "supervisor" },
