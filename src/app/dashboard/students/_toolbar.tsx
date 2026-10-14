@@ -1,4 +1,5 @@
 // شريط فلاتر الطلاب: بحث (debounce) + قوائم — الحالة في الـ URL عبر nuqs.
+// ملاحظة: shallow:false ضروري — بدونه يتحدث الـ URL دون إعادة تشغيل الـ Server Component.
 "use client";
 
 import { parseAsBoolean, parseAsString, useQueryState } from "nuqs";
@@ -16,24 +17,24 @@ export function StudentsToolbar() {
   const [q, setQ] = useQueryState(
     "q",
     parseAsString
-      .withOptions({ clearOnDefault: true, throttleMs: 400 })
+      .withOptions({ clearOnDefault: true, throttleMs: 400, shallow: false })
       .withDefault(""),
   );
   const [level, setLevel] = useQueryState(
     "level",
-    parseAsString.withOptions({ clearOnDefault: true }).withDefault(""),
+    parseAsString.withOptions({ clearOnDefault: true, shallow: false }).withDefault(""),
   );
   const [gender, setGender] = useQueryState(
     "gender",
-    parseAsString.withOptions({ clearOnDefault: true }).withDefault(""),
+    parseAsString.withOptions({ clearOnDefault: true, shallow: false }).withDefault(""),
   );
   const [status, setStatus] = useQueryState(
     "status",
-    parseAsString.withDefault("active"),
+    parseAsString.withOptions({ shallow: false }).withDefault("active"),
   );
   const [incomplete, setIncomplete] = useQueryState(
     "incomplete",
-    parseAsBoolean.withDefault(false),
+    parseAsBoolean.withOptions({ shallow: false }).withDefault(false),
   );
 
   const pick = (

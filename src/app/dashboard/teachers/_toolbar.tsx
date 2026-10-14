@@ -17,12 +17,12 @@ export function TeachersToolbar() {
   const [q, setQ] = useQueryState(
     "q",
     parseAsString
-      .withOptions({ clearOnDefault: true, throttleMs: 400 })
+      .withOptions({ clearOnDefault: true, throttleMs: 400, shallow: false })
       .withDefault(""),
   );
   const [status, setStatus] = useQueryState(
     "status",
-    parseAsString.withDefault("active"),
+    parseAsString.withOptions({ shallow: false }).withDefault("active"),
   );
 
   return (
