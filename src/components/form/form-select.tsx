@@ -58,6 +58,7 @@ export function FormSelect<T extends FieldValues>({
               value={(field.value as string | undefined) ?? ""}
               onValueChange={field.onChange}
               disabled={disabled}
+              items={Object.fromEntries(options.map((o) => [o.value, o.label]))}
             >
               <SelectTrigger id={id} aria-invalid={fieldState.invalid}>
                 <SelectValue placeholder={placeholder} />

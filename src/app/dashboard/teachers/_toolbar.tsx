@@ -35,7 +35,11 @@ export function TeachersToolbar() {
       <div className="flex flex-wrap gap-2">
         <label className="flex min-w-36 flex-1 flex-col gap-1 text-sm">
           الحالة
-          <Select value={status} onValueChange={(v) => setStatus(v)}>
+          <Select
+            value={status}
+            onValueChange={(v) => setStatus(v)}
+            items={Object.fromEntries(TEACHER_STATUS.options.map((o) => [o.value, o.label]))}
+          >
             <SelectTrigger>
               <SelectValue placeholder="الكل" />
             </SelectTrigger>

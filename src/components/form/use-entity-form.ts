@@ -47,6 +47,7 @@ export function useEntityForm<T extends FieldValues>({
     resolver: zodResolver(schema),
     defaultValues,
     values: values ?? undefined, // يحل محل useEffect لإعادة ضبط القيم تلقائياً
-    mode: "onBlur",
+    mode: "onTouched",
+    reValidateMode: "onChange",
   });
 }

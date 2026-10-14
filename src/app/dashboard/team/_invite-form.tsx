@@ -35,7 +35,11 @@ export function InviteForm({
         <form action={action} className="flex flex-col gap-3">
           <label className="flex flex-col gap-1 text-sm">
             الدور
-            <Select name="role" defaultValue="supervisor">
+            <Select
+              name="role"
+              defaultValue="supervisor"
+              items={Object.fromEntries(roles.map((r) => [r.value, r.label]))}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="اختر الدور…" />
               </SelectTrigger>
@@ -51,7 +55,11 @@ export function InviteForm({
           {branches.length > 1 ? (
             <label className="flex flex-col gap-1 text-sm">
               الفرع
-              <Select name="branchId" defaultValue={branches[0]?.id ?? ""}>
+              <Select
+                name="branchId"
+                defaultValue={branches[0]?.id ?? ""}
+                items={Object.fromEntries(branches.map((b) => [b.id, b.name]))}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="اختر الفرع…" />
                 </SelectTrigger>

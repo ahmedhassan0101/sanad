@@ -67,7 +67,11 @@ export function MembersCard({
                 action={updateMemberAction.bind(null, m.userId)}
                 className="flex gap-1"
               >
-                <Select name="role" defaultValue={m.role}>
+                <Select
+                  name="role"
+                  defaultValue={m.role}
+                  items={Object.fromEntries(roles.map((r) => [r.value, r.label]))}
+                >
                   <SelectTrigger size="sm" aria-label="تغيير الدور">
                     <SelectValue placeholder="الدور" />
                   </SelectTrigger>

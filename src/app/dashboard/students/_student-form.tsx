@@ -47,7 +47,7 @@ const EMPTY: StudentFormInput = {
   phone: undefined,
   address: undefined,
   notes: undefined,
-  guardians: [],
+  guardians: [{ relation: "father", phone: "" }] as StudentFormInput["guardians"],
   image: undefined,
   branchId: undefined,
   hifz: undefined,
@@ -85,10 +85,14 @@ export function StudentForm({
 
   const send = async (values: StudentFormInput) => {
     setServerError(null);
+    // الصف الفارغ كليًا يُحذف قبل الإرسال (المخطط يحذفه أيضًا قبل التحقق).
+    const guardians = (values.guardians ?? []).filter(
+      (g) => g.phone.trim() !== "",
+    );
     const res = await submit({
       ...values,
       phone: values.phone ? cleanPhone(values.phone) : values.phone,
-      guardians: (values.guardians ?? []).map((g) => ({ ...g, phone: cleanPhone(g.phone) })),
+      guardians: guardians.map((g) => ({ ...g, phone: cleanPhone(g.phone) })),
     });
     if (!res.ok) {
       if (res.code === "DUPLICATE_WARNING" && res.duplicate) {
@@ -196,7 +200,7 @@ export function StudentForm({
               variant="outline"
               onClick={() => append({ relation: "father", phone: "" })}
             >
-              إضافة ولي أمر
+              إضافة ولي أمر آخر
             </Button>
           )}
         </div>

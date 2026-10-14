@@ -51,6 +51,28 @@ export const guardianRule = z.object({
   phone: phoneRule("رقم ولي الأمر"),
 });
 
+// الصف الفارغ كليًا (هاتف فارغ) يُحذف قبل التحقق — لا يُعد خطأً.
+// الصف المعبأ جزئيًا (هاتف غير فارغ) يُتحقق منه كاملًا.
+function stripEmptyGuardians(v: unknown) {
+  if (!Array.isArray(v)) return v;
+  return v.filter(
+    (g) =>
+      typeof g === "object" &&
+      g !== null &&
+      String((g as { phone?: unknown }).phone ?? "").trim() !== "",
+  );
+}
+
+const guardiansArrayRule = z
+  .array(guardianRule)
+  .max(4, "4 أولياء كحد أقصى");
+
+// z.preprocess يوسّع الدخل لـ unknown في الاستدلال، فإعادة الصب تحفظ النوع الساكن.
+const guardiansFormRule = z.preprocess(
+  stripEmptyGuardians,
+  guardiansArrayRule,
+) as unknown as typeof guardiansArrayRule;
+
 const imageRule = z.object({
   url: z.string().url("رابط الصورة غير صحيح"),
   publicId: z.string().min(1),
@@ -64,7 +86,7 @@ const baseFields = {
   phone: optionalPhoneRule("هاتف الطالب"),
   address: optionalString(200),
   notes: optionalString(1000),
-  guardians: z.array(guardianRule).max(4, "4 أولياء كحد أقصى").default([]),
+  guardians: guardiansFormRule.default([]),
   image: imageRule.optional(),
 };
 
@@ -89,7 +111,7 @@ export type UpdateStudentInput = z.infer<typeof updateStudentSchema>;
 export const studentFormSchema = z.object({
   ...baseFields,
   level: LEVELS.zod(),
-  guardians: z.array(guardianRule).max(4, "4 أولياء كحد أقصى"),
+  guardians: guardiansFormRule,
   branchId: z.string().optional(),
   hifz: quranPositionRule.optional(),
   hifzPosition: quranPositionRule.optional(),

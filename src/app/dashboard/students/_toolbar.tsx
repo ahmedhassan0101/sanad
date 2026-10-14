@@ -47,7 +47,14 @@ export function StudentsToolbar() {
   ) => (
     <label className="flex min-w-36 flex-1 flex-col gap-1 text-sm">
       {label}
-      <Select value={value} onValueChange={onChange}>
+      <Select
+        value={value}
+        onValueChange={onChange}
+        items={Object.fromEntries([
+          ...(allowAll ? [["__all", "الكل"] as const] : []),
+          ...options.map((o) => [o.value, o.label] as const),
+        ])}
+      >
         <SelectTrigger>
           <SelectValue placeholder={allLabel} />
         </SelectTrigger>
