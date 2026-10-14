@@ -68,6 +68,9 @@
 - `src/app/dashboard/students/actions.ts`: `createStudentAction`/`updateStudentAction`/`deleteStudentAction`/`regenerateCodeAction` (ترجع `StudentActionResult`) و`archiveStudentAction`/`restoreStudentAction` (redirect) و`uploadStudentImageAction` (FormData).
 - `src/app/dashboard/students/_student-form.tsx`: `StudentForm` الواحد للإنشاء والتعديل (حقول + أولياء `useFieldArray` + حوار التكرار).
 - `src/app/dashboard/students/new/page.tsx`: إضافة (فورم فارغ + فرع حسب التعدد).
+- `src/app/dashboard/teachers/page.tsx` + `_toolbar.tsx` + `actions.ts` (`createTeacherAction`/`updateTeacherAction`/`deleteTeacherAction`/`archiveTeacherAction`/`restoreTeacherAction`): القائمة (3 إحصائيات + بحث وحالة + جدول بالهاتف + ترقيم).
+- `src/app/dashboard/teachers/_teacher-form.tsx`: `TeacherForm` الواحد للإنشاء والتعديل (اسم/هاتف/صورة/ملاحظات/فرع + حوار التكرار).
+- `src/app/dashboard/teachers/new/page.tsx` + `[id]/edit/page.tsx` + `[id]/page.tsx` + `[id]/_actions-ui.tsx` (`DeleteTeacherButton` بتأكيد الاسم).
 - `src/app/dashboard/students/bulk/page.tsx`: تبويبا `?tab=` (جدول سريع / استيراد) + زر «إضافة جماعية» الثانوي في القائمة.
 - `src/app/dashboard/students/bulk/_bulk-table.tsx`: جدول 10 صفوف مبدئية (حتى 200) + لصق TSV + تحقق فوري + حفظ مع بقاء الفاشل وتأكيد المكرر.
 - `src/app/dashboard/students/bulk/_import-tab.tsx`: نموذج ← رفع (سحب/اختيار) ← معاينة بفلتر أخطاء ← حفظ السليم + CSV للفاشل.
@@ -76,7 +79,7 @@
 - `src/app/dashboard/students/[id]/page.tsx`: البطاقة (معلومات/أولياء/حفظ/كود ولي الأمر مع نسخ وتجديد/ملاحظات/أنشطة وتقارير placeholder) + تعديل/أرشفة/حذف نهائي بتأكيد الاسم.
 - `src/app/dashboard/students/[id]/_actions-ui.tsx`: `DeleteStudentButton` و`RegenerateCodeButton` و`CopyTextButton`.
 - `src/app/dashboard/students/[id]/edit/page.tsx`: نفس الفورم بقيم السجل (hifzPosition فقط للحفظ).
-- `src/app/dashboard/students|groups|attendance|settings/page.tsx`: صفحات «قريبًا» (الإعدادات ترفض المعلم).
+- `src/app/dashboard/students|groups|attendance|settings/page.tsx`: صفحات «قريبًا» (الإعدادات ترفض المشرف).
 - `src/app/dashboard/loading.tsx` و`not-found.tsx` و`placeholder.tsx` (`PlaceholderPage`).
 - `src/app/verify-pending/page.tsx` + `actions.ts` (`resendAction` بحد 3/ساعة) + `resend-button.tsx`: انتظار التفعيل الإجباري.
 - `src/app/dashboard/actions.ts`: `logoutAction` (جهاز واحد) و`setBranchPrefAction` (كوكي `active_branch`).
@@ -135,6 +138,8 @@
 - `src/validators/reports.ts`: `reportPositionRule` (يتحقق ضد عدد الآيات) و`createReportSchema`/`updateReportSchema` (مشتركة عميل+سيرفر).
 - `services/rate-limit.ts`: `checkRateLimit(key, windowMs, max, message)` (عدّادات RateLimit) ← إعادة الإرسال وطلب الاستعادة.
 - `services/students.ts`: `listStudents` (بحث مطبّع/هواتف + فلاتر + ترقيم 20) و`getStudent` و`getStudentStats` و`createStudent` (تحذير `duplicate` + كود ولي أمر فريد) و`updateStudent` (الموضع فقط للحفظ) و`archiveStudent`/`restoreStudent` و`deleteStudentPermanently` (مؤرشف + مدراء فقط + حذف الصورة) و`regenerateParentCode` و`createStudentsBulk` (نفس القواعد لكل صف + حد 500) و`previewBulkImport` (بدون كتابة). الفرع من النطاق سيرفرًا (الوحيد تلقائيًا).
+- `services/teachers.ts`: نفس نمط الطلاب بلا حساب دخول — `listTeachers` (بحث اسم/هاتف + حالة + ترقيم) و`getTeacher` و`getTeacherStats` (نشطون/مؤرشفون/هذا الشهر) و`createTeacher` (تحذير تكرار) و`updateTeacher` و`archiveTeacher`/`restoreTeacher` و`deleteTeacherPermanently` (مؤرشف + مدراء فقط + حذف الصورة).
+- `src/constants/teachers.ts`: `TEACHER_LABEL`/`TEACHERS_LABEL` (المصدر الوحيد للاسم العربي) و`TEACHER_STATUS`.
 - `src/lib/students.ts`: `normalizeArabic` و`isProfileIncomplete` + فلتره و`calcAge` و`cleanPhone` (عربي←لاتيني، +20←0، صفر Excel المقصوص) و`toOptionKey` (عربي/إنجليزي ← مفتاح).
 - `src/lib/tsv.ts`: `parseTSV` (لصق Excel/Sheets كأسطر وtabs).
 - `src/lib/excel-import.ts`: `parseStudentWorkbook` (توقيع zip + أول ورقة + عناوين بالاسم + أنواع الخلايا) و`mapRow` و`toCreateInput` (تعيين عربي + أخطاء منطقية) و`COLUMN_AR`.
@@ -151,6 +156,7 @@
 - `Invite.ts`: الدعوة (كود مُبصَّم لا يُخزَّن نصًا + انتهاء + استخدام/إلغاء + `purgeAt` للحذف بعد 30 يومًا). الفرع إجباري لغير المالك.
 - `OrgProgram.ts`: برامج المركز المفعلة. فهرس `{orgId, programKey}` فريد.
 - `Student.ts`: الطالب (فرع واحد إجباري، `nameSearch`، أولياء بلا أسماء ≤4، حفظ بداية/حالي، `parentCode` فريد، صورة، أرشفة). فهارس: `{orgId, branchId, status, createdAt}` و`{orgId, branchId, nameSearch}`.
+- `Teacher.ts`: المعلم بلا حساب دخول (اسم إجباري + `nameSearch` + هاتف وملاحظات وصورة اختيارية + أرشفة). نفس الفهارس.
 - `ProgressReport.ts`: التقرير (موضع إجباري + مراجعة + تجويد + اتجاه يدوي + ملاحظات + مفتاح يوم القاهرة). فهرسان للطالب والفرع. الإنجاز والسابق يُحسبان عرضًا.
 - `src/lib/progress.ts`: `ayahIndex` (1..6236) و`ayahsBetween` (مطلق بلا حكم) و`formatRange` و`todayKeyCairo` و`daysAgoLabel`.
 - `VerificationToken.ts`: روابط التفعيل والاستعادة لمرة واحدة (تُحذف بانتهائها).
@@ -161,6 +167,7 @@
 ## طبقة validators/
 - `common.ts`: قوالب (إيميل/باسورد/هاتف مصري/نص/رقم/اختيار/كود) برسائل عربية. `emptyTo` تحوّل `""` إلى `undefined`. غير المستخدمة حاليًا: `confirmPasswordRule` و`optionalPhoneRule` و`numberRule` (تُستخدم في `ui-demo` فقط `optionalNumberRule` و`selectRequired`).
 - `src/validators/students.ts`: `birthDateRule` (نص YYYY-MM-DD) و`toBirthDate` (ظهر UTC) و`guardianRule` و`createStudentSchema`/`updateStudentSchema` (مشتركة عميل+سيرفر) و`studentFormSchema` (موحدة للفورم).
+- `src/validators/teachers.ts`: `createTeacherSchema`/`updateTeacherSchema`/`teacherFormSchema` (اسم + هاتف + ملاحظات + صورة + فرع + تأكيد التكرار).
 - `forms.ts`: ست schemas (دخول/حساب/نسيان/تعيين/مركز/كود) + `inviteFormSchema` (دور/فرع/مدة) — نفس الكائن يُستخدم في الفورم (RHF) والأكشن (السيرفر).
 
 ## طبقة scripts/
@@ -172,7 +179,8 @@
 تعمل على داتابيز وهمية في الذاكرة (`mongodb-memory-server`) عبر `tests/helpers/db.ts` (الدوال `startMemoryDB` و`stopMemoryDB` و`clearDB`).
 - `uniques.test.ts`: خمسة اختبارات للفهارس الفريدة (إيميل/عضوية/فرع/برنامج/بصمة كود).
 - `membership-validation.test.ts`: اختباران (الفروع إجبارية للمحدودين، والمالك بلا فروع).
-- `roles.test.ts`: جدول الصلاحيات الثابت + حماية المنشئ وآخر أدمن + شرط الفرع في الدعوة.
+- `roles.test.ts`: جدول الصلاحيات الثابت + حماية المنشئ وآخر أدمن + شرط الفرع في الدعوة + رفض دور `teacher` القديم.
+- `teachers.test.ts`: عزل المعلمين + تحذير التكرار + الحذف (مؤرشف + مدراء) + إحصائيات وبحث.
 - `isolation.test.ts`: خمسة اختبارات أن كل مركز/فرع يرى بياناته فقط.
 - `seeds.test.ts`: اختباران (تكرار seed الأدمن آمن، ورفض seed-dev في الإنتاج).
 - `constants.test.ts`: ثوابت السور (114 سورة ومجموع 6236) ودوالها ومجموعات الخيارات.
@@ -211,6 +219,10 @@
 | `/dashboard/team` | صفحة + فورمات | `app/dashboard/team/*` | مشرفون فقط (سيرفر) | دعوات + أعضاء + إلغاء + أدوار |
 | `/dashboard/students` | صفحة + فلاتر | `app/dashboard/students/*` | عضو (تقرير) | إحصائيات + جدول + ترقيم + أرشفة |
 | `/dashboard/students/new` | صفحة + فورم | `new/*` | `student:create` | إضافة طالب (فرع حسب التعدد) |
+| `/dashboard/teachers` | صفحة + فلاتر | `app/dashboard/teachers/*` | عضو (عرض) | إحصائيات + جدول + ترقيم + زر وحيد «إضافة معلم» |
+| `/dashboard/teachers/new` | صفحة + فورم | `teachers/new/*` | `teacher:create` | إضافة معلم (فرع حسب التعدد) |
+| `/dashboard/teachers/[id]` | صفحة | `teachers/[id]/*` | عضو | البطاقة + هاتف + إجراءات (تعديل/أرشفة/حذف بتأكيد الاسم) |
+| `/dashboard/teachers/[id]/edit` | صفحة + فورم | `teachers/[id]/edit/*` | `teacher:edit` | نفس الفورم بقيم السجل |
 | `/dashboard/students/bulk` | صفحتان بتبويب | `bulk/*` | `student:import` | جدول سريع (200 صف) / استيراد Excel (معاينة ثم حفظ) |
 | `/dashboard/students/[id]` | صفحة | `[id]/*` | عضو | البطاقة + ملخص وقائمة التقارير + كود ولي الأمر + إجراءات |
 | `/dashboard/students/[id]/edit` | صفحة + فورم | `[id]/edit/*` | `student:edit` | نفس الفورم (الحفظ: الموضع فقط) |
@@ -218,7 +230,7 @@
 | `/dashboard/students/[id]/reports/[reportId]/edit` | صفحة + فورم | `[reportId]/edit/*` | `report:edit` | نفس الفورم بقيم التقرير |
 | `/dashboard/students/[id]` | صفحة | `[id]/*` | عضو | البطاقة + كود ولي الأمر + إجراءات |
 | `/dashboard/students/[id]/edit` | صفحة + فورم | `[id]/edit/*` | `student:edit` | نفس الفورم (الموضع فقط للحفظ) |
-| `/dashboard/students|groups|attendance|settings` | placeholder | `app/dashboard/*` | عضو (الإعدادات لغير المعلم) | «قريبًا» |
+| `/dashboard/students|groups|attendance|settings` | placeholder | `app/dashboard/*` | عضو (الإعدادات لغير المشرف) | «قريبًا» |
 | `/platform` | صفحة محمية | `app/platform/page.tsx` | أدمن عام فقط | أرقام كل المراكز |
 | `/ui-demo` | صفحة تطوير | `app/ui-demo/*` | غير الإنتاج فقط (404 في الإنتاج) | معرض المكونات |
 | `/api/auth/[...nextauth]` | API | route handler | عام | تسجيل الدخول والجلسات (Auth.js) |
