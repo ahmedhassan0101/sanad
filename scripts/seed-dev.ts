@@ -5,10 +5,10 @@ import { Org } from "@/db/models/Org";
 import { Branch } from "@/db/models/Branch";
 import { Membership } from "@/db/models/Membership";
 import { Student } from "@/db/models/Student";
+import { Teacher } from "@/db/models/Teacher";
 import { ProgressReport } from "@/db/models/ProgressReport";
 import { generateCode } from "@/lib/invite-code";
-import { normalizeArabic } from "@/lib/students";
-import { getEnv } from "@/lib/env";
+import { normalizeArabic } from "@/lib/students";import { getEnv } from "@/lib/env";
 import mongoose, { type Types } from "mongoose";
 
 // Dev-only fixture: two isolated orgs for isolation tests.
@@ -39,7 +39,37 @@ export async function seedDev() {
   const a = await makeOrg("Dev Org A", "Main", "deva@example.com");
   const b = await makeOrg("Dev Org B", "Main", "devb@example.com");
   await seedStudents(a.org._id, a.branch._id, a.admin._id);
+  await seedTeachers(a.org._id, a.branch._id);
   return { a, b };
+}
+
+const TEACHER_NAMES = [
+  "الشيخ محمود حسن",
+  "الشيخ علي السيد",
+  "الأستاذة مريم فؤاد",
+  "الشيخ عمر منصور",
+  "الأستاذة خديجة كامل",
+  "الشيخ يوسف الشريف",
+  "الأستاذة عائشة عبد الله",
+  "الشيخ حسن إبراهيم",
+];
+
+// 8 معلمين وهميين في فرع التطوير.
+async function seedTeachers(orgId: Types.ObjectId, branchId: Types.ObjectId) {
+  if (await Teacher.countDocuments({ orgId }) > 0) return;
+  await Teacher.insertMany(
+    TEACHER_NAMES.map((name, i) => ({
+      orgId,
+      branchId,
+      name,
+      nameSearch: normalizeArabic(name),
+      phone: i % 2 === 0 ? `0100001${String(1000 + i)}` : null,
+      notes: null,
+      image: null,
+      status: "active",
+      archivedAt: null,
+    })),
+  );
 }
 
 const FIRST = ["أحمد", "محمد", "يوسف", "عمر", "علي", "فاطمة", "مريم", "خديجة", "عائشة", "زينب"];
