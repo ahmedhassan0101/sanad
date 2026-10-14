@@ -39,6 +39,7 @@ function checkPosition(pos: { surah: number; ayah: number }) {
 
 // موضع أحدث تقرير (بالتاريخ ثم الإنشاء) أو البداية — دالة واحدة للثلاث عمليات.
 export async function syncStudentPosition(studentId: Types.ObjectId) {
+  await connectDB();
   const student = await Student.findById(studentId);
   if (!student) return;
   const latest = await ProgressReport.findOne({ studentId, orgId: student.orgId }).sort({

@@ -13,6 +13,15 @@ let replSet: MongoMemoryReplSet;
 
 beforeAll(async () => {
   replSet = await startMemoryDB();
+  // Ensure unique indexes exist before asserting on them (autoIndex builds in background).
+  await Promise.all([
+    User.createIndexes(),
+    Org.createIndexes(),
+    Branch.createIndexes(),
+    Membership.createIndexes(),
+    OrgProgram.createIndexes(),
+    Invite.createIndexes(),
+  ]);
 });
 
 afterAll(async () => {

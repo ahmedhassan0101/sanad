@@ -1,5 +1,6 @@
 import "server-only";
 import { Types } from "mongoose";
+import { connectDB } from "@/db/connection";
 import { User } from "@/db/models/User";
 import { Membership } from "@/db/models/Membership";
 import type { SessionContext } from "@/lib/tenant/context";
@@ -13,6 +14,7 @@ export async function getSessionContext(
 ): Promise<SessionContext> {
   if (!userId || !Types.ObjectId.isValid(userId))
     throw new Error("UNAUTHENTICATED");
+  await connectDB();
   const user = await User.findById(userId).select(
     "status isPlatformAdmin sessionVersion email emailVerifiedAt",
   );

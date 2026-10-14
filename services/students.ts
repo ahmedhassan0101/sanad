@@ -297,6 +297,7 @@ export async function createStudentsBulk(
 
 export async function updateStudent(ctx: MemberCtx, id: string, input: UpdateStudentInput) {
   requirePerm(ctx, "student:edit");
+  await connectDB();
   const student = await Student.findOne({ _id: id, orgId: ctx.orgId });
   if (!student) throw new Error("NOT_FOUND");
   if (ctx.branchScope.mode === "list" && !ctx.branchScope.branchIds.some((b) => b.equals(student.branchId))) {
@@ -331,6 +332,7 @@ export async function updateStudent(ctx: MemberCtx, id: string, input: UpdateStu
 
 export async function archiveStudent(ctx: MemberCtx, id: string) {
   requirePerm(ctx, "student:archive");
+  await connectDB();
   const student = await Student.findOne({ _id: id, orgId: ctx.orgId });
   if (!student) throw new Error("NOT_FOUND");
   if (ctx.branchScope.mode === "list" && !ctx.branchScope.branchIds.some((b) => b.equals(student.branchId))) {
@@ -343,6 +345,7 @@ export async function archiveStudent(ctx: MemberCtx, id: string) {
 
 export async function restoreStudent(ctx: MemberCtx, id: string) {
   requirePerm(ctx, "student:archive");
+  await connectDB();
   const student = await Student.findOne({ _id: id, orgId: ctx.orgId });
   if (!student) throw new Error("NOT_FOUND");
   if (ctx.branchScope.mode === "list" && !ctx.branchScope.branchIds.some((b) => b.equals(student.branchId))) {
@@ -355,6 +358,7 @@ export async function restoreStudent(ctx: MemberCtx, id: string) {
 
 export async function deleteStudentPermanently(ctx: MemberCtx, id: string) {
   requirePerm(ctx, "student:delete");
+  await connectDB();
   const student = await Student.findOne({ _id: id, orgId: ctx.orgId });
   if (!student) throw new Error("NOT_FOUND");
   if (ctx.branchScope.mode === "list" && !ctx.branchScope.branchIds.some((b) => b.equals(student.branchId))) {
@@ -369,6 +373,7 @@ export async function deleteStudentPermanently(ctx: MemberCtx, id: string) {
 
 export async function regenerateParentCode(ctx: MemberCtx, id: string) {
   requirePerm(ctx, "student:edit");
+  await connectDB();
   const student = await Student.findOne({ _id: id, orgId: ctx.orgId });
   if (!student) throw new Error("NOT_FOUND");
   if (ctx.branchScope.mode === "list" && !ctx.branchScope.branchIds.some((b) => b.equals(student.branchId))) {

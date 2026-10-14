@@ -141,6 +141,7 @@ export async function createTeacher(ctx: MemberCtx, input: CreateTeacherInput): 
 
 export async function updateTeacher(ctx: MemberCtx, id: string, input: UpdateTeacherInput) {
   requirePerm(ctx, "teacher:edit");
+  await connectDB();
   const teacher = await Teacher.findOne({ _id: id, orgId: ctx.orgId });
   if (!teacher) throw new Error("NOT_FOUND");
   inScopeOrThrow(ctx, teacher.branchId);
@@ -167,6 +168,7 @@ export async function updateTeacher(ctx: MemberCtx, id: string, input: UpdateTea
 
 export async function archiveTeacher(ctx: MemberCtx, id: string) {
   requirePerm(ctx, "teacher:archive");
+  await connectDB();
   const teacher = await Teacher.findOne({ _id: id, orgId: ctx.orgId });
   if (!teacher) throw new Error("NOT_FOUND");
   inScopeOrThrow(ctx, teacher.branchId);
@@ -177,6 +179,7 @@ export async function archiveTeacher(ctx: MemberCtx, id: string) {
 
 export async function restoreTeacher(ctx: MemberCtx, id: string) {
   requirePerm(ctx, "teacher:archive");
+  await connectDB();
   const teacher = await Teacher.findOne({ _id: id, orgId: ctx.orgId });
   if (!teacher) throw new Error("NOT_FOUND");
   inScopeOrThrow(ctx, teacher.branchId);
@@ -187,6 +190,7 @@ export async function restoreTeacher(ctx: MemberCtx, id: string) {
 
 export async function deleteTeacherPermanently(ctx: MemberCtx, id: string) {
   requirePerm(ctx, "teacher:delete");
+  await connectDB();
   const teacher = await Teacher.findOne({ _id: id, orgId: ctx.orgId });
   if (!teacher) throw new Error("NOT_FOUND");
   inScopeOrThrow(ctx, teacher.branchId);

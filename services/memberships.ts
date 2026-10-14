@@ -1,5 +1,6 @@
 import "server-only";
 import type { ClientSession, Types } from "mongoose";
+import { connectDB } from "@/db/connection";
 import { Branch } from "@/db/models/Branch";
 import { Membership, type MembershipRole } from "@/db/models/Membership";
 import { Org } from "@/db/models/Org";
@@ -16,6 +17,7 @@ export function assertMembershipShape(role: MembershipRole, branchIds: Types.Obj
 // branchIds must be a subset of the org's branches. Called by membership services (2.2).
 export async function assertBranchesInOrg(orgId: Types.ObjectId, branchIds: Types.ObjectId[]) {
   if (branchIds.length === 0) return;
+  await connectDB();
   const count = await Branch.countDocuments({ _id: { $in: branchIds }, orgId });
   if (count !== branchIds.length) throw new Error("VALIDATION: branch outside org");
 }
@@ -43,6 +45,7 @@ export async function guardAdminChange(
   targetBranchId: Types.ObjectId | null,
   session?: ClientSession
 ) {
+  await connectDB();
   const org = await Org.findById(orgId).select("createdByUserId").session(session ?? null);
   if (org && org.createdByUserId.equals(targetUserId)) {
     throw new Error("FORBIDDEN: org creator is protected");

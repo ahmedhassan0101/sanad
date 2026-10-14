@@ -1,4 +1,5 @@
 import "server-only";
+import { connectDB } from "@/db/connection";
 import { Branch } from "@/db/models/Branch";
 import type { SessionContext } from "@/lib/tenant/context";
 import { scopedFilter } from "@/lib/tenant/scopedFilter";
@@ -7,5 +8,6 @@ import { scopedFilter } from "@/lib/tenant/scopedFilter";
 // Branch identity IS _id here, so scope filters on _id (not branchId).
 export async function listBranches(ctx: SessionContext) {
   if (ctx.kind !== "member") throw new Error("FORBIDDEN");
+  await connectDB();
   return Branch.find(scopedFilter(ctx, "_id")).sort({ name: 1 }).lean();
 }

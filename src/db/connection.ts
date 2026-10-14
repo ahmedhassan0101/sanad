@@ -19,11 +19,14 @@ export async function connectDB(uri?: string) {
       throw new Error("Missing MongoDB URI (tests must pass an in-memory URI)");
     }
     // autoIndex builds indexes in dev/test; production uses ensure-indexes script.
+    // bufferCommands:false fails fast with a clear error instead of hanging 10s.
     cached.promise = mongoose.connect(mongoUri, {
       autoIndex: env.nodeEnv !== "production",
+      bufferCommands: false,
     });
     // A failed connect must not poison the cache until restart.
-    cached.promise.catch(() => {
+    cached.promise.catch((e) => {
+      console.error(`[db] connect failed: ${e instanceof Error ? e.message : e}`);
       if (globalThis.__mongooseCache) globalThis.__mongooseCache.promise = null;
     });
   }
