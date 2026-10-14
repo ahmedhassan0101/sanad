@@ -7,6 +7,11 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DataCell, DataRow, DataTable } from "@/components/data-table";
+import { EmptyState } from "@/components/empty-state";
+import { PageHeader } from "@/components/page-header";
+import { StatCard } from "@/components/stat-card";
+import { StatusBadge } from "@/components/status-badge";
 import { FieldShell } from "@/components/form/field-shell";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -142,6 +147,46 @@ export function DemoSections() {
         <h1 className="text-xl font-bold">معرض المكونات (تطوير فقط)</h1>
         <ThemeToggle />
       </div>
+
+      <Section title="الهوية واللوحة" hint="كل الألوان توكنز من globals.css — بدّل السمة بالأعلى وقارن.">
+        <div className="flex flex-wrap gap-2">
+          {[
+            ["bg-primary", "العلامة"],
+            ["bg-secondary", "ثانوي"],
+            ["bg-brand-accent", "تمييز"],
+            ["bg-success", "نجاح"],
+            ["bg-warning", "تحذير"],
+            ["bg-destructive", "خطر"],
+            ["bg-info", "معلومة"],
+          ].map(([cls, label]) => (
+            <div key={label} className="flex flex-col items-center gap-1">
+              <span className={`size-10 rounded-md ${cls}`} />
+              <span className="text-xs text-muted-foreground">{label}</span>
+            </div>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <StatusBadge tone="present">حاضر</StatusBadge>
+          <StatusBadge tone="absent">غائب</StatusBadge>
+          <StatusBadge tone="late">متأخر</StatusBadge>
+          <StatusBadge tone="excused">بعذر</StatusBadge>
+          <StatusBadge tone="neutral">محايد</StatusBadge>
+        </div>
+        <PageHeader title="عنوان تجريبي" description="وصف قصير تحت العنوان" actions={<Button size="sm">إجراء</Button>} />
+        <div className="grid gap-2 sm:grid-cols-2">
+          <StatCard title="الطلاب" value={128} />
+          <StatCard title="المعلمون" value={9} />
+        </div>
+        <DataTable headers={["الاسم", "الحالة"]} density="compact">
+          <DataRow>
+            <DataCell>أحمد</DataCell>
+            <DataCell>
+              <StatusBadge tone="present">حاضر</StatusBadge>
+            </DataCell>
+          </DataRow>
+        </DataTable>
+        <EmptyState title="لا عناصر بعد" description="مثال لحالة الفراغ" />
+      </Section>
 
       <Section title="الأزرار" hint="استخدم variant للحالة: default للأساسي، outline للثانوي، ghost للروابط.">
         <div className="flex flex-wrap gap-2">
