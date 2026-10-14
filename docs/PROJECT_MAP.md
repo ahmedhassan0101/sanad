@@ -68,6 +68,11 @@
 - `src/app/dashboard/students/actions.ts`: `createStudentAction`/`updateStudentAction`/`deleteStudentAction`/`regenerateCodeAction` (ترجع `StudentActionResult`) و`archiveStudentAction`/`restoreStudentAction` (redirect) و`uploadStudentImageAction` (FormData).
 - `src/app/dashboard/students/_student-form.tsx`: `StudentForm` الواحد للإنشاء والتعديل (حقول + أولياء `useFieldArray` + حوار التكرار).
 - `src/app/dashboard/students/new/page.tsx`: إضافة (فورم فارغ + فرع حسب التعدد).
+- `src/app/dashboard/students/bulk/page.tsx`: تبويبا `?tab=` (جدول سريع / استيراد) + زر «إضافة جماعية» الثانوي في القائمة.
+- `src/app/dashboard/students/bulk/_bulk-table.tsx`: جدول 10 صفوف مبدئية (حتى 200) + لصق TSV + تحقق فوري + حفظ مع بقاء الفاشل وتأكيد المكرر.
+- `src/app/dashboard/students/bulk/_import-tab.tsx`: نموذج ← رفع (سحب/اختيار) ← معاينة بفلتر أخطاء ← حفظ السليم + CSV للفاشل.
+- `src/app/dashboard/students/bulk/actions.ts`: `bulkSaveAction` و`previewImportAction` و`commitImportAction` (يعيد التحقق ثم ينادي الجماعية).
+- `public/students-template.xlsx`: النموذج (بيانات + دليل + قوائم مخفية حتى صف 501).
 - `src/app/dashboard/students/[id]/page.tsx`: البطاقة (معلومات/أولياء/حفظ/كود ولي الأمر مع نسخ وتجديد/ملاحظات/أنشطة وتقارير placeholder) + تعديل/أرشفة/حذف نهائي بتأكيد الاسم.
 - `src/app/dashboard/students/[id]/_actions-ui.tsx`: `DeleteStudentButton` و`RegenerateCodeButton` و`CopyTextButton`.
 - `src/app/dashboard/students/[id]/edit/page.tsx`: نفس الفورم بقيم السجل (hifzPosition فقط للحفظ).
@@ -129,7 +134,10 @@
 - `services/progress-reports.ts`: `listReports` (السابق + الآيات باستعلام واحد) و`getReport` و`createReport`/`updateReport`/`deleteReport` (مع `syncStudentPosition`) و`getLatestReportKeys` (تجميع واحد لصفوف الصفحة).
 - `src/validators/reports.ts`: `reportPositionRule` (يتحقق ضد عدد الآيات) و`createReportSchema`/`updateReportSchema` (مشتركة عميل+سيرفر).
 - `services/rate-limit.ts`: `checkRateLimit(key, windowMs, max, message)` (عدّادات RateLimit) ← إعادة الإرسال وطلب الاستعادة.
-- `services/students.ts`: `listStudents` (بحث مطبّع/هواتف + فلاتر + ترقيم 20) و`getStudent` و`getStudentStats` و`createStudent` (تحذير `duplicate` + كود ولي أمر فريد) و`updateStudent` (الموضع فقط للحفظ) و`archiveStudent`/`restoreStudent` و`deleteStudentPermanently` (مؤرشف + مدراء فقط + حذف الصورة) و`regenerateParentCode`. الفرع من النطاق سيرفرًا (الوحيد تلقائيًا).
+- `services/students.ts`: `listStudents` (بحث مطبّع/هواتف + فلاتر + ترقيم 20) و`getStudent` و`getStudentStats` و`createStudent` (تحذير `duplicate` + كود ولي أمر فريد) و`updateStudent` (الموضع فقط للحفظ) و`archiveStudent`/`restoreStudent` و`deleteStudentPermanently` (مؤرشف + مدراء فقط + حذف الصورة) و`regenerateParentCode` و`createStudentsBulk` (نفس القواعد لكل صف + حد 500) و`previewBulkImport` (بدون كتابة). الفرع من النطاق سيرفرًا (الوحيد تلقائيًا).
+- `src/lib/students.ts`: `normalizeArabic` و`isProfileIncomplete` + فلتره و`calcAge` و`cleanPhone` (عربي←لاتيني، +20←0، صفر Excel المقصوص) و`toOptionKey` (عربي/إنجليزي ← مفتاح).
+- `src/lib/tsv.ts`: `parseTSV` (لصق Excel/Sheets كأسطر وtabs).
+- `src/lib/excel-import.ts`: `parseStudentWorkbook` (توقيع zip + أول ورقة + عناوين بالاسم + أنواع الخلايا) و`mapRow` و`toCreateInput` (تعيين عربي + أخطاء منطقية) و`COLUMN_AR`.
 - `services/memberships.ts`: `assertMembershipShape` (الفروع إجبارية للأدوار المحدودة) و`assertBranchesInOrg` (الفروع داخل نفس المركز) و`guardAdminChange` (حماية المنشئ وآخر أدمن — مع ملاحظة سباق مكتوبة في الكود) و`assertRankAllows`. تُستخدم في `invites.ts` والاختبارات فقط حاليًا.
 - `services/screens.ts`: `getDashboard(ctx)` (اسم المركز + الفروع بالنطاق + البرامج) ← الداشبورد. `getPlatformStats()` (أرقام كل المراكز) ← صفحة المنصة.
 - `services/branches-read.ts`: `listBranches(ctx)` خدمة صغيرة للاختبار فقط — لا تستخدمها الصفحات.
@@ -203,6 +211,7 @@
 | `/dashboard/team` | صفحة + فورمات | `app/dashboard/team/*` | مشرفون فقط (سيرفر) | دعوات + أعضاء + إلغاء + أدوار |
 | `/dashboard/students` | صفحة + فلاتر | `app/dashboard/students/*` | عضو (تقرير) | إحصائيات + جدول + ترقيم + أرشفة |
 | `/dashboard/students/new` | صفحة + فورم | `new/*` | `student:create` | إضافة طالب (فرع حسب التعدد) |
+| `/dashboard/students/bulk` | صفحتان بتبويب | `bulk/*` | `student:import` | جدول سريع (200 صف) / استيراد Excel (معاينة ثم حفظ) |
 | `/dashboard/students/[id]` | صفحة | `[id]/*` | عضو | البطاقة + ملخص وقائمة التقارير + كود ولي الأمر + إجراءات |
 | `/dashboard/students/[id]/edit` | صفحة + فورم | `[id]/edit/*` | `student:edit` | نفس الفورم (الحفظ: الموضع فقط) |
 | `/dashboard/students/[id]/reports/new` | صفحة + فورم | `[id]/reports/*` | `report:create` | تقرير جديد (الموضع معبأ بالحالي) |
