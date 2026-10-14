@@ -8,7 +8,7 @@ export function StatCard({ title, value }: { title: string; value: number | stri
         <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-2xl font-bold" dir="ltr">
+        <p className="font-data text-2xl font-bold" dir="ltr">
           {value}
         </p>
       </CardContent>
