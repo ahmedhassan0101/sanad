@@ -8,7 +8,8 @@ import { ProgressReport } from "@/db/models/ProgressReport";
 import { generateCode } from "@/lib/invite-code";
 import { can, type Action } from "@/lib/permissions/roles";
 import { deleteStudentImage } from "@/lib/cloudinary";
-import { cleanPhone, incompleteFilter, normalizeArabic } from "@/lib/students";
+import { incompleteFilter, normalizeArabic } from "@/lib/students";
+import { COLUMN_AR, toCreateInput } from "@/lib/excel-import";
 import type { SessionContext } from "@/lib/tenant/context";
 import { scopedFilter } from "@/lib/tenant/scopedFilter";
 import { createStudentSchema, toBirthDate, type CreateStudentInput, type UpdateStudentInput } from "@/validators/students";
@@ -180,6 +181,65 @@ export interface BulkRowResult {
   id?: string;
 }
 
+export interface PreviewRow {
+  excelRow: number;
+  status: "valid" | "duplicate" | "invalid";
+  errors: { column: string; message: string }[];
+  data: Record<string, unknown>;
+  duplicate?: { id: string; name: string };
+}
+
+// معاينة بدون كتابة: تحقق كامل + فحص تكرار، وتُستخدم نتيجتها للحفظ أيضًا.
+export async function previewBulkImport(
+  ctx: MemberCtx,
+  cleanedRows: { excelRow: number; data: Record<string, unknown> }[],
+  opts: { branchId?: string } = {},
+): Promise<PreviewRow[]> {
+  requirePerm(ctx, "student:import");
+  const branchId = await resolveBranch(ctx, opts.branchId);
+  const seenInBatch = new Set<string>();
+  const out: PreviewRow[] = [];
+  for (const row of cleanedRows) {
+    const { input, errors } = toCreateInput(row.data);
+    const rowErrors = [...errors];
+    const parsed = createStudentSchema.safeParse(input);
+    if (!parsed.success) {
+      for (const issue of parsed.error.issues) {
+        const key = String(issue.path[0] ?? "");
+        const column =
+          key === "guardians"
+            ? issue.path.join(".").endsWith("relation")
+              ? "صلة القرابة"
+              : "هاتف ولي الأمر"
+            : (COLUMN_AR[key] ?? key);
+        rowErrors.push({ column, message: issue.message });
+      }
+    }
+    if (rowErrors.length === 0 && parsed.success) {
+      const nameSearch = normalizeArabic(parsed.data.name);
+      const dbDup = await findDuplicate(ctx.orgId, branchId, nameSearch);
+      if (seenInBatch.has(nameSearch) || dbDup) {
+        out.push({
+          excelRow: row.excelRow,
+          status: "duplicate",
+          errors: [],
+          data: row.data,
+          duplicate: dbDup ? { id: String(dbDup._id), name: dbDup.name } : { id: "", name: parsed.data.name },
+        });
+        continue;
+      }
+      seenInBatch.add(nameSearch);
+    }
+    out.push({
+      excelRow: row.excelRow,
+      status: rowErrors.length > 0 ? "invalid" : "valid",
+      errors: rowErrors,
+      data: row.data,
+    });
+  }
+  return out;
+}
+
 const MAX_BULK_ROWS = 500;
 
 // إدخال جماعي: نفس قواعد الأحادي، صف واحد فاشل لا يمنع الباقي.
@@ -197,17 +257,18 @@ export async function createStudentsBulk(
   const results: BulkRowResult[] = [];
   for (let index = 0; index < rows.length; index++) {
     const raw = rows[index] as Record<string, unknown>;
-    const cleaned = {
-      ...(typeof raw === "object" && raw !== null ? raw : {}),
-      phone: cleanPhone((raw as Record<string, unknown>)?.phone),
-      guardians: Array.isArray((raw as Record<string, unknown>)?.guardians)
-        ? ((raw as Record<string, unknown>).guardians as Record<string, unknown>[]).map((g) => ({
-            ...g,
-            phone: cleanPhone(g?.phone),
-          }))
-        : [],
-    };
-    const parsed = createStudentSchema.safeParse(cleaned);
+    const { input, errors: logicErrors } = toCreateInput(
+      typeof raw === "object" && raw !== null ? raw : {},
+    );
+    if (logicErrors.length > 0) {
+      results.push({
+        index,
+        status: "invalid",
+        errors: logicErrors.map((e) => `${e.column}: ${e.message}`),
+      });
+      continue;
+    }
+    const parsed = createStudentSchema.safeParse(input);
     if (!parsed.success) {
       results.push({
         index,
