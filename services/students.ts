@@ -8,10 +8,10 @@ import { ProgressReport } from "@/db/models/ProgressReport";
 import { generateCode } from "@/lib/invite-code";
 import { can, type Action } from "@/lib/permissions/roles";
 import { deleteStudentImage } from "@/lib/cloudinary";
-import { incompleteFilter, normalizeArabic } from "@/lib/students";
+import { cleanPhone, incompleteFilter, normalizeArabic } from "@/lib/students";
 import type { SessionContext } from "@/lib/tenant/context";
 import { scopedFilter } from "@/lib/tenant/scopedFilter";
-import { toBirthDate, type CreateStudentInput, type UpdateStudentInput } from "@/validators/students";
+import { createStudentSchema, toBirthDate, type CreateStudentInput, type UpdateStudentInput } from "@/validators/students";
 
 type MemberCtx = Extract<SessionContext, { kind: "member" }>;
 
@@ -133,16 +133,15 @@ export type CreateStudentResult =
   | { status: "created"; id: string }
   | { status: "duplicate"; duplicate: { id: string; name: string } };
 
-export async function createStudent(ctx: MemberCtx, input: CreateStudentInput): Promise<CreateStudentResult> {
-  requirePerm(ctx, "student:create");
-  const branchId = await resolveBranch(ctx, input.branchId);
+// النواة المشتركة للإدخال الواحد والجماعي: مدخلات متحقق منها + فرع محلول.
+async function insertStudentDoc(
+  ctx: MemberCtx,
+  branchId: Types.ObjectId,
+  input: CreateStudentInput,
+) {
   const nameSearch = normalizeArabic(input.name);
-  const dup = await findDuplicate(ctx.orgId, branchId, nameSearch);
-  if (dup && !input.confirmDuplicate) {
-    return { status: "duplicate", duplicate: { id: String(dup._id), name: dup.name } };
-  }
   const hifz = input.hifz ? { surah: input.hifz.surah, ayah: input.hifz.ayah } : null;
-  const student = await Student.create({
+  return Student.create({
     orgId: ctx.orgId,
     branchId,
     name: input.name.trim(),
@@ -159,7 +158,80 @@ export async function createStudent(ctx: MemberCtx, input: CreateStudentInput): 
     hifzPosition: hifz,
     parentCode: await uniqueParentCode(),
   });
+}
+
+export async function createStudent(ctx: MemberCtx, input: CreateStudentInput): Promise<CreateStudentResult> {
+  requirePerm(ctx, "student:create");
+  const branchId = await resolveBranch(ctx, input.branchId);
+  const nameSearch = normalizeArabic(input.name);
+  const dup = await findDuplicate(ctx.orgId, branchId, nameSearch);
+  if (dup && !input.confirmDuplicate) {
+    return { status: "duplicate", duplicate: { id: String(dup._id), name: dup.name } };
+  }
+  const student = await insertStudentDoc(ctx, branchId, input);
   return { status: "created", id: String(student._id) };
+}
+
+export interface BulkRowResult {
+  index: number;
+  status: "saved" | "duplicate" | "invalid";
+  errors: string[];
+  duplicate?: { id: string; name: string };
+  id?: string;
+}
+
+const MAX_BULK_ROWS = 500;
+
+// إدخال جماعي: نفس قواعد الأحادي، صف واحد فاشل لا يمنع الباقي.
+export async function createStudentsBulk(
+  ctx: MemberCtx,
+  rows: unknown[],
+  opts: { branchId?: string; confirmDuplicateRows?: number[] } = {},
+): Promise<BulkRowResult[]> {
+  requirePerm(ctx, "student:import");
+  if (!Array.isArray(rows)) throw new Error("VALIDATION: صفوف غير صالحة");
+  if (rows.length > MAX_BULK_ROWS) throw new Error("VALIDATION: الحد الأقصى 500 صف");
+  const branchId = await resolveBranch(ctx, opts.branchId);
+  const confirmed = new Set(opts.confirmDuplicateRows ?? []);
+  const seenInBatch = new Map<string, number>();
+  const results: BulkRowResult[] = [];
+  for (let index = 0; index < rows.length; index++) {
+    const raw = rows[index] as Record<string, unknown>;
+    const cleaned = {
+      ...(typeof raw === "object" && raw !== null ? raw : {}),
+      phone: cleanPhone((raw as Record<string, unknown>)?.phone),
+      guardians: Array.isArray((raw as Record<string, unknown>)?.guardians)
+        ? ((raw as Record<string, unknown>).guardians as Record<string, unknown>[]).map((g) => ({
+            ...g,
+            phone: cleanPhone(g?.phone),
+          }))
+        : [],
+    };
+    const parsed = createStudentSchema.safeParse(cleaned);
+    if (!parsed.success) {
+      results.push({
+        index,
+        status: "invalid",
+        errors: parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`),
+      });
+      continue;
+    }
+    const nameSearch = normalizeArabic(parsed.data.name);
+    const batchDupIndex = seenInBatch.get(nameSearch);
+    const dbDup = await findDuplicate(ctx.orgId, branchId, nameSearch);
+    const dup = batchDupIndex !== undefined || dbDup;
+    if (dup && !confirmed.has(index)) {
+      const info = batchDupIndex !== undefined
+        ? { id: "", name: parsed.data.name }
+        : { id: String(dbDup!._id), name: dbDup!.name };
+      results.push({ index, status: "duplicate", errors: [], duplicate: info });
+      continue;
+    }
+    seenInBatch.set(nameSearch, index);
+    const student = await insertStudentDoc(ctx, branchId, parsed.data);
+    results.push({ index, status: "saved", errors: [], id: String(student._id) });
+  }
+  return results;
 }
 
 export async function updateStudent(ctx: MemberCtx, id: string, input: UpdateStudentInput) {

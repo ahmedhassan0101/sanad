@@ -70,11 +70,18 @@ export default async function StudentsPage({
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">الطلاب</h1>
-        {canCreate && (
-          <Link href="/dashboard/students/new" className={buttonVariants()}>
-            إضافة طالب
-          </Link>
-        )}
+        <div className="flex gap-2">
+          {can(ctx.role, "student:import") && (
+            <Link href="/dashboard/students/bulk" className={buttonVariants({ variant: "secondary" })}>
+              إضافة جماعية
+            </Link>
+          )}
+          {canCreate && (
+            <Link href="/dashboard/students/new" className={buttonVariants()}>
+              إضافة طالب
+            </Link>
+          )}
+        </div>
       </div>
       {sp.error && (
         <p role="alert" className="text-sm text-destructive">

@@ -26,6 +26,7 @@ import {
 } from "@/components/form";
 import { uploadStudentImageAction } from "./actions";
 import { GENDERS, GUARDIAN_RELATIONS, LEVELS } from "@/constants/students";
+import { cleanPhone } from "@/lib/students";
 import {
   studentFormSchema,
   type StudentFormInput,
@@ -84,7 +85,11 @@ export function StudentForm({
 
   const send = async (values: StudentFormInput) => {
     setServerError(null);
-    const res = await submit(values);
+    const res = await submit({
+      ...values,
+      phone: values.phone ? cleanPhone(values.phone) : values.phone,
+      guardians: (values.guardians ?? []).map((g) => ({ ...g, phone: cleanPhone(g.phone) })),
+    });
     if (!res.ok) {
       if (res.code === "DUPLICATE_WARNING" && res.duplicate) {
         setDup(res.duplicate);
