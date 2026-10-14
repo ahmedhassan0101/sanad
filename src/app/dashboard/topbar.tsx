@@ -1,4 +1,5 @@
 // الشريط العلوي: اسم المركز + مبدّلات + قائمة المستخدم (خروج/سمة).
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { auth } from "@/lib/auth/config";
@@ -66,6 +67,12 @@ export async function Topbar({
             {session?.user?.name ?? "حسابي"}
           </summary>
           <div className="absolute end-0 top-full z-50 mt-1 flex w-40 flex-col gap-1 rounded-md border bg-background p-2 shadow-elevation-2">
+            <Link href="/onboarding/create-center" className="rounded-md px-3 py-1 text-sm hover:bg-accent">
+              إنشاء مركز آخر
+            </Link>
+            <Link href="/onboarding/enter-code" className="rounded-md px-3 py-1 text-sm hover:bg-accent">
+              عندي كود دعوة
+            </Link>
             <ThemeToggle />
             <form action={logout}>
               <Button type="submit" variant="ghost" size="sm" className="w-full">

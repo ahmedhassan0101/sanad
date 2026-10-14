@@ -10,7 +10,7 @@ const googleEnabled = !!process.env.GOOGLE_CLIENT_ID;
 export default function LoginPage() {
   async function googleAction() {
     "use server";
-    await signIn("google", { redirectTo: "/onboarding" });
+    await signIn("google", { redirectTo: "/api/resolve-org" });
   }
   return (
     <main className="flex min-h-svh items-center justify-center p-4">

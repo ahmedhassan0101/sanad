@@ -1,10 +1,10 @@
 // أكشن الانضمام: نفس الـ schema ثم استهلاك ذري للكود.
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth/config";
 import { consumeInvite } from "@/services/invites";
+import { setActiveOrgCookie } from "@/services/org-selection";
 import { enterCodeSchema, type EnterCodeInput } from "@/validators/forms";
 
 export async function enterCodeAction(
@@ -16,7 +16,7 @@ export async function enterCodeAction(
   if (!parsed.success) return { ok: false, message: "الكود غير مكتمل" };
   try {
     const { orgId } = await consumeInvite(session.user.id, parsed.data.code);
-    (await cookies()).set("active_org", orgId, { httpOnly: true, sameSite: "lax", path: "/" });
+    await setActiveOrgCookie(orgId);
   } catch (e) {
     const message = e instanceof Error ? e.message : "";
     return { ok: false, message: message || "الكود غير صحيح أو منتهي أو مستخدم" };

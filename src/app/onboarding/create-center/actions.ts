@@ -1,10 +1,10 @@
 // أكشن الإنشاء: نفس الـ schema ثم transaction ثم تثبيت المركز النشط.
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth/config";
 import { createCenter } from "@/services/orgs";
+import { setActiveOrgCookie } from "@/services/org-selection";
 import { createCenterSchema, type CreateCenterInput } from "@/validators/forms";
 import { customProgramKey } from "@/lib/programs";
 
@@ -24,7 +24,7 @@ export async function createCenterAction(
       addressText: parsed.data.addressText,
       programs,
     });
-    (await cookies()).set("active_org", orgId, { httpOnly: true, sameSite: "lax", path: "/" });
+    await setActiveOrgCookie(orgId);
   } catch (e) {
     const message = e instanceof Error ? e.message.replace(/^(VALIDATION|FORBIDDEN):\s*/, "") : "";
     return { ok: false, message: message || "تعذر إنشاء المركز — حاول مجددًا" };

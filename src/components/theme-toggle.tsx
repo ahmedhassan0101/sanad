@@ -1,34 +1,25 @@
-// زر تبديل السمة (فاتح/داكن/النظام) بقائمة منسدلة.
+// زر السمة: ضغطة واحدة للتبديل بين الفاتح والداكن (الافتراضي يتبع النظام).
 "use client";
 
-import { Laptop, Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 export function ThemeToggle() {
-  const { setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const dark = mounted && resolvedTheme === "dark";
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={<Button variant="outline" size="icon" aria-label="تبديل السمة" className="relative" />}
-      >
-        <Sun className="size-4 scale-100 transition-all dark:scale-0" />
-        <Moon className="absolute size-4 scale-0 transition-all dark:scale-100" />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>فاتح</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>داكن</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
-          <Laptop className="size-4" />
-          النظام
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Button
+      variant="outline"
+      size="icon"
+      aria-label={dark ? "التبديل إلى الوضع الفاتح" : "التبديل إلى الوضع الداكن"}
+      title={dark ? "التبديل إلى الوضع الفاتح" : "التبديل إلى الوضع الداكن"}
+      onClick={() => setTheme(dark ? "light" : "dark")}
+    >
+      {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+    </Button>
   );
 }

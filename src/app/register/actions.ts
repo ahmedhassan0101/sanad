@@ -31,7 +31,7 @@ export async function registerAction(
     return { ok: false, message: "تم إنشاء الحساب — سجل الدخول" };
   redirect(
     (await isEmailVerified(parsed.data.email))
-      ? "/onboarding"
+      ? "/api/resolve-org"
       : "/verify-pending",
   );
 }

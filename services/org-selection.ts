@@ -1,10 +1,25 @@
 // اختيار المركز النشط: قائمة عضوياتي + تفعيل واحدة بعد التحقق.
 import "server-only";
 import { Types } from "mongoose";
+import { cookies } from "next/headers";
 import { connectDB } from "@/db/connection";
 import { Membership } from "@/db/models/Membership";
 import { Org } from "@/db/models/Org";
 import { requireVerifiedUser } from "./auth-accounts";
+
+// مدة كوكي المركز النشط: 30 يومًا.
+const ACTIVE_ORG_MAX_AGE = 60 * 60 * 24 * 30;
+
+export function setActiveOrgCookie(orgId: string) {
+  return cookies().then((jar) =>
+    jar.set("active_org", orgId, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: ACTIVE_ORG_MAX_AGE,
+    }),
+  );
+}
 
 export async function listMyMemberships(userId: string) {
   await connectDB();
@@ -32,6 +47,16 @@ export async function activateOrg(userId: string, orgId: string) {
   });
   if (!m) throw new Error("FORBIDDEN");
   return { orgId };
+}
+
+// قرار ما بعد الدخول: بلا عضويات ← onboarding، واحدة ← تُختار تلقائيًا، أكثر ← select-org.
+export async function resolvePostLogin(
+  userId: string,
+): Promise<{ kind: "none" } | { kind: "single"; orgId: string } | { kind: "many" }> {
+  const memberships = await listMyMemberships(userId);
+  if (memberships.length === 0) return { kind: "none" };
+  if (memberships.length === 1) return { kind: "single", orgId: memberships[0]!.orgId };
+  return { kind: "many" };
 }
 
 export async function activateBranchPref(userId: string, orgId: string, branchId: string | null) {
