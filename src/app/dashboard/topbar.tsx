@@ -1,12 +1,13 @@
-// الشريط العلوي: اسم المركز + مبدّلات + قائمة المستخدم (خروج/سمة).
-import Link from "next/link";
+// الشريط العلوي: اسم المركز والفرع + المبدّلات + زر السمة + قائمة المستخدم.
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { StatusBadge } from "@/components/status-badge";
 import { auth } from "@/lib/auth/config";
 import { listMyMemberships } from "@/services/org-selection";
 import { logoutAction, setBranchPrefAction } from "./actions";
 import { setActiveOrg } from "../onboarding/actions";
 import { MobileSidebar } from "./sidebar";
+import { UserMenu } from "./_user-menu";
 
 export async function Topbar({
   orgName,
@@ -21,18 +22,33 @@ export async function Topbar({
 }) {
   const session = await auth();
   const memberships = session?.user?.id ? await listMyMemberships(session.user.id) : [];
+  const branchName =
+    branches.length > 1
+      ? (branches.find((b) => b.id === branchPref)?.name ?? "كل الفروع")
+      : (branches[0]?.name ?? "");
   async function logout() {
     "use server";
     await logoutAction();
   }
   return (
-    <header className="flex items-center gap-2 border-b p-3">
+    <header className="flex items-center gap-2 border-b border-border bg-surface-1 p-3">
       <MobileSidebar role={role} />
-      <strong className="text-base">{orgName}</strong>
+      <div className="flex min-w-0 flex-col">
+        <strong className="truncate text-base">{orgName}</strong>
+        {branchName && (
+          <span className="text-xs text-muted-foreground">{branchName}</span>
+        )}
+      </div>
       <div className="ms-auto flex items-center gap-2">
         {memberships.length > 1 && (
-          <form action={setActiveOrg} className="flex gap-1">
-            <select name="orgId" defaultValue="" className="rounded-md border p-1 text-sm" required>
+          <form action={setActiveOrg} className="hidden items-center gap-1 sm:flex">
+            <select
+              name="orgId"
+              defaultValue=""
+              aria-label="تبديل المركز"
+              className="min-h-10 rounded-md border border-input bg-background px-2 text-sm"
+              required
+            >
               <option value="" disabled>
                 تبديل المركز
               </option>
@@ -48,8 +64,13 @@ export async function Topbar({
           </form>
         )}
         {branches.length > 1 && (
-          <form action={setBranchPrefAction} className="flex gap-1">
-            <select name="branchId" defaultValue={branchPref ?? ""} className="rounded-md border p-1 text-sm">
+          <form action={setBranchPrefAction} className="hidden items-center gap-1 sm:flex">
+            <select
+              name="branchId"
+              defaultValue={branchPref ?? ""}
+              aria-label="تبديل الفرع"
+              className="min-h-10 rounded-md border border-input bg-background px-2 text-sm"
+            >
               <option value="">كل الفروع</option>
               {branches.map((b) => (
                 <option key={b.id} value={b.id}>
@@ -62,25 +83,13 @@ export async function Topbar({
             </Button>
           </form>
         )}
-        <details className="relative">
-          <summary className="cursor-pointer list-none rounded-md border px-3 py-1 text-sm">
-            {session?.user?.name ?? "حسابي"}
-          </summary>
-          <div className="absolute end-0 top-full z-50 mt-1 flex w-40 flex-col gap-1 rounded-md border bg-background p-2 shadow-elevation-2">
-            <Link href="/onboarding/create-center" className="rounded-md px-3 py-1 text-sm hover:bg-accent">
-              إنشاء مركز آخر
-            </Link>
-            <Link href="/onboarding/enter-code" className="rounded-md px-3 py-1 text-sm hover:bg-accent">
-              عندي كود دعوة
-            </Link>
-            <ThemeToggle />
-            <form action={logout}>
-              <Button type="submit" variant="ghost" size="sm" className="w-full">
-                خروج
-              </Button>
-            </form>
-          </div>
-        </details>
+        <StatusBadge tone="neutral">{role === "center_admin" ? "مدير المركز" : role === "branch_admin" ? "مدير فرع" : "مشرف"}</StatusBadge>
+        <ThemeToggle />
+        <UserMenu
+          name={session?.user?.name ?? "حسابي"}
+          memberships={memberships}
+          logout={logout}
+        />
       </div>
     </header>
   );
