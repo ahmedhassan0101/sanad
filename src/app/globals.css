@@ -95,6 +95,19 @@
     --color-info-muted: var(--info-muted);
     --color-info-muted-foreground: var(--info-muted-foreground);
 
+    --color-present: var(--present);
+    --color-present-muted: var(--present-muted);
+    --color-present-muted-foreground: var(--present-muted-foreground);
+    --color-absent: var(--absent);
+    --color-absent-muted: var(--absent-muted);
+    --color-absent-muted-foreground: var(--absent-muted-foreground);
+    --color-late: var(--late);
+    --color-late-muted: var(--late-muted);
+    --color-late-muted-foreground: var(--late-muted-foreground);
+    --color-excused: var(--excused);
+    --color-excused-muted: var(--excused-muted);
+    --color-excused-muted-foreground: var(--excused-muted-foreground);
+
     --shadow-elevation-0: var(--elevation-0);
     --shadow-elevation-1: var(--elevation-1);
     --shadow-elevation-2: var(--elevation-2);
@@ -171,6 +184,26 @@
     --info-foreground: #FFFFFF;
     --info-muted: #E6EFFA;
     --info-muted-foreground: #1D508A;
+
+    /* الحضور يعيد استخدام الدلالية: حاضر/غائب/متأخر/بعذر = نجاح/خطر/تحذير/معلومة. */
+    --present: #1B7A4E;
+    --present-muted: #E6F4EC;
+    --present-muted-foreground: #14603C;
+    --absent: #B83245;
+    --absent-muted: #FCEAED;
+    --absent-muted-foreground: #962636;
+    --late: #9A5B00;
+    --late-muted: #FFF1D6;
+    --late-muted-foreground: #7A4800;
+    --excused: #2565A8;
+    --excused-muted: #E6EFFA;
+    --excused-muted-foreground: #1D508A;
+
+    /* الحركة: مدد قصيرة وتوقيت ناعم واحد. */
+    --duration-fast: 120ms;
+    --duration-base: 200ms;
+    --duration-slow: 300ms;
+    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
 
     --elevation-0: none;
     --elevation-1: 0 1px 2px rgb(20 34 42 / 0.06);
@@ -249,6 +282,19 @@
     --info-foreground: #0A1519;
     --info-muted: #162F47;
     --info-muted-foreground: #9CCBF2;
+
+    --present: #4CC38A;
+    --present-muted: #11342A;
+    --present-muted-foreground: #7FDDAD;
+    --absent: #F0717F;
+    --absent-muted: #3F1D24;
+    --absent-muted-foreground: #FF9AA5;
+    --late: #E6AE4C;
+    --late-muted: #3A2D14;
+    --late-muted-foreground: #F0C878;
+    --excused: #6AB0E8;
+    --excused-muted: #162F47;
+    --excused-muted-foreground: #9CCBF2;
 
     --elevation-0: none;
     --elevation-1: 0 1px 2px rgb(0 0 0 / 0.4);
