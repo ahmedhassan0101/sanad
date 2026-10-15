@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuthShell } from "@/components/auth-shell";
 import { verifyEmailToken } from "@/services/auth-accounts";
 
 export default async function VerifyPage({
@@ -14,18 +14,13 @@ export default async function VerifyPage({
   const done = await verifyEmailToken(email, token);
   if (done) redirect("/onboarding");
   return (
-    <main className="flex min-h-svh items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>{done ? "تم تفعيل بريدك بنجاح" : "الرابط غير صالح أو منتهي"}</CardTitle>
-          {!done && <CardDescription>اطلب رابطًا جديدًا أو تحقق من الرابط</CardDescription>}
-        </CardHeader>
-        <CardContent>
-          <Link href={done ? "/onboarding" : "/login"} className={buttonVariants()}>
-            {done ? "أكمل إلى لوحتك" : "عودة للدخول"}
-          </Link>
-        </CardContent>
-      </Card>
-    </main>
+    <AuthShell
+      title={done ? "تم تفعيل بريدك بنجاح" : "الرابط غير صالح أو منتهي"}
+      description={done ? undefined : "اطلب رابطًا جديدًا أو تحقق من الرابط"}
+    >
+      <Link href={done ? "/onboarding" : "/login"} className={buttonVariants()}>
+        {done ? "أكمل إلى لوحتك" : "عودة للدخول"}
+      </Link>
+    </AuthShell>
   );
 }

@@ -1,6 +1,6 @@
 // تعيين كلمة مرور جديدة بالرابط (ويخرج من كل الأجهزة).
 import Link from "next/link";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuthShell } from "@/components/auth-shell";
 import { ResetForm } from "./form";
 
 export default async function ResetPage({
@@ -10,21 +10,13 @@ export default async function ResetPage({
 }) {
   const { email = "", token = "" } = await searchParams;
   return (
-    <main className="flex min-h-svh items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>كلمة مرور جديدة</CardTitle>
-          <CardDescription>اختر كلمة مرور قوية ولا تشاركها</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <ResetForm email={email} token={token} />
-          <p className="text-center text-sm">
-            <Link href="/login" className="underline underline-offset-4">
-              عودة للدخول
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
-    </main>
+    <AuthShell title="كلمة مرور جديدة" description="اختر كلمة مرور قوية ولا تشاركها">
+      <ResetForm email={email} token={token} />
+      <p className="text-center text-sm">
+        <Link href="/login" className="underline underline-offset-4">
+          عودة للدخول
+        </Link>
+      </p>
+    </AuthShell>
   );
 }

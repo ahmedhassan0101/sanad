@@ -8,7 +8,7 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "lint:design": "node scripts/lint-design.js",    "test": "vitest run",
+    "lint:design": "node scripts/lint-design.mjs",    "test": "vitest run",
     "seed:super-admin": "tsx --conditions=react-server scripts/seed-super-admin.ts",
     "seed:dev": "tsx --conditions=react-server scripts/seed-dev.ts",
     "db:indexes": "tsx --conditions=react-server scripts/ensure-indexes.ts"
