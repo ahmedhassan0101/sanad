@@ -60,7 +60,7 @@ export default async function EditStudentPage({ params }: { params: Promise<{ id
             hifzMode="edit"
             submitLabel="حفظ التعديلات"
             imageEnabled={isCloudinaryEnabled()}
-            submit={(values) => updateStudentAction(id, values)}
+            submit={updateStudentAction.bind(null, id)}
           />
         </CardContent>
       </Card>

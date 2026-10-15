@@ -22,6 +22,7 @@ export type TeacherActionResult = {
   message: string;
   code?: string;
   duplicate?: { id: string; name: string };
+  id?: string;
 };
 
 async function memberCtx() {
@@ -47,7 +48,7 @@ export async function createTeacherAction(
         duplicate: res.duplicate,
       };
     }
-    redirect(`/dashboard/teachers/${res.id}`);
+    return { ok: true, message: "تمت إضافة المعلم", id: res.id };
   } catch (e) {
     return {
       ok: false,
@@ -74,7 +75,7 @@ export async function updateTeacherAction(
         duplicate: res.duplicate,
       };
     }
-    redirect(`/dashboard/teachers/${id}`);
+    return { ok: true, message: "تم حفظ التعديلات", id };
   } catch (e) {
     return {
       ok: false,

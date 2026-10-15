@@ -23,13 +23,14 @@ export default async function NewReportPage({ params }: { params: Promise<{ id: 
         </CardHeader>
         <CardContent>
           <ReportForm
+            studentId={id}
             defaultValues={
               student.hifzPosition
                 ? { hifzPosition: { surah: student.hifzPosition.surah, ayah: student.hifzPosition.ayah } }
                 : {}
             }
             submitLabel="حفظ التقرير"
-            submit={(values) => createReportAction(id, values)}
+            submit={createReportAction.bind(null, id)}
           />
         </CardContent>
       </Card>

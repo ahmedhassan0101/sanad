@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useFieldArray } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ export interface StudentSubmitResult {
   message: string;
   code?: string;
   duplicate?: { id: string; name: string };
+  id?: string;
 }
 
 const EMPTY: StudentFormInput = {
@@ -78,6 +80,7 @@ export function StudentForm({
   });
   const [serverError, setServerError] = useState<string | null>(null);
   const [dup, setDup] = useState<{ id: string; name: string } | null>(null);
+  const router = useRouter();
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "guardians",
@@ -101,7 +104,9 @@ export function StudentForm({
       }
       setServerError(res.message);
       toast.error(res.message);
+      return;
     }
+    if (res.id) router.push(`/dashboard/students/${res.id}`);
   };
 
   return (

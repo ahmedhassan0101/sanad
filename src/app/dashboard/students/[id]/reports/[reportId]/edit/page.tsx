@@ -30,6 +30,7 @@ export default async function EditReportPage({
         </CardHeader>
         <CardContent>
           <ReportForm
+            studentId={id}
             defaultValues={{
               hifzPosition: { surah: report.hifzPosition.surah, ayah: report.hifzPosition.ayah },
               revisionPosition: report.revisionPosition
@@ -40,7 +41,7 @@ export default async function EditReportPage({
               notes: report.notes ?? undefined,
             }}
             submitLabel="حفظ التعديلات"
-            submit={(values) => updateReportAction(id, reportId, values)}
+            submit={updateReportAction.bind(null, id, reportId)}
           />
         </CardContent>
       </Card>

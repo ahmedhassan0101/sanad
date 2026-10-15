@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   FormAlert,
@@ -20,10 +21,12 @@ import {
 } from "@/validators/reports";
 
 export function ReportForm({
+  studentId,
   defaultValues,
   submitLabel,
   submit,
 }: {
+  studentId: string;
   defaultValues: Partial<CreateReportInput>;
   submitLabel: string;
   submit: (values: CreateReportInput) => Promise<{ ok: boolean; message: string }>;
@@ -40,6 +43,7 @@ export function ReportForm({
     },
   });
   const [serverError, setServerError] = useState<string | null>(null);
+  const router = useRouter();
 
   return (
     <form
@@ -49,7 +53,9 @@ export function ReportForm({
         if (!res.ok) {
           setServerError(res.message);
           toast.error(res.message);
+          return;
         }
+        router.push(`/dashboard/students/${studentId}?saved=1`);
       })}
       noValidate
       className="flex flex-col gap-4"

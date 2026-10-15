@@ -26,7 +26,7 @@ export async function createReportAction(
   } catch (e) {
     return { ok: false, message: e instanceof Error ? e.message : "تعذر الحفظ" };
   }
-  redirect(`/dashboard/students/${studentId}?saved=1`);
+  return { ok: true, message: "تم حفظ التقرير" };
 }
 
 export async function updateReportAction(
@@ -42,7 +42,7 @@ export async function updateReportAction(
   } catch (e) {
     return { ok: false, message: e instanceof Error ? e.message : "تعذر الحفظ" };
   }
-  redirect(`/dashboard/students/${studentId}?saved=1`);
+  return { ok: true, message: "تم حفظ التقرير" };
 }
 
 export async function deleteReportAction(studentId: string, reportId: string): Promise<void> {

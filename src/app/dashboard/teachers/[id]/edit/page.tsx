@@ -40,7 +40,7 @@ export default async function EditTeacherPage({ params }: { params: Promise<{ id
             showBranch={false}
             submitLabel="حفظ التعديلات"
             imageEnabled={isCloudinaryEnabled()}
-            submit={(values) => updateTeacherAction(id, values)}
+            submit={updateTeacherAction.bind(null, id)}
           />
         </CardContent>
       </Card>

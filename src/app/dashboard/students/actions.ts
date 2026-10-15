@@ -23,6 +23,7 @@ export type StudentActionResult = {
   message: string;
   code?: string;
   duplicate?: { id: string; name: string };
+  id?: string;
 };
 
 async function memberCtx() {
@@ -48,7 +49,7 @@ export async function createStudentAction(
         duplicate: res.duplicate,
       };
     }
-    redirect(`/dashboard/students/${res.id}`);
+    return { ok: true, message: "تمت إضافة الطالب", id: res.id };
   } catch (e) {
     return {
       ok: false,
@@ -75,7 +76,7 @@ export async function updateStudentAction(
         duplicate: res.duplicate,
       };
     }
-    redirect(`/dashboard/students/${id}`);
+    return { ok: true, message: "تم حفظ التعديلات", id };
   } catch (e) {
     return {
       ok: false,
