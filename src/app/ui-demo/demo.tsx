@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, IconChip, Logo, PatternTile } from "@/components/brand";
 import { DataCell, DataRow, DataTable } from "@/components/data-table";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
@@ -147,6 +148,20 @@ export function DemoSections() {
         <h1 className="text-xl font-bold">معرض المكونات (تطوير فقط)</h1>
         <ThemeToggle />
       </div>
+
+      <Section title="عناصر الهوية" hint="الشعار والنقش (مرة واحدة في شاشات Signature) والأفاتار والرقاقات.">
+        <Logo className="text-primary" />
+        <div className="relative h-16 overflow-hidden rounded-lg bg-primary">
+          <PatternTile className="absolute inset-0 size-full text-primary-foreground opacity-10" />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Avatar name="أحمد محمد" />
+          <Avatar name="سارة علي" />
+          <IconChip tone="success">
+            <Mail className="size-4" />
+          </IconChip>
+        </div>
+      </Section>
 
       <Section title="الهوية واللوحة" hint="كل الألوان توكنز من globals.css — بدّل السمة بالأعلى وقارن.">
         <div className="flex flex-wrap gap-2">
