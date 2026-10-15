@@ -5,6 +5,9 @@ import { notFound, redirect } from "next/navigation";
 import { TrendingDown, TrendingUp, Minus } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar } from "@/components/brand";
+import { PageContainer } from "@/components/page-header";
+import { StatusBadge } from "@/components/status-badge";
 import {
   GENDERS,
   GUARDIAN_RELATIONS,
@@ -62,20 +65,22 @@ export default async function StudentDetailPage({
   const TrendIcon = latest?.trend === "up" ? TrendingUp : latest?.trend === "down" ? TrendingDown : Minus;
 
   return (
+    <PageContainer narrow>
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
         {student.image?.url ? (
-          <img src={student.image.url} alt={student.name} className="size-12 rounded-full object-cover" />
+          <img src={student.image.url} alt={student.name} className="size-14 rounded-full object-cover" />
         ) : (
-          <span className="flex size-12 items-center justify-center rounded-full bg-muted text-xl font-bold">
-            {student.name.trim().charAt(0)}
-          </span>
+          <Avatar name={student.name} className="size-14 text-2xl" />
         )}
-        <div>
-          <h1 className="text-xl font-bold">{student.name}</h1>
-          <p className="text-sm text-muted-foreground">
-            {LEVELS.labelOf(student.level)} — {STUDENT_STATUS.labelOf(student.status)}
-          </p>
+        <div className="flex min-w-0 flex-col gap-1">
+          <h1 className="truncate text-heading-xl font-extrabold">{student.name}</h1>
+          <span className="flex flex-wrap gap-1">
+            <StatusBadge>{LEVELS.labelOf(student.level)}</StatusBadge>
+            <StatusBadge tone={student.status === "active" ? "success" : "neutral"}>
+              {STUDENT_STATUS.labelOf(student.status)}
+            </StatusBadge>
+          </span>
         </div>
       </div>
       {isProfileIncomplete(student) && (
@@ -189,11 +194,13 @@ export default async function StudentDetailPage({
                   </span>
                 )}
               </div>
+              <ol className="relative flex flex-col gap-3 border-s-2 border-border ps-4" aria-label="سجل التقارير">
               {reports.map((r) => {
                 const rev = r.revisionPosition;
                 const revDiff = rev && r.previous ? ayahsBetween(r.previous, rev) : null;
                 return (
-                  <div key={r.id} className="flex flex-col gap-1 rounded-lg border p-3 text-sm">
+                  <li key={r.id} className="relative flex flex-col gap-1 rounded-lg border border-border bg-surface-1 p-3 text-sm">
+                    <span aria-hidden="true" className="absolute -start-[21px] top-5 size-2.5 rounded-full bg-primary" />
                     <div className="flex items-center justify-between gap-2">
                       <strong>{r.reportDateKey}</strong>
                       <span className="flex gap-2">
@@ -211,13 +218,12 @@ export default async function StudentDetailPage({
                     {r.previous ? (
                       <p>{formatRange(r.previous, r.hifzPosition) ?? "—"}</p>
                     ) : (
-                      <span className="w-fit rounded-full bg-muted px-2 py-0.5 text-xs">تقرير أول</span>
+                      <span className="w-fit">
+                        <StatusBadge>تقرير أول</StatusBadge>
+                      </span>
                     )}
                     <p>
-                      التجويد:{" "}
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs">
-                        {TAJWEED_RATINGS.labelOf(r.tajweedRating)}
-                      </span>{" "}
+                      التجويد: <StatusBadge>{TAJWEED_RATINGS.labelOf(r.tajweedRating)}</StatusBadge>{" "}
                       <span className="text-muted-foreground">{PROGRESS_TRENDS.labelOf(r.trend)}</span>
                     </p>
                     {rev && (
@@ -232,9 +238,10 @@ export default async function StudentDetailPage({
                         <p className="pt-1">{r.notes}</p>
                       </details>
                     )}
-                  </div>
+                  </li>
                 );
               })}
+              </ol>
               <div className="flex items-center justify-center gap-4 text-sm">
                 {rpage > 1 ? (
                   <Link href={`/dashboard/students/${id}?rpage=${rpage - 1}`}>السابق</Link>
@@ -275,5 +282,6 @@ export default async function StudentDetailPage({
         {canDelete && <DeleteStudentButton id={id} name={student.name} />}
       </div>
     </div>
+    </PageContainer>
   );
 }

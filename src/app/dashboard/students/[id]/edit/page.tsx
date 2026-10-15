@@ -1,6 +1,7 @@
 // صفحة تعديل طالب — نفس الفورم بقيم السجل.
 import { notFound, redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageContainer, PageHeader } from "@/components/page-header";
 import { can } from "@/lib/permissions/roles";
 import { isCloudinaryEnabled } from "@/lib/cloudinary";
 import { listBranches } from "@/services/branches-read";
@@ -28,8 +29,9 @@ export default async function EditStudentPage({ params }: { params: Promise<{ id
   ]);
   if (!student) notFound();
   return (
+    <PageContainer narrow>
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-bold">تعديل: {student.name}</h1>
+      <PageHeader title={`تعديل: ${student.name}`} />
       <Card>
         <CardHeader>
           <CardTitle>بيانات الطالب</CardTitle>
@@ -63,5 +65,6 @@ export default async function EditStudentPage({ params }: { params: Promise<{ id
         </CardContent>
       </Card>
     </div>
+    </PageContainer>
   );
 }

@@ -2,10 +2,15 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { GraduationCap } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, IconChip } from "@/components/brand";
+import { DataCell, DataRow, DataTable } from "@/components/data-table";
 import { EmptyState } from "@/components/empty-state";
+import { PageContainer, PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
+import { StatusBadge } from "@/components/status-badge";
 import {
   GENDERS,
   LEVELS,
@@ -67,22 +72,26 @@ export default async function StudentsPage({
   const canCreate = can(ctx.role, "student:create");
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">الطلاب</h1>
-        <div className="flex gap-2">
-          {can(ctx.role, "student:import") && (
-            <Link href="/dashboard/students/bulk" className={buttonVariants({ variant: "secondary" })}>
-              إضافة جماعية
-            </Link>
-          )}
-          {canCreate && (
-            <Link href="/dashboard/students/new" className={buttonVariants()}>
-              إضافة طالب
-            </Link>
-          )}
-        </div>
-      </div>
+    <PageContainer>
+      <div className="flex flex-col gap-4">
+        <PageHeader
+          title="الطلاب"
+          description={total > 0 ? `${total} طالب` : undefined}
+          actions={
+            <>
+              {can(ctx.role, "student:import") && (
+                <Link href="/dashboard/students/bulk" className={buttonVariants({ variant: "secondary" })}>
+                  إضافة جماعية
+                </Link>
+              )}
+              {canCreate && (
+                <Link href="/dashboard/students/new" className={buttonVariants()}>
+                  إضافة طالب
+                </Link>
+              )}
+            </>
+          }
+        />
       {sp.error && (
         <p role="alert" className="text-sm text-destructive">
           تعذر تنفيذ العملية — تحقق من الصلاحيات
@@ -94,128 +103,101 @@ export default async function StudentsPage({
         <StatCard title="إضافات هذا الشهر" value={stats.addedThisMonth} />
         <StatCard title="المؤرشفون" value={stats.archived} />
       </div>
-      <Card>
-        <CardContent className="pt-4">
-          <NuqsAdapter>
-            <StudentsToolbar />
-          </NuqsAdapter>
-        </CardContent>
-      </Card>
-      {items.length === 0 ? (
-        <EmptyState
-          title="لا طلاب"
-          description="جرّب تغيير الفلاتر أو أضف طالبًا جديدًا"
-        />
-      ) : (
-        <Card>
-          <CardContent className="overflow-x-auto p-0">
-            <table className="w-full min-w-180 text-sm">
-              <thead>
-                <tr className="border-b text-muted-foreground">
-                  <th className="p-2 text-start">الاسم</th>
-                  <th className="p-2 text-start">المستوى</th>
-                  <th className="p-2 text-start">النوع</th>
-                  <th className="p-2 text-start">العمر</th>
-                  <th className="p-2 text-start">هاتف ولي الأمر</th>
-                  <th className="p-2 text-start">الأنشطة</th>
-                  <th className="p-2 text-start">موضع الحفظ</th>
-                  <th className="p-2 text-start">آخر تقرير</th>
-                  <th className="p-2 text-start">إجراءات</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((s) => {
-                  const incomplete = isProfileIncomplete(s);
-                  const pos = s.hifzPosition;
-                  const surah = pos ? getSurah(pos.surah) : undefined;
-                  return (
-                    <tr key={String(s._id)} className="border-b last:border-0">
-                      <td className="p-2">
-                        <span className="flex items-center gap-2">
-                          {s.image?.url ? (
-                            <img
-                              src={s.image.url}
-                              alt=""
-                              className="size-8 rounded-full object-cover"
-                            />
-                          ) : (
-                            <span className="flex size-8 items-center justify-center rounded-full bg-muted font-bold">
-                              {s.name.trim().charAt(0)}
-                            </span>
-                          )}
-                          {s.name}
-                          {incomplete && (
-                            <span className="rounded-full bg-warning-muted px-2 py-0.5 text-xs text-warning-muted-foreground">
-                              بيانات ناقصة
-                            </span>
-                          )}
-                        </span>
-                      </td>
-                      <td className="p-2">
-                        <span className="rounded-full bg-muted px-2 py-0.5 text-xs">
-                          {LEVELS.labelOf(s.level)}
-                        </span>
-                      </td>
-                      <td className="p-2">{GENDERS.labelOf(s.gender)}</td>
-                      <td className="p-2">{calcAge(s.birthDate) ?? "—"}</td>
-                      <td className="p-2" dir="ltr">
-                        {s.guardians[0]?.phone ?? "—"}
-                      </td>
-                      <td className="p-2 text-muted-foreground">—</td>
-                      <td className="p-2">
-                        {surah ? `${surah.name} (${pos!.ayah})` : "—"}
-                      </td>
-                      <td className="p-2 text-muted-foreground">
-                        {daysAgoLabel(latestKeys.get(String(s._id)) ?? null)}
-                      </td>
-                      <td className="p-2">
-                        <span className="flex gap-2">
-                          <Link
-                            href={`/dashboard/students/${s._id}`}
-                            className="underline underline-offset-4"
-                          >
-                            عرض
-                          </Link>
-                          {canEdit && (
-                            <Link
-                              href={`/dashboard/students/${s._id}/edit`}
-                              className="underline underline-offset-4"
-                            >
-                              تعديل
-                            </Link>
-                          )}
-                          {canArchive && (
-                            <form
-                              action={
-                                s.status === "active"
-                                  ? archiveStudentAction.bind(
-                                      null,
-                                      String(s._id),
-                                    )
-                                  : restoreStudentAction.bind(
-                                      null,
-                                      String(s._id),
-                                    )
-                              }
-                            >
-                              <button
-                                type="submit"
-                                className="underline underline-offset-4"
-                              >
-                                {s.status === "active" ? "أرشفة" : "استرجاع"}
-                              </button>
-                            </form>
-                          )}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
-      )}
+      <DataTable
+        density="compact"
+        toolbar={
+          <Card>
+            <CardContent className="pt-4">
+              <NuqsAdapter>
+                <StudentsToolbar />
+              </NuqsAdapter>
+            </CardContent>
+          </Card>
+        }
+        headers={["الاسم", "المستوى", "النوع", "العمر", "هاتف ولي الأمر", "موضع الحفظ", "آخر تقرير", "إجراءات"]}
+        empty={
+          items.length === 0 ? (
+            <EmptyState
+              icon={
+                <IconChip tone="info">
+                  <GraduationCap className="size-5" />
+                </IconChip>
+              }
+              title={query.q ? "لا نتائج مطابقة" : "لا طلاب بعد"}
+              description={query.q ? "جرّب تغيير البحث أو الفلاتر" : "أضف أول طالب لبدء سجل المركز"}
+              action={
+                canCreate && !query.q ? (
+                  <Link href="/dashboard/students/new" className={buttonVariants({ size: "sm" })}>
+                    إضافة طالب
+                  </Link>
+                ) : undefined
+              }
+            />
+          ) : undefined
+        }
+      >
+        {items.map((s) => {
+          const incomplete = isProfileIncomplete(s);
+          const pos = s.hifzPosition;
+          const surah = pos ? getSurah(pos.surah) : undefined;
+          return (
+            <DataRow key={String(s._id)}>
+              <DataCell>
+                <span className="flex items-center gap-2">
+                  {s.image?.url ? (
+                    <img src={s.image.url} alt="" className="size-8 rounded-full object-cover" />
+                  ) : (
+                    <Avatar name={s.name} className="size-8 text-sm" />
+                  )}
+                  <Link href={`/dashboard/students/${s._id}`} className="font-medium underline-offset-4 hover:underline">
+                    {s.name}
+                  </Link>
+                  {incomplete && <StatusBadge tone="warning">بيانات ناقصة</StatusBadge>}
+                </span>
+              </DataCell>
+              <DataCell>
+                <StatusBadge>{LEVELS.labelOf(s.level)}</StatusBadge>
+              </DataCell>
+              <DataCell>{GENDERS.labelOf(s.gender)}</DataCell>
+              <DataCell numeric>{calcAge(s.birthDate) ?? "—"}</DataCell>
+              <DataCell numeric>
+                <span dir="ltr">{s.guardians[0]?.phone ?? "—"}</span>
+              </DataCell>
+              <DataCell>{surah ? `${surah.name} (${pos!.ayah})` : "—"}</DataCell>
+              <DataCell>
+                <span className="text-muted-foreground">
+                  {daysAgoLabel(latestKeys.get(String(s._id)) ?? null)}
+                </span>
+              </DataCell>
+              <DataCell>
+                <span className="flex gap-2">
+                  <Link href={`/dashboard/students/${s._id}`} className="underline underline-offset-4">
+                    عرض
+                  </Link>
+                  {canEdit && (
+                    <Link href={`/dashboard/students/${s._id}/edit`} className="underline underline-offset-4">
+                      تعديل
+                    </Link>
+                  )}
+                  {canArchive && (
+                    <form
+                      action={
+                        s.status === "active"
+                          ? archiveStudentAction.bind(null, String(s._id))
+                          : restoreStudentAction.bind(null, String(s._id))
+                      }
+                    >
+                      <button type="submit" className="underline underline-offset-4">
+                        {s.status === "active" ? "أرشفة" : "استرجاع"}
+                      </button>
+                    </form>
+                  )}
+                </span>
+              </DataCell>
+            </DataRow>
+          );
+        })}
+      </DataTable>
       {pages > 1 && (
         <div className="flex items-center justify-center gap-4 text-sm">
           {page > 1 ? (
@@ -243,6 +225,7 @@ export default async function StudentsPage({
           )}
         </div>
       )}
-    </div>
+      </div>
+    </PageContainer>
   );
 }
