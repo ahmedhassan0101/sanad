@@ -1,6 +1,7 @@
 // صفحة إضافة معلم جديد.
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageContainer, PageHeader } from "@/components/page-header";
 import { isCloudinaryEnabled } from "@/lib/cloudinary";
 import { can } from "@/lib/permissions/roles";
 import { listBranches } from "@/services/branches-read";
@@ -14,8 +15,9 @@ export default async function NewTeacherPage() {
   if (!can(ctx.role, "teacher:create")) redirect("/dashboard/teachers");
   const branches = await listBranches(ctx);
   return (
+    <PageContainer narrow>
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-bold">إضافة معلم</h1>
+      <PageHeader title="إضافة معلم" />
       <Card>
         <CardHeader>
           <CardTitle>بيانات المعلم</CardTitle>
@@ -32,5 +34,6 @@ export default async function NewTeacherPage() {
         </CardContent>
       </Card>
     </div>
+    </PageContainer>
   );
 }

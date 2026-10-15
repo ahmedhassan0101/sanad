@@ -4,6 +4,9 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar } from "@/components/brand";
+import { PageContainer } from "@/components/page-header";
+import { StatusBadge } from "@/components/status-badge";
 import { TEACHER_STATUS } from "@/constants/teachers";
 import { can } from "@/lib/permissions/roles";
 import { getTeacher } from "@/services/teachers";
@@ -32,20 +35,21 @@ export default async function TeacherDetailPage({ params }: { params: Promise<{ 
   const canDelete = can(ctx.role, "teacher:delete") && teacher.status === "archived";
 
   return (
+    <PageContainer narrow>
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
         {teacher.image?.url ? (
-          <img src={teacher.image.url} alt={teacher.name} className="size-12 rounded-full object-cover" />
+          <img src={teacher.image.url} alt={teacher.name} className="size-14 rounded-full object-cover" />
         ) : (
-          <span className="flex size-12 items-center justify-center rounded-full bg-muted text-xl font-bold">
-            {teacher.name.trim().charAt(0)}
-          </span>
+          <Avatar name={teacher.name} className="size-14 text-2xl" />
         )}
-        <div>
-          <h1 className="text-xl font-bold">{teacher.name}</h1>
-          <p className="text-sm text-muted-foreground">
-            {TEACHER_STATUS.labelOf(teacher.status)}
-          </p>
+        <div className="flex min-w-0 flex-col gap-1">
+          <h1 className="truncate text-heading-xl font-extrabold">{teacher.name}</h1>
+          <span>
+            <StatusBadge tone={teacher.status === "active" ? "success" : "neutral"}>
+              {TEACHER_STATUS.labelOf(teacher.status)}
+            </StatusBadge>
+          </span>
         </div>
       </div>
       <Card>
@@ -93,5 +97,6 @@ export default async function TeacherDetailPage({ params }: { params: Promise<{ 
         {canDelete && <DeleteTeacherButton id={id} name={teacher.name} />}
       </div>
     </div>
+    </PageContainer>
   );
 }

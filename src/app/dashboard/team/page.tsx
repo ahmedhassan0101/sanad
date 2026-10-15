@@ -2,6 +2,7 @@
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageContainer, PageHeader } from "@/components/page-header";
 import { cookies } from "next/headers";
 import { viewer } from "@/services/viewer";
 import { getTeamData } from "@/services/team";
@@ -30,8 +31,9 @@ export default async function TeamPage({
   const roles = roleValues.map((r) => ({ value: r, label: ROLE_NAMES[r] ?? r }));
   const branchName = new Map(data.branches.map((b) => [b.id, b.name]));
   return (
+    <PageContainer>
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-bold">الفريق</h1>
+      <PageHeader title="الفريق" description="الدعوات والأعضاء — للمشرفين فقط" />
       {sp.error && (
         <p className="text-sm text-destructive">
           {sp.error === "1" ? "تعذر تنفيذ العملية — تحقق من الصلاحيات" : sp.error}
@@ -65,5 +67,6 @@ export default async function TeamPage({
       </Card>
       <MembersCard members={data.members} roles={roles} />
     </div>
+    </PageContainer>
   );
 }

@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PageContainer, PageHeader } from "@/components/page-header";
+import { StatusBadge } from "@/components/status-badge";
 import { viewer } from "@/services/viewer";
 import { listBranchesWithCounts } from "@/services/branches";
 import { archiveBranchAction, createBranchAction, renameBranchAction } from "./actions";
@@ -18,8 +20,9 @@ export default async function BranchesPage({
   const branches = await listBranchesWithCounts(ctx).catch(() => null);
   if (!branches) redirect("/dashboard");
   return (
+    <PageContainer>
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-bold">الفروع</h1>
+      <PageHeader title="الفروع" description="فروع المركز وإدارة الأسماء والأرشفة" />
       {sp.error && (
         <p className="text-sm text-destructive">{sp.error === "1" ? "تعذر تنفيذ العملية" : sp.error}</p>
       )}
@@ -39,9 +42,9 @@ export default async function BranchesPage({
           <CardHeader>
             <CardTitle>
               {b.name}{" "}
-              <span className="text-sm font-normal text-muted-foreground">
-                ({b.status === "active" ? "نشط" : "مؤرشف"})
-              </span>
+              <StatusBadge tone={b.status === "active" ? "success" : "neutral"}>
+                {b.status === "active" ? "نشط" : "مؤرشف"}
+              </StatusBadge>
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
@@ -67,5 +70,6 @@ export default async function BranchesPage({
         </Card>
       ))}
     </div>
+    </PageContainer>
   );
 }

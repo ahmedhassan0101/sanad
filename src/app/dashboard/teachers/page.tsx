@@ -2,10 +2,15 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { Presentation } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, IconChip } from "@/components/brand";
+import { DataCell, DataRow, DataTable } from "@/components/data-table";
 import { EmptyState } from "@/components/empty-state";
+import { PageContainer, PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
+import { StatusBadge } from "@/components/status-badge";
 import { TEACHER_STATUS } from "@/constants/teachers";
 import { can } from "@/lib/permissions/roles";
 import { getTeacherStats, listTeachers } from "@/services/teachers";
@@ -51,13 +56,17 @@ export default async function TeachersPage({
   const canArchive = can(ctx.role, "teacher:archive");
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">المعلمون</h1>
-        <Link href="/dashboard/teachers/new" className={buttonVariants()}>
-          إضافة معلم
-        </Link>
-      </div>
+    <PageContainer>
+      <div className="flex flex-col gap-4">
+        <PageHeader
+          title="المعلمون"
+          description={total > 0 ? `${total} معلم` : undefined}
+          actions={
+            <Link href="/dashboard/teachers/new" className={buttonVariants()}>
+              إضافة معلم
+            </Link>
+          }
+        />
       {sp.error && (
         <p role="alert" className="text-sm text-destructive">
           تعذر تنفيذ العملية — تحقق من الصلاحيات
@@ -68,113 +77,95 @@ export default async function TeachersPage({
         <StatCard title="إضافات هذا الشهر" value={stats.addedThisMonth} />
         <StatCard title="المؤرشفون" value={stats.archived} />
       </div>
-      <Card>
-        <CardContent className="pt-4">
-          <NuqsAdapter>
-            <TeachersToolbar />
-          </NuqsAdapter>
-        </CardContent>
-      </Card>
-      {items.length === 0 ? (
-        <EmptyState
-          title="لا معلمين"
-          description="جرّب تغيير الفلاتر أو أضف معلمًا جديدًا"
-        />
-      ) : (
-        <Card>
-          <CardContent className="overflow-x-auto p-0">
-            <table className="w-full min-w-180 text-sm">
-              <thead>
-                <tr className="border-b text-muted-foreground">
-                  <th className="p-2 text-start">الاسم</th>
-                  <th className="p-2 text-start">الهاتف</th>
-                  <th className="p-2 text-start">الحالة</th>
-                  <th className="p-2 text-start">إجراءات</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((t) => (
-                  <tr key={String(t._id)} className="border-b last:border-0">
-                    <td className="p-2">
-                      <span className="flex items-center gap-2">
-                        {t.image?.url ? (
-                          <img
-                            src={t.image.url}
-                            alt=""
-                            className="size-8 rounded-full object-cover"
-                          />
-                        ) : (
-                          <span className="flex size-8 items-center justify-center rounded-full bg-muted font-bold">
-                            {t.name.trim().charAt(0)}
-                          </span>
-                        )}
-                        {t.name}
-                      </span>
-                    </td>
-                    <td className="p-2" dir="ltr">
-                      {t.phone ? (
-                        <a
-                          href={`tel:${t.phone}`}
-                          className="underline underline-offset-4"
-                        >
-                          {t.phone}
-                        </a>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                    <td className="p-2">
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs">
-                        {TEACHER_STATUS.labelOf(t.status)}
-                      </span>
-                    </td>
-                    <td className="p-2">
-                      <span className="flex gap-2">
-                        <Link
-                          href={`/dashboard/teachers/${t._id}`}
-                          className="underline underline-offset-4"
-                        >
-                          عرض
-                        </Link>
-                        {canEdit && (
-                          <Link
-                            href={`/dashboard/teachers/${t._id}/edit`}
-                            className="underline underline-offset-4"
-                          >
-                            تعديل
-                          </Link>
-                        )}
-                        {canArchive && (
-                          <form
-                            action={
-                              t.status === "active"
-                                ? archiveTeacherAction.bind(
-                                    null,
-                                    String(t._id),
-                                  )
-                                : restoreTeacherAction.bind(
-                                    null,
-                                    String(t._id),
-                                  )
-                            }
-                          >
-                            <button
-                              type="submit"
-                              className="underline underline-offset-4"
-                            >
-                              {t.status === "active" ? "أرشفة" : "استرجاع"}
-                            </button>
-                          </form>
-                        )}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
-      )}
+      <DataTable
+        density="compact"
+        toolbar={
+          <Card>
+            <CardContent className="pt-4">
+              <NuqsAdapter>
+                <TeachersToolbar />
+              </NuqsAdapter>
+            </CardContent>
+          </Card>
+        }
+        headers={["الاسم", "الهاتف", "الحالة", "إجراءات"]}
+        empty={
+          items.length === 0 ? (
+            <EmptyState
+              icon={
+                <IconChip tone="info">
+                  <Presentation className="size-5" />
+                </IconChip>
+              }
+              title={query.q ? "لا نتائج مطابقة" : "لا معلمين بعد"}
+              description={query.q ? "جرّب تغيير البحث" : "أضف أول معلم لبدء فريق المركز"}
+              action={
+                !query.q ? (
+                  <Link href="/dashboard/teachers/new" className={buttonVariants({ size: "sm" })}>
+                    إضافة معلم
+                  </Link>
+                ) : undefined
+              }
+            />
+          ) : undefined
+        }
+      >
+        {items.map((t) => (
+          <DataRow key={String(t._id)}>
+            <DataCell>
+              <span className="flex items-center gap-2">
+                {t.image?.url ? (
+                  <img src={t.image.url} alt="" className="size-8 rounded-full object-cover" />
+                ) : (
+                  <Avatar name={t.name} className="size-8 text-sm" />
+                )}
+                <Link href={`/dashboard/teachers/${t._id}`} className="font-medium underline-offset-4 hover:underline">
+                  {t.name}
+                </Link>
+              </span>
+            </DataCell>
+            <DataCell numeric>
+              {t.phone ? (
+                <a href={`tel:${t.phone}`} dir="ltr" className="underline underline-offset-4">
+                  {t.phone}
+                </a>
+              ) : (
+                "—"
+              )}
+            </DataCell>
+            <DataCell>
+              <StatusBadge tone={t.status === "active" ? "success" : "neutral"}>
+                {TEACHER_STATUS.labelOf(t.status)}
+              </StatusBadge>
+            </DataCell>
+            <DataCell>
+              <span className="flex gap-2">
+                <Link href={`/dashboard/teachers/${t._id}`} className="underline underline-offset-4">
+                  عرض
+                </Link>
+                {canEdit && (
+                  <Link href={`/dashboard/teachers/${t._id}/edit`} className="underline underline-offset-4">
+                    تعديل
+                  </Link>
+                )}
+                {canArchive && (
+                  <form
+                    action={
+                      t.status === "active"
+                        ? archiveTeacherAction.bind(null, String(t._id))
+                        : restoreTeacherAction.bind(null, String(t._id))
+                    }
+                  >
+                    <button type="submit" className="underline underline-offset-4">
+                      {t.status === "active" ? "أرشفة" : "استرجاع"}
+                    </button>
+                  </form>
+                )}
+              </span>
+            </DataCell>
+          </DataRow>
+        ))}
+      </DataTable>
       {pages > 1 && (
         <div className="flex items-center justify-center gap-4 text-sm">
           {page > 1 ? (
@@ -202,6 +193,7 @@ export default async function TeachersPage({
           )}
         </div>
       )}
-    </div>
+      </div>
+    </PageContainer>
   );
 }

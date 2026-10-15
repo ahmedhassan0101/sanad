@@ -1,6 +1,7 @@
 // صفحة تعديل معلم — نفس الفورم بقيم السجل.
 import { notFound, redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageContainer, PageHeader } from "@/components/page-header";
 import { isCloudinaryEnabled } from "@/lib/cloudinary";
 import { can } from "@/lib/permissions/roles";
 import { listBranches } from "@/services/branches-read";
@@ -20,8 +21,9 @@ export default async function EditTeacherPage({ params }: { params: Promise<{ id
   ]);
   if (!teacher) notFound();
   return (
+    <PageContainer narrow>
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-bold">تعديل: {teacher.name}</h1>
+      <PageHeader title={`تعديل: ${teacher.name}`} />
       <Card>
         <CardHeader>
           <CardTitle>بيانات المعلم</CardTitle>
@@ -43,5 +45,6 @@ export default async function EditTeacherPage({ params }: { params: Promise<{ id
         </CardContent>
       </Card>
     </div>
+    </PageContainer>
   );
 }

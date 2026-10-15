@@ -1,6 +1,8 @@
 // شاشة المنصة الاطلاعية: أرقام فقط لكل مركز — بلا تفاصيل ولا بيانات طلاب.
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageContainer, PageHeader } from "@/components/page-header";
+import { StatCard } from "@/components/stat-card";
 import { getPlatformStats } from "@/services/screens";
 import { viewer } from "@/services/viewer";
 
@@ -10,20 +12,25 @@ export default async function PlatformPage() {
   if (ctx.kind !== "platform") redirect("/onboarding");
   const rows = await getPlatformStats();
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-4 p-4">
-      <h1 className="text-xl font-bold">نظرة عامة</h1>
+    <PageContainer narrow>
+    <div className="flex flex-col gap-4">
+      <PageHeader title="نظرة عامة" description="أرقام المراكز — اطلاع فقط" />
       {rows.map((r) => (
         <Card key={r.name}>
           <CardHeader>
             <CardTitle>{r.name}</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              فروع: {r.branches} — أعضاء: {r.members} — برامج: {r.programs} — تواصل: {r.contact}
-            </p>
+          <CardContent className="flex flex-col gap-3">
+            <div className="grid grid-cols-3 gap-2">
+              <StatCard title="الفروع" value={r.branches} />
+              <StatCard title="الأعضاء" value={r.members} />
+              <StatCard title="البرامج" value={r.programs} />
+            </div>
+            <p className="text-sm text-muted-foreground">تواصل: {r.contact}</p>
           </CardContent>
         </Card>
       ))}
-    </main>
+    </div>
+    </PageContainer>
   );
 }
