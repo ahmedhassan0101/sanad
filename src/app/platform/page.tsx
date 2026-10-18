@@ -21,10 +21,9 @@ export default async function PlatformPage() {
             <CardTitle>{r.name}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <StatCard title="الفروع" value={r.branches} />
               <StatCard title="الأعضاء" value={r.members} />
-              <StatCard title="البرامج" value={r.programs} />
             </div>
             <p className="text-sm text-muted-foreground">تواصل: {r.contact}</p>
           </CardContent>

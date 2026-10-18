@@ -32,8 +32,6 @@ export const createCenterSchema = z.object({
   name: z.string().trim().min(2, "اسم المركز مطلوب").max(80, "اسم المركز طويل جدًا"),
   contactPhone: phoneRule(),
   addressText: optionalString(200),
-  programs: z.array(z.string().min(1)).min(1, "اختر برنامجًا واحدًا على الأقل"),
-  customProgram: optionalString(40),
 });
 export type CreateCenterInput = z.infer<typeof createCenterSchema>;
 

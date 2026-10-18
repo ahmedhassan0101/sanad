@@ -5,7 +5,6 @@ import { User } from "@/db/models/User";
 import { Org } from "@/db/models/Org";
 import { Branch } from "@/db/models/Branch";
 import { Membership } from "@/db/models/Membership";
-import { OrgProgram } from "@/db/models/OrgProgram";
 import { Invite } from "@/db/models/Invite";
 import { hashInviteCode } from "@/lib/invite-code";
 
@@ -19,7 +18,6 @@ beforeAll(async () => {
     Org.createIndexes(),
     Branch.createIndexes(),
     Membership.createIndexes(),
-    OrgProgram.createIndexes(),
     Invite.createIndexes(),
   ]);
 });
@@ -57,14 +55,6 @@ describe("unique constraints", () => {
     await Branch.create({ orgId: a._id, name: "Main" });
     await expect(Branch.create({ orgId: a._id, name: "Main" })).rejects.toThrow();
     await Branch.create({ orgId: b._id, name: "Main" });
-  });
-
-  it("rejects duplicate program key inside one org", async () => {
-    const u = await User.create({ name: "U", email: "u3@example.com" });
-    const org = await Org.create({ name: "O", contactPhone: "01", createdByUserId: u._id });
-    await OrgProgram.create({ orgId: org._id, programKey: "quran" });
-    await expect(OrgProgram.create({ orgId: org._id, programKey: "quran" })).rejects.toThrow();
-    await OrgProgram.create({ orgId: org._id, programKey: "custom:sports-club" });
   });
 
   it("rejects duplicate invite codeHash", async () => {

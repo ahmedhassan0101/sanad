@@ -6,7 +6,6 @@ import { Org } from "@/db/models/Org";
 import { Branch } from "@/db/models/Branch";
 import { Membership } from "@/db/models/Membership";
 import { Invite } from "@/db/models/Invite";
-import { OrgProgram } from "@/db/models/OrgProgram";
 import { AuditLog } from "@/db/models/AuditLog";
 import { RateLimit } from "@/db/models/RateLimit";
 import mongoose from "mongoose";
@@ -15,7 +14,7 @@ import mongoose from "mongoose";
 // it would drop hand-tuned indexes in production).
 export async function ensureIndexes() {
   await connectDB();
-  for (const m of [User, Org, Branch, Membership, Invite, OrgProgram, AuditLog, RateLimit]) {
+  for (const m of [User, Org, Branch, Membership, Invite, AuditLog, RateLimit]) {
     await m.createIndexes();
   }
 }

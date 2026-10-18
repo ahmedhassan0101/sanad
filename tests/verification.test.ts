@@ -25,7 +25,7 @@ describe("email verification enforcement", () => {
     await registerAccount("UU", "u@v.test", "password123");
     const u = await User.findOne({ email: "u@v.test" });
     await expect(
-      createCenter(String(u!._id), { name: "X", contactPhone: "01000000000", programs: ["quran"] })
+      createCenter(String(u!._id), { name: "X", contactPhone: "01000000000" })
     ).rejects.toThrow();
     await expect(consumeInvite(String(u!._id), "ABCDEFGH")).rejects.toThrow("UNVERIFIED");
   });
@@ -62,7 +62,6 @@ describe("email verification enforcement", () => {
     const { orgId } = await createCenter(String(o!._id), {
       name: "CC",
       contactPhone: "01000000000",
-      programs: ["quran"],
     });
     const { Branch } = await import("@/db/models/Branch");
     const br = await Branch.findOne({ orgId });

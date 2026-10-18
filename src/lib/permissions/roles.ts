@@ -13,7 +13,6 @@ const MATRIX: Record<Role, Set<string>> = {
     "member:invite",
     "member:change-role",
     "member:disable",
-    "program:manage",
     "settings:manage",
     "student:create",
     "student:edit",
@@ -69,7 +68,6 @@ export type Action =
   | "member:disable"
   | "member:invite-teacher"
   | "member:disable-teacher"
-  | "program:manage"
   | "settings:manage"
   | "attendance:write"
   | "progress:write"

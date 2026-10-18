@@ -48,7 +48,7 @@ export default async function DashboardPage() {
         <PageHeader title="نظرة عامة" />
         <div className="grid grid-cols-2 gap-3">
           <StatCard title="الفروع" value={branches.length} />
-          <StatCard title="البرامج" value={data.programs.length} />
+          <StatCard title="المجموعات" value={0} />
         </div>
         <section aria-label="اختصارات" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {QUICK.filter(

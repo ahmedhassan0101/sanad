@@ -28,9 +28,10 @@ afterAll(async () => {
 beforeEach(clearDB);
 
 describe("role matrix (static)", () => {
-  it("center_admin manages programs, supervisor writes attendance only", () => {
-    expect(can("center_admin", "program:manage")).toBe(true);
-    expect(can("supervisor", "program:manage")).toBe(false);
+  it("center_admin manages branches and settings, supervisor writes attendance only", () => {
+    expect(can("center_admin", "branch:create")).toBe(true);
+    expect(can("center_admin", "settings:manage")).toBe(true);
+    expect(can("supervisor", "branch:create")).toBe(false);
     expect(can("supervisor", "attendance:write")).toBe(true);
     expect(can("branch_admin", "member:invite-teacher")).toBe(true);
     expect(can("supervisor", "member:disable")).toBe(false);

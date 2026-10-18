@@ -6,14 +6,12 @@ import { connectDB } from "@/db/connection";
 import { Org } from "@/db/models/Org";
 import { Branch } from "@/db/models/Branch";
 import { Membership } from "@/db/models/Membership";
-import { OrgProgram } from "@/db/models/OrgProgram";
 import { User } from "@/db/models/User";
 
 const inputSchema = z.object({
   name: z.string().trim().min(2).max(80),
   contactPhone: z.string().trim().min(7).max(20),
   addressText: z.string().trim().max(200).optional(),
-  programs: z.array(z.string().min(1)).min(1).max(20),
 });
 
 export async function createCenter(userId: string, raw: unknown) {
@@ -50,10 +48,6 @@ export async function createCenter(userId: string, raw: unknown) {
       void createdBranches;
       await Membership.create(
         [{ userId: uid, orgId: org._id, role: "center_admin", branchIds: [], invitedByUserId: uid }],
-        { session, ordered: true }
-      );
-      await OrgProgram.create(
-        parsed.data.programs.map((programKey) => ({ orgId: org._id, programKey })),
         { session, ordered: true }
       );
       out = { orgId: String(org._id) };
