@@ -7,7 +7,7 @@ import { Group } from "@/db/models/Group";
 import { Enrollment } from "@/db/models/Enrollment";
 import { Student } from "@/db/models/Student";
 import { Teacher } from "@/db/models/Teacher";
-import { getLatestReportKeys } from "@/services/progress-reports";
+import { getLatestReportKeys } from "./progress-reports";
 import { can, type Action } from "@/lib/permissions/roles";
 import { normalizeArabic } from "@/lib/students";
 import type { SessionContext } from "@/lib/tenant/context";
@@ -45,6 +45,11 @@ async function resolveBranch(ctx: MemberCtx, branchId?: string): Promise<Types.O
     return found._id;
   }
   if (branches.length === 1 && inScope(branches[0]!._id)) return branches[0]!._id;
+  // وسيط في نطاق فرع واحد → يُختار تلقائيًا (بدون إرباك المستخدم).
+  if (ctx.branchScope.mode === "list" && ctx.branchScope.branchIds.length === 1) {
+    const only = ctx.branchScope.branchIds[0]!;
+    if (inScope(only)) return only;
+  }
   throw new Error("VALIDATION: اختر الفرع");
 }
 
@@ -136,10 +141,19 @@ export async function listGroups(ctx: MemberCtx, query: GroupListQuery): Promise
 
 export interface GroupsOverview {
   programKey?: string;
+  programName?: string;
   activeGroups: number;
   studentCount: number;
   teacherCount: number;
   groupsWithoutTeacher: number;
+  programStats?: Array<{
+    key: string;
+    name: string;
+    activeGroups: number;
+    studentCount: number;
+    teacherCount: number;
+    groupsWithoutTeacher: number;
+  }>;
 }
 
 // العدادات المختصرة لكل برنامج بتجميع واحد ($group على programKey).
@@ -148,13 +162,43 @@ export async function getGroupsOverview(ctx: MemberCtx, { programKey }: { progra
   await connectDB();
   const base = scopedFilter(ctx);
   const activeFilter = { ...base, status: "active" };
+  const activeGroupIds = (await Group.find({ ...activeFilter }).distinct("_id")).map(
+    (id) => id as Types.ObjectId,
+  );
 
   if (programKey) {
     if (!validProgramKey(programKey)) throw new Error("VALIDATION: برنامج غير صالح");
     const [groupsRes, studentsRes, teachersRes, noTeacherRes] = await Promise.all([
       Group.countDocuments({ ...activeFilter, programKey }),
       Enrollment.aggregate([
-        { $match: { ...base, programKey, status: "active" } },
+        { $match: { ...base, programKey, status: "active", groupId: { $in: activeGroupIds } } },
+        { $group: { _id: null, students: { $addToSet: "$studentId" } } },
+        { $project: { count: { $size: "$students" }, _id: 0 } },
+      ]),
+      Group.aggregate([
+        { $match: { ...activeFilter, programKey, teacherId: { $ne: null } } },
+        { $group: { _id: null, teachers: { $addToSet: "$teacherId" } } },
+        { $project: { count: { $size: "$teachers" }, _id: 0 } },
+      ]),
+      Group.countDocuments({ ...activeFilter, programKey, teacherId: null }),
+    ]);
+    const p = PROGRAM_CATALOG.find((p) => p.key === programKey)!;
+    return {
+      programKey,
+      programName: p.name,
+      activeGroups: groupsRes,
+      studentCount: studentsRes[0]?.count ?? 0,
+      teacherCount: teachersRes[0]?.count ?? 0,
+      groupsWithoutTeacher: noTeacherRes,
+    };
+  }
+
+  if (programKey) {
+    if (!validProgramKey(programKey)) throw new Error("VALIDATION: برنامج غير صالح");
+    const [groupsRes, studentsRes, teachersRes, noTeacherRes] = await Promise.all([
+      Group.countDocuments({ ...activeFilter, programKey }),
+      Enrollment.aggregate([
+        { $match: { ...base, programKey, status: "active", groupId: { $in: activeGroupIds } } },
         { $group: { _id: null, students: { $addToSet: "$studentId" } } },
         { $project: { count: { $size: "$students" }, _id: 0 } },
       ]),
@@ -189,7 +233,7 @@ export async function getGroupsOverview(ctx: MemberCtx, { programKey }: { progra
   ] = await Promise.all([
     Group.countDocuments(activeFilter),
     Enrollment.aggregate([
-      { $match: { ...base, status: "active" } },
+      { $match: { ...base, status: "active", groupId: { $in: activeGroupIds } } },
       { $group: { _id: null, students: { $addToSet: "$studentId" } } },
       { $project: { count: { $size: "$students" }, _id: 0 } },
     ]),
@@ -201,17 +245,17 @@ export async function getGroupsOverview(ctx: MemberCtx, { programKey }: { progra
     Group.countDocuments({ ...activeFilter, teacherId: null }),
     Group.aggregate([
       { $match: { ...activeFilter } },
-      { $group: { _id: "$programKey", activeGroups: { $sum: 1 } } },
+      { $group: { _id: "$programKey", count: { $sum: 1 } } },
     ]),
     Enrollment.aggregate([
-      { $match: { ...base, status: "active" } },
+      { $match: { ...base, status: "active", groupId: { $in: activeGroupIds } } },
       { $group: { _id: "$programKey", students: { $addToSet: "$studentId" } } },
-      { $project: { programKey: "$_id", studentCount: { $size: "$students" }, _id: 0 } },
+      { $project: { programKey: "$_id", count: { $size: "$students" }, _id: 0 } },
     ]),
     Group.aggregate([
       { $match: { ...activeFilter, teacherId: { $ne: null } } },
       { $group: { _id: "$programKey", teachers: { $addToSet: "$teacherId" } } },
-      { $project: { programKey: "$_id", teacherCount: { $size: "$teachers" }, _id: 0 } },
+      { $project: { programKey: "$_id", count: { $size: "$teachers" }, _id: 0 } },
     ]),
     Group.aggregate([
       { $match: { ...activeFilter, teacherId: null } },
@@ -219,8 +263,8 @@ export async function getGroupsOverview(ctx: MemberCtx, { programKey }: { progra
     ]),
   ]);
 
-  const getCount = (rows: { _id: unknown; count?: number }[], key: string) => {
-    const r = rows.find((x) => String(x._id) === key);
+  const getCount = (rows: { _id?: unknown; programKey?: unknown; count?: number }[], key: string) => {
+    const r = rows.find((x) => String(x._id ?? x.programKey) === key);
     return r ? (r.count ?? 0) : 0;
   };
 
@@ -366,7 +410,7 @@ export async function createGroup(ctx: MemberCtx, input: CreateGroupInput): Prom
 interface UpdateGroupInput {
   name?: string;
   scheduleText?: string;
-  teacherId?: string;
+  teacherId?: string | null;
   notes?: string;
 }
 
