@@ -105,7 +105,7 @@ describe("groups", () => {
     const orgB = await Org.create({ name: "B", contactPhone: "01", createdByUserId: otherAdmin._id });
     const bB = await Branch.create({ orgId: orgB._id, name: "BB" });
     const cB = memberCtx(otherAdmin._id, orgB._id, "center_admin", [bB._id]);
-    await createGroup(cB, { programKey: "tajweed", name: "ب" });
+    await createGroup(cB,{ programKey: "tajweed", name: "ب" });
     expect(await listGroups(c, {})).toHaveLength(1);
     expect(await listGroups(cB, {})).toHaveLength(1);
   });
@@ -113,8 +113,7 @@ describe("groups", () => {
   it("branch isolation: supervisor of B1 does not see B2 groups", async () => {
     const c = ctx("supervisor", [ids.b1]);
     await createGroup(c, { programKey: "quran", name: "ب1-أ" });
-    const cAll = memberCtx(ids.admin, ids.org, "center_admin", [ids.b1, ids.b2], "all");
-    await createGroup(cAll, { programKey: "quran", name: "ب2-أ", branchId: String(ids.b2) });
+    await expect(createGroup(c,{ programKey: "quran", name: "ب2-أ", branchId: String(ids.b2) })).rejects.toThrow("فرع خارج نطاقك");
     const rows = await listGroups(c, {});
     expect(rows.map((r) => r.name)).toEqual(["ب1-أ"]);
   });

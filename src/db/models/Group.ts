@@ -11,6 +11,7 @@ export interface GroupDoc extends Document {
   notes: string | null;
   status: "active" | "archived";
   archivedAt: Date | null;
+  createdAt: Date;
 }
 
 const groupSchema = new Schema<GroupDoc>(
@@ -24,6 +25,7 @@ const groupSchema = new Schema<GroupDoc>(
     notes: { type: String, trim: true, default: null },
     status: { type: String, enum: ["active", "archived"], default: "active" },
     archivedAt: { type: Date, default: null },
+    createdAt: { type: Date, default: () => new Date() },
   },
   { timestamps: true }
 );
