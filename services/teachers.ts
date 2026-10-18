@@ -3,6 +3,7 @@ import "server-only";
 import { Types } from "mongoose";
 import { connectDB } from "@/db/connection";
 import { Branch } from "@/db/models/Branch";
+import { Group } from "@/db/models/Group";
 import { Teacher } from "@/db/models/Teacher";
 import { can, type Action } from "@/lib/permissions/roles";
 import { deleteStudentImage } from "@/lib/cloudinary";
@@ -172,6 +173,10 @@ export async function archiveTeacher(ctx: MemberCtx, id: string) {
   const teacher = await Teacher.findOne({ _id: id, orgId: ctx.orgId });
   if (!teacher) throw new Error("NOT_FOUND");
   inScopeOrThrow(ctx, teacher.branchId);
+  const activeGroups = await Group.find({ orgId: ctx.orgId, teacherId: teacher._id, status: "active" }).select("name").lean();
+  if (activeGroups.length > 0) {
+    throw new Error(`VALIDATION: لا يمكن أرشفة المعلم — له مجموعات نشطة: ${activeGroups.map((g) => g.name).join("، ")}`);
+  }
   teacher.status = "archived";
   teacher.archivedAt = new Date();
   await teacher.save();
@@ -195,6 +200,8 @@ export async function deleteTeacherPermanently(ctx: MemberCtx, id: string) {
   if (!teacher) throw new Error("NOT_FOUND");
   inScopeOrThrow(ctx, teacher.branchId);
   if (teacher.status !== "archived") throw new Error("VALIDATION: احذف المؤرشف فقط — أرشف المعلم أولًا");
+  const linkedGroups = await Group.countDocuments({ orgId: ctx.orgId, teacherId: teacher._id });
+  if (linkedGroups > 0) throw new Error("VALIDATION: لا يمكن حذف المعلم — توجد مجموعات مرتبطة به");
   const publicId = teacher.image?.publicId;
   await Teacher.deleteOne({ _id: teacher._id });
   if (publicId) await deleteStudentImage(publicId);

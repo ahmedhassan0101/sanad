@@ -3,7 +3,10 @@ import "server-only";
 import { Types } from "mongoose";
 import { connectDB } from "@/db/connection";
 import { Branch } from "@/db/models/Branch";
+import { Group } from "@/db/models/Group";
 import { Student } from "@/db/models/Student";
+import { Teacher } from "@/db/models/Teacher";
+import { Enrollment } from "@/db/models/Enrollment";
 import { ProgressReport } from "@/db/models/ProgressReport";
 import { generateCode } from "@/lib/invite-code";
 import { can, type Action } from "@/lib/permissions/roles";
@@ -13,6 +16,7 @@ import { COLUMN_AR, toCreateInput } from "@/lib/excel-import";
 import type { SessionContext } from "@/lib/tenant/context";
 import { scopedFilter } from "@/lib/tenant/scopedFilter";
 import { createStudentSchema, toBirthDate, type CreateStudentInput, type UpdateStudentInput } from "@/validators/students";
+import { PROGRAM_CATALOG } from "@/lib/programs";
 
 type MemberCtx = Extract<SessionContext, { kind: "member" }>;
 
@@ -87,7 +91,29 @@ export async function listStudents(ctx: MemberCtx, query: StudentListQuery) {
       .lean(),
     Student.countDocuments(filter),
   ]);
-  return { items, total, page: safePage, pageSize: safeSize };
+  const studentIds = items.map((s) => s._id);
+  const enrollments = await Enrollment.find({
+    orgId: ctx.orgId,
+    studentId: { $in: studentIds },
+    status: "active",
+  }).lean();
+  const groupIds = [...new Set(enrollments.map((e) => e.groupId))];
+  const groups = await Group.find({ _id: { $in: groupIds }, orgId: ctx.orgId }).select("_id name programKey").lean();
+  const groupMap = new Map(groups.map((g) => [String(g._id), g]));
+  const programMap = new Map<string, string>(PROGRAM_CATALOG.map((p) => [p.key, p.name]));
+  const enrollByStudent = new Map<string, Array<{ programKey: string; programName: string; groupName: string }>>();
+  for (const e of enrollments) {
+    const g = groupMap.get(String(e.groupId));
+    const arr = enrollByStudent.get(String(e.studentId)) ?? [];
+    arr.push({
+      programKey: e.programKey,
+      programName: programMap.get(e.programKey) ?? e.programKey,
+      groupName: g?.name ?? "",
+    });
+    enrollByStudent.set(String(e.studentId), arr);
+  }
+  const enrichedItems = items.map((s) => ({ ...s, enrollments: enrollByStudent.get(String(s._id)) ?? [] }));
+  return { items: enrichedItems, total, page: safePage, pageSize: safeSize };
 }
 
 export async function getStudent(ctx: MemberCtx, id: string) {
@@ -99,7 +125,33 @@ export async function getStudent(ctx: MemberCtx, id: string) {
   if (ctx.branchScope.mode === "list" && !ctx.branchScope.branchIds.some((b) => b.equals(student.branchId))) {
     throw new Error("NOT_FOUND");
   }
-  return student;
+  const enrollments = await Enrollment.find({ orgId: ctx.orgId, studentId: student._id, status: "active" }).lean();
+  const pastEnrollments = await Enrollment.find({ orgId: ctx.orgId, studentId: student._id, status: "left" }).sort({ leftAt: -1 }).lean();
+  const groupIds = [...new Set([...enrollments, ...pastEnrollments].map((e) => e.groupId))];
+  const groups = await Group.find({ _id: { $in: groupIds }, orgId: ctx.orgId }).lean();
+  const groupMap = new Map(groups.map((g) => [String(g._id), g]));
+  const teacherIds = [...new Set(groups.filter((g) => g.teacherId).map((g) => g.teacherId))];
+  const teachers = teacherIds.length ? await Teacher.find({ _id: { $in: teacherIds }, orgId: ctx.orgId }).select("_id name").lean() : [];
+  const teacherMap = new Map(teachers.map((t) => [String(t._id), t.name]));
+  const programMap = new Map<string, string>(PROGRAM_CATALOG.map((p) => [p.key, p.name]));
+  const enrich = (e: { groupId: Types.ObjectId; programKey: string; status: string; joinedAt: Date | null; leftAt: Date | null }) => {
+    const g = groupMap.get(String(e.groupId));
+    return {
+      groupId: String(e.groupId),
+      groupName: g?.name ?? "",
+      programKey: e.programKey,
+      programName: programMap.get(e.programKey) ?? e.programKey,
+      teacherName: g?.teacherId ? (teacherMap.get(String(g.teacherId)) ?? null) : null,
+      status: e.status,
+      joinedAt: e.joinedAt,
+      leftAt: e.leftAt,
+    };
+  };
+  return {
+    ...student,
+    enrollments: enrollments.map(enrich),
+    pastEnrollments: pastEnrollments.map(enrich),
+  };
 }
 
 export async function getStudentStats(ctx: MemberCtx) {
@@ -367,6 +419,7 @@ export async function deleteStudentPermanently(ctx: MemberCtx, id: string) {
   if (student.status !== "archived") throw new Error("VALIDATION: احذف المؤرشف فقط — أرشف الطالب أولًا");
   const publicId = student.image?.publicId;
   await ProgressReport.deleteMany({ studentId: student._id, orgId: ctx.orgId });
+  await Enrollment.deleteMany({ studentId: student._id, orgId: ctx.orgId });
   await Student.deleteOne({ _id: student._id });
   if (publicId) await deleteStudentImage(publicId);
 }
