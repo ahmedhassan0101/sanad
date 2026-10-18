@@ -26,9 +26,6 @@ import { viewer } from "@/services/viewer";
 import { StudentsToolbar } from "./_toolbar";
 import { archiveStudentAction, restoreStudentAction } from "./actions";
 
-const validOrUndefined = (v: string | undefined, keys: readonly string[]) =>
-  v && (keys as readonly string[]).includes(v) ? v : undefined;
-
 function pageHref(
   sp: Record<string, string | undefined>,
   page: number,
@@ -49,6 +46,8 @@ export default async function StudentsPage({
   if (ctx.kind !== "member") redirect("/onboarding");
   if (!can(ctx.role, "student:report")) redirect("/dashboard");
   const sp = await searchParams;
+  const validOrUndefined = (v: string | undefined, keys: readonly string[]) =>
+    v && (keys as readonly string[]).includes(v) ? v : undefined;
   const query = {
     q: sp.q ?? "",
     level: validOrUndefined(sp.level, LEVELS.keys),
