@@ -20,7 +20,6 @@ import {
   updateGroup,
   archiveGroup,
   restoreGroup,
-  deleteGroupPermanently,
   enrollStudents,
   removeStudent,
   searchStudentsForGroup,
