@@ -13,8 +13,9 @@ import {
   FormTextarea,
   useEntityForm,
 } from "@/components/form";
-import { createGroupAction } from "./actions";
+import { createGroupAction } from "@/app/dashboard/groups/actions";
 import { ACTIVITIES_CATALOG } from "@/lib/programs";
+import { StudentSelector } from "./_student-selector";
 
 const ALL = "all";
 
@@ -25,6 +26,7 @@ const createGroupSchema = z.object({
   scheduleText: z.string().trim().max(100, "الوقت طويل جدًا").optional().or(z.literal("")),
   teacherId: z.string().optional().or(z.literal("")),
   notes: z.string().trim().max(500, "الملاحظات طويلة جدًا").optional().or(z.literal("")),
+  studentIds: z.array(z.string()).optional(),
 });
 
 export function CreateGroupForm({
@@ -33,6 +35,7 @@ export function CreateGroupForm({
   showBranch,
   teachers,
   isEdit = false,
+  defaultValues,
   onSubmit,
 }: {
   activity: string;
@@ -40,12 +43,20 @@ export function CreateGroupForm({
   showBranch: boolean;
   teachers: { id: string; name: string }[];
   isEdit?: boolean;
+  defaultValues?: {
+    name?: string;
+    scheduleText?: string;
+    teacherId?: string;
+    notes?: string;
+    studentIds?: string[];
+  };
   onSubmit?: (values: {
     activityKey: string;
     name: string;
     scheduleText: string;
     teacherId: string;
     notes: string;
+    studentIds: string[];
   }) => Promise<{ ok: boolean; message: string; groupId?: string }>;
 }) {
   const router = useRouter();
@@ -54,10 +65,10 @@ export function CreateGroupForm({
     defaultValues: {
       branchId: showBranch ? undefined : branches[0]?.id,
       activityKey: activity === ALL ? "" : activity,
-      name: "",
-      scheduleText: "",
-      teacherId: "",
-      notes: "",
+      name: defaultValues?.name ?? "",
+      scheduleText: defaultValues?.scheduleText ?? "",
+      teacherId: defaultValues?.teacherId ?? "",
+      notes: defaultValues?.notes ?? "",
     },
   });
   const [serverError, setServerError] = useState<string | null>(null);
@@ -74,6 +85,7 @@ export function CreateGroupForm({
               scheduleText: String(values.scheduleText),
               teacherId: String(values.teacherId),
               notes: String(values.notes),
+              studentIds: (values as Record<string, any>).studentIds ?? [],
             });
             if (!res.ok) {
               setServerError(res.message);
@@ -114,6 +126,7 @@ export function CreateGroupForm({
       {!showBranch && !isEdit && (
         <input type="hidden" name="branchId" value={branches[0]?.id ?? ""} />
       )}
+      <input type="hidden" name="activityKey" value={form.getValues().activityKey ?? ""} />
       <div className="flex flex-col gap-2">
         <label className="text-sm font-medium">النشاط</label>
         <FormSelect
@@ -153,6 +166,14 @@ export function CreateGroupForm({
         label="ملاحظات (اختياري)"
         rows={2}
       />
+      <div className="pt-2">
+        <label className="text-sm font-medium">الطلاب (اختياري)</label>
+        <StudentSelector
+          groupId={undefined}
+          activityKey={form.getValues().activityKey ?? ""}
+          initialIds={defaultValues?.studentIds ?? []}
+        />
+      </div>
       <FormSubmitButton form={form}>
         {isEdit ? "تعديل المجموعة" : "إنشاء المجموعة"}
       </FormSubmitButton>

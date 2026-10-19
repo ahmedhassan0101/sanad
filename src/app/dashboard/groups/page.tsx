@@ -1,12 +1,14 @@
-// المجموعات: صفحة واحدة لكل الأنشطة.
+// المجموعات: صفحة واحدة لكل الأنشطة — بطاقات بدلاً من جدول.
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Clock, Users } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Avatar } from "@/components/brand";
 import { PageContainer, PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import { EmptyState } from "@/components/empty-state";
-import { DataCell, DataRow, DataTable } from "@/components/data-table";
+import { StatusBadge } from "@/components/status-badge";
 import { listGroups, getGroupsOverview } from "@/services/groups";
 import { viewer } from "@/services/viewer";
 import { can } from "@/lib/permissions/roles";
@@ -26,30 +28,42 @@ function tabClass(active: boolean): string {
   }`;
 }
 
-function GroupTableRow({ g }: { g: GroupRow }) {
+function GroupCard({ g }: { g: GroupRow }) {
   return (
-    <DataRow key={g.id}>
-      <DataCell>
-        <Link href={`/dashboard/groups/${g.id}`} className="font-medium underline-offset-4 hover:underline">
-          {g.name}
+    <Card key={g.id} className="hover:bg-muted/30 cursor-pointer transition-colors group" onClick={() => {}}>
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <Link href={`/dashboard/groups/${g.id}`} className="font-semibold underline-offset-4 hover:underline">
+            {g.name}
+          </Link>
+          <StatusBadge>{g.activityName}</StatusBadge>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          {g.teacherName ? (
+            <span className="flex items-center gap-1">
+              <Avatar name={g.teacherName} className="size-6 text-xs" />
+              {g.teacherName}
+            </span>
+          ) : (
+            <span>بدون معلم</span>
+          )}
+          <span className="hidden md:inline">·</span>
+          <Clock className="size-4" />
+          <span>{g.scheduleText || "—"}</span>
+          <span className="hidden md:inline">·</span>
+          <Users className="size-4" />
+          <span>{g.memberCount} عضو</span>
+        </div>
+        <StatusBadge tone={g.status === "active" ? "success" : "neutral"}>
+          {g.status === "active" ? "نشطة" : "مؤرشفة"}
+        </StatusBadge>
+      </CardHeader>
+      <CardContent>
+        <Link href={`/dashboard/groups/${g.id}`} className="block text-sm text-primary hover:text-primary-foreground">
+          عرض التفاصيل →
         </Link>
-      </DataCell>
-      <DataCell>
-        <span>{g.activityName}</span>
-      </DataCell>
-      <DataCell>
-        <span>{g.teacherName ?? "—"}</span>
-      </DataCell>
-      <DataCell numeric>{g.memberCount}</DataCell>
-      <DataCell>
-        <span>{g.status}</span>
-      </DataCell>
-      <DataCell>
-        <Link href={`/dashboard/groups/${g.id}`} className="underline underline-offset-4 text-xs">
-          عرض
-        </Link>
-      </DataCell>
-    </DataRow>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -65,13 +79,11 @@ export default async function GroupsPage({
   const sp = await searchParams;
   const activity = validActivity(sp.activity);
   const q = sp.q ?? "";
-  const teacher = sp.teacher ?? "";
-  const status = sp.status ?? "active";
   const act = activity === ALL ? undefined : activity;
 
   const [overview, rows] = await Promise.all([
     getGroupsOverview(ctx, { activityKey: act }),
-    listGroups(ctx, { activityKey: act, q, teacherId: teacher, status }),
+    listGroups(ctx, { activityKey: act, q }),
   ]);
 
   return (
@@ -86,10 +98,7 @@ export default async function GroupsPage({
           }
           actions={
             can(ctx.role, "group:create") && (
-              <Link
-                href={`/dashboard/groups/new?activity=${activity}`}
-                className={buttonVariants()}
-              >
+              <Link href={`/dashboard/groups/new?activity=${activity}`} className={buttonVariants()}>
                 إضافة مجموعة
               </Link>
             )
@@ -118,30 +127,68 @@ export default async function GroupsPage({
           <StatCard title="المجموعات النشطة" value={overview?.activeGroups ?? 0} />
           <StatCard title="الطلاب المشتركون" value={overview?.studentCount ?? 0} />
         </div>
-        {rows.length === 0 ? (
-          <EmptyState
-            icon={<BookOpen className="size-10 text-muted-foreground" />}
-            title={
-              activity === ALL ? "لا مجموعات بعد" : "لا مجموعات في هذا النشاط"
-            }
-            description={
-              activity === ALL
-                ? "ابدأ بإضافة أول مجموعة لمركزك."
-                : "جرّب تغيير النشاط أو الفلاتر."
-            }
-            action={
-              can(ctx.role, "group:create") && activity === ALL ? (
-                <Link href="/dashboard/groups/new" className={buttonVariants({ size: "sm" })}>
-                  إضافة أول مجموعة
-                </Link>
-              ) : undefined
-            }
-          />
+
+        {activity === ALL ? (
+          <>
+            {ACTIVITIES_CATALOG.map((a) => {
+              const catRows = rows.filter((r) => r.activityKey === a.key);
+              if (catRows.length === 0) return null;
+              return (
+                <div key={a.key} className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-sm font-semibold">{a.name}</h2>
+                    <span className="text-xs text-muted-foreground">
+                      {catRows.length} مجموعة ·
+                      {catRows.reduce((sum, r) => sum + r.memberCount, 0)} طالباً
+                    </span>
+                    {can(ctx.role, "group:create") && (
+                      <Link
+                        href={`/dashboard/groups/new?activity=${a.key}${q ? "&q=" + q : ""}`}
+                        className={buttonVariants({ variant: "outline", size: "sm" })}
+                      >
+                        + مجموعة
+                      </Link>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {catRows.slice(0, 6).map((g) => (
+                      <GroupCard key={g.id} g={g} />
+                    ))}
+                    {catRows.length > 6 && (
+                      <div className="col-span-full text-center">
+                        <Link href={`/dashboard/groups?activity=${a.key}${q ? "&q=" + q : ""}`} className="text-sm underline underline-offset-4 hover:underline">
+                          عرض الكل ({catRows.length}) →
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </>
         ) : (
-          <DataTable density="compact" headers={["المجموعة", "النشاط", "المعلم", "الأعضاء", "الحالة", "إجراءات"]}>
-            {rows.map((g) => <GroupTableRow key={g.id} g={g} />)}
-          </DataTable>
-        ) }
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {rows.map((g) => (
+                <GroupCard key={g.id} g={g} />
+              ))}
+            </div>
+            {rows.length === 0 && (
+              <EmptyState
+                icon={<BookOpen className="size-10 text-muted-foreground" />}
+                title="لا مجموعات في هذا النشاط"
+                description="جرّب تغيير النشاط أو الفلاتر."
+                action={
+                  can(ctx.role, "group:create") ? (
+                    <Link href="/dashboard/groups/new" className={buttonVariants({ size: "sm" })}>
+                      إضافة أول مجموعة
+                    </Link>
+                  ) : undefined
+                }
+              />
+            )}
+          </>
+        )}
       </div>
     </PageContainer>
   );
