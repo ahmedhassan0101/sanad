@@ -1,5 +1,5 @@
-// كتالوج البرامج الجاهزة — يُختار منها عند إنشاء المركز.
-export const PROGRAM_CATALOG = [
+// كتالوج الأنشطة الجاهزة — يُختار منها عند إنشاء المجموعة.
+export const ACTIVITIES_CATALOG = [
   { key: "quran", name: "القرآن" },
   { key: "tajweed", name: "التجويد" },
   { key: "tarbiya", name: "التربية" },

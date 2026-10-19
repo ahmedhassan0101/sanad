@@ -1,4 +1,4 @@
-// صفحة إنشاء مجموعة جديدة — البرنامج يُحمله من الرابط إن كان صالحًا.
+// صفحة إنشاء مجموعة جديدة — النشاط يُحمله من الرابط إن كان صالحًا.
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";
@@ -8,13 +8,13 @@ import { listBranches } from "@/services/branches-read";
 import { listTeachers } from "@/services/teachers";
 import { viewer } from "@/services/viewer";
 import { can } from "@/lib/permissions/roles";
-import { PROGRAM_CATALOG } from "@/lib/programs";
+import { ACTIVITIES_CATALOG } from "@/lib/programs";
 import { CreateGroupForm } from "../_create-group-form";
 
 const ALL = "all";
 
-function validProgram(value: string | undefined): string {
-  const keys = [ALL, ...PROGRAM_CATALOG.map((p) => p.key)];
+function validActivity(value: string | undefined): string {
+  const keys = [ALL, ...ACTIVITIES_CATALOG.map((a) => a.key)];
   return value !== undefined && keys.includes(value) ? value : ALL;
 }
 
@@ -28,19 +28,19 @@ export default async function NewGroupPage({
   if (!can(ctx.role, "group:create")) redirect("/dashboard");
 
   const sp = await searchParams;
-  const program = validProgram(sp.program);
+  const activity = validActivity(sp.activity);
   const branches = await listBranches(ctx);
   const showBranch = branches.length > 1;
   const teachers = await listTeachers(ctx, { status: "active" });
 
-  const programLabel = PROGRAM_CATALOG.find((p) => p.key === program)?.name ?? program;
+  const activityLabel = ACTIVITIES_CATALOG.find((a) => a.key === activity)?.name ?? activity;
 
   return (
     <PageContainer narrow>
       <div className="flex flex-col gap-4">
         <PageHeader
           title="إضافة مجموعة"
-          description={`برنامج ${programLabel}`}
+          description={`ينتمي لنشاط ${activityLabel}`}
           actions={
             <Link href="/dashboard/groups" className={buttonVariants({ variant: "ghost" })}>
               رجوع للقائمة
@@ -53,7 +53,7 @@ export default async function NewGroupPage({
           </CardHeader>
           <CardContent>
             <CreateGroupForm
-              program={program}
+              activity={activity}
               branches={branches.map((b) => ({ id: String(b._id), name: b.name }))}
               showBranch={showBranch}
               teachers={teachers.items.map((t) => ({ id: String(t._id), name: t.name }))}

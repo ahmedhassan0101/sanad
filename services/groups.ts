@@ -1,4 +1,4 @@
-// خدمات المجموعات والتسجيلات: عزل دائم بـ scopedFilter، والتحقق من الفرع والمعلم والبرنامج.
+// خدمات المجموعات والتسجيلات: عزل دائم بـ scopedFilter، والتحقق من الفرع والمعلم والنشاط.
 import "server-only";
 import { Types } from "mongoose";
 import { connectDB } from "@/db/connection";
@@ -12,11 +12,11 @@ import { can, type Action } from "@/lib/permissions/roles";
 import { normalizeArabic } from "@/lib/students";
 import type { SessionContext } from "@/lib/tenant/context";
 import { scopedFilter } from "@/lib/tenant/scopedFilter";
-import { PROGRAM_CATALOG } from "@/lib/programs";
+import { ACTIVITIES_CATALOG } from "@/lib/programs";
 
 type MemberCtx = Extract<SessionContext, { kind: "member" }>;
 
-const PROGRAM_KEYS: Set<string> = new Set(PROGRAM_CATALOG.map((p) => p.key));
+const ACTIVITY_KEYS: Set<string> = new Set(ACTIVITIES_CATALOG.map((a) => a.key));
 
 function requirePerm(ctx: MemberCtx, action: Action) {
   if (!can(ctx.role, action)) throw new Error("FORBIDDEN: لا صلاحية لديك");
@@ -26,8 +26,8 @@ function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function validProgramKey(key: string): boolean {
-  return PROGRAM_KEYS.has(key);
+function validActivityKey(key: string): boolean {
+  return ACTIVITY_KEYS.has(key);
 }
 
 // الفرع من النطاق على السيرفر (نفس منطق الطلاب/المعلمين).
@@ -70,7 +70,7 @@ async function memberCounts(ctx: MemberCtx, groupIds: Types.ObjectId[]): Promise
 }
 
 export interface GroupListQuery {
-  programKey?: string;
+  activityKey?: string;
   q?: string;
   teacherId?: string;
   status?: string;
@@ -80,8 +80,8 @@ export interface GroupRow {
   id: string;
   orgId: Types.ObjectId;
   branchId: Types.ObjectId;
-  programKey: string;
-  programName: string;
+  activityKey: string;
+  activityName: string;
   name: string;
   scheduleText: string | null;
   teacherId: Types.ObjectId | null;
@@ -96,11 +96,11 @@ export interface GroupRow {
 export async function listGroups(ctx: MemberCtx, query: GroupListQuery): Promise<GroupRow[]> {
   requirePerm(ctx, "group:create");
   await connectDB();
-  const { programKey, q, teacherId, status = "active" } = query;
+  const { activityKey, q, teacherId, status = "active" } = query;
   const filter: Record<string, unknown> = { ...scopedFilter(ctx), status };
-  if (programKey) {
-    if (!validProgramKey(programKey)) throw new Error("VALIDATION: برنامج غير صالح");
-    filter.programKey = programKey;
+  if (activityKey) {
+    if (!validActivityKey(activityKey)) throw new Error("VALIDATION: نشاط غير صالح");
+    filter.activityKey = activityKey;
   }
   if (teacherId) filter.teacherId = new Types.ObjectId(teacherId);
   const trimmed = (q ?? "").trim();
@@ -112,7 +112,7 @@ export async function listGroups(ctx: MemberCtx, query: GroupListQuery): Promise
     ];
   }
   const groups = await Group.find(filter)
-    .sort({ programKey: 1, name: 1 })
+    .sort({ activityKey: 1, name: 1 })
     .lean();
   const counts = await memberCounts(ctx, groups.map((g) => g._id));
   const teacherIds = [...new Set(groups.filter((g) => g.teacherId).map((g) => g.teacherId))];
@@ -120,13 +120,13 @@ export async function listGroups(ctx: MemberCtx, query: GroupListQuery): Promise
     ? await Teacher.find({ _id: { $in: teacherIds }, orgId: ctx.orgId }).select("_id name").lean()
     : [];
   const teacherMap = new Map<string, string>(teachers.map((t) => [String(t._id), t.name]));
-  const programMap = new Map<string, string>(PROGRAM_CATALOG.map((p) => [p.key, p.name]));
+  const activityMap = new Map<string, string>(ACTIVITIES_CATALOG.map((a) => [a.key, a.name]));
   return groups.map((g) => ({
     id: String(g._id),
     orgId: g.orgId,
     branchId: g.branchId,
-    programKey: g.programKey,
-    programName: programMap.get(g.programKey) ?? g.programKey,
+    activityKey: g.activityKey,
+    activityName: activityMap.get(g.activityKey) ?? g.activityKey,
     name: g.name,
     scheduleText: g.scheduleText,
     teacherId: g.teacherId,
@@ -140,13 +140,13 @@ export async function listGroups(ctx: MemberCtx, query: GroupListQuery): Promise
 }
 
 export interface GroupsOverview {
-  programKey?: string;
-  programName?: string;
+  activityKey?: string;
+  activityName?: string;
   activeGroups: number;
   studentCount: number;
   teacherCount: number;
   groupsWithoutTeacher: number;
-  programStats?: Array<{
+  activityStats?: Array<{
     key: string;
     name: string;
     activeGroups: number;
@@ -156,8 +156,8 @@ export interface GroupsOverview {
   }>;
 }
 
-// العدادات المختصرة لكل برنامج بتجميع واحد ($group على programKey).
-export async function getGroupsOverview(ctx: MemberCtx, { programKey }: { programKey?: string }) {
+// العدادات المختصرة لكل نشاط بتجميع واحد ($group على activityKey).
+export async function getGroupsOverview(ctx: MemberCtx, { activityKey }: { activityKey?: string }) {
   requirePerm(ctx, "group:create");
   await connectDB();
   const base = scopedFilter(ctx);
@@ -166,26 +166,26 @@ export async function getGroupsOverview(ctx: MemberCtx, { programKey }: { progra
     (id) => id as Types.ObjectId,
   );
 
-  if (programKey) {
-    if (!validProgramKey(programKey)) throw new Error("VALIDATION: برنامج غير صالح");
+  if (activityKey) {
+    if (!validActivityKey(activityKey)) throw new Error("VALIDATION: نشاط غير صالح");
     const [groupsRes, studentsRes, teachersRes, noTeacherRes] = await Promise.all([
-      Group.countDocuments({ ...activeFilter, programKey }),
+      Group.countDocuments({ ...activeFilter, activityKey }),
       Enrollment.aggregate([
-        { $match: { ...base, programKey, status: "active", groupId: { $in: activeGroupIds } } },
+        { $match: { ...base, activityKey, status: "active", groupId: { $in: activeGroupIds } } },
         { $group: { _id: null, students: { $addToSet: "$studentId" } } },
         { $project: { count: { $size: "$students" }, _id: 0 } },
       ]),
       Group.aggregate([
-        { $match: { ...activeFilter, programKey, teacherId: { $ne: null } } },
+        { $match: { ...activeFilter, activityKey, teacherId: { $ne: null } } },
         { $group: { _id: null, teachers: { $addToSet: "$teacherId" } } },
         { $project: { count: { $size: "$teachers" }, _id: 0 } },
       ]),
-      Group.countDocuments({ ...activeFilter, programKey, teacherId: null }),
+      Group.countDocuments({ ...activeFilter, activityKey, teacherId: null }),
     ]);
-    const p = PROGRAM_CATALOG.find((p) => p.key === programKey)!;
+    const a = ACTIVITIES_CATALOG.find((a) => a.key === activityKey)!;
     return {
-      programKey,
-      programName: p.name,
+      activityKey,
+      activityName: a.name,
       activeGroups: groupsRes,
       studentCount: studentsRes[0]?.count ?? 0,
       teacherCount: teachersRes[0]?.count ?? 0,
@@ -193,34 +193,7 @@ export async function getGroupsOverview(ctx: MemberCtx, { programKey }: { progra
     };
   }
 
-  if (programKey) {
-    if (!validProgramKey(programKey)) throw new Error("VALIDATION: برنامج غير صالح");
-    const [groupsRes, studentsRes, teachersRes, noTeacherRes] = await Promise.all([
-      Group.countDocuments({ ...activeFilter, programKey }),
-      Enrollment.aggregate([
-        { $match: { ...base, programKey, status: "active", groupId: { $in: activeGroupIds } } },
-        { $group: { _id: null, students: { $addToSet: "$studentId" } } },
-        { $project: { count: { $size: "$students" }, _id: 0 } },
-      ]),
-      Group.aggregate([
-        { $match: { ...activeFilter, programKey, teacherId: { $ne: null } } },
-        { $group: { _id: null, teachers: { $addToSet: "$teacherId" } } },
-        { $project: { count: { $size: "$teachers" }, _id: 0 } },
-      ]),
-      Group.countDocuments({ ...activeFilter, programKey, teacherId: null }),
-    ]);
-    const p = PROGRAM_CATALOG.find((p) => p.key === programKey)!;
-    return {
-      programKey,
-      programName: p.name,
-      activeGroups: groupsRes,
-      studentCount: studentsRes[0]?.count ?? 0,
-      teacherCount: teachersRes[0]?.count ?? 0,
-      groupsWithoutTeacher: noTeacherRes,
-    };
-  }
-
-  // الإجماليات لكل المركز + عدّادات مختصرة لكل برنامج بتجميع واحد.
+  // الإجماليات لكل المركز + عدادات مختصرة لكل نشاط بتجميع واحد.
   const [
     activeGroupsTotal,
     studentDistinctTotal,
@@ -245,46 +218,46 @@ export async function getGroupsOverview(ctx: MemberCtx, { programKey }: { progra
     Group.countDocuments({ ...activeFilter, teacherId: null }),
     Group.aggregate([
       { $match: { ...activeFilter } },
-      { $group: { _id: "$programKey", count: { $sum: 1 } } },
+      { $group: { _id: "$activityKey", count: { $sum: 1 } } },
     ]),
     Enrollment.aggregate([
       { $match: { ...base, status: "active", groupId: { $in: activeGroupIds } } },
-      { $group: { _id: "$programKey", students: { $addToSet: "$studentId" } } },
-      { $project: { programKey: "$_id", count: { $size: "$students" }, _id: 0 } },
+      { $group: { _id: "$activityKey", students: { $addToSet: "$studentId" } } },
+      { $project: { activityKey: "$_id", count: { $size: "$students" }, _id: 0 } },
     ]),
     Group.aggregate([
       { $match: { ...activeFilter, teacherId: { $ne: null } } },
-      { $group: { _id: "$programKey", teachers: { $addToSet: "$teacherId" } } },
-      { $project: { programKey: "$_id", count: { $size: "$teachers" }, _id: 0 } },
+      { $group: { _id: "$activityKey", teachers: { $addToSet: "$teacherId" } } },
+      { $project: { activityKey: "$_id", count: { $size: "$teachers" }, _id: 0 } },
     ]),
     Group.aggregate([
       { $match: { ...activeFilter, teacherId: null } },
-      { $group: { _id: "$programKey", count: { $sum: 1 } } },
+      { $group: { _id: "$activityKey", count: { $sum: 1 } } },
     ]),
   ]);
 
-  const getCount = (rows: { _id?: unknown; programKey?: unknown; count?: number }[], key: string) => {
-    const r = rows.find((x) => String(x._id ?? x.programKey) === key);
+  const getCount = (rows: { _id?: unknown; activityKey?: unknown; count?: number }[], key: string) => {
+    const r = rows.find((x) => String(x._id ?? x.activityKey) === key);
     return r ? (r.count ?? 0) : 0;
   };
 
-  const programStats = PROGRAM_CATALOG.map((p) => ({
-    key: p.key,
-    name: p.name,
-    activeGroups: getCount(groupStats, p.key),
-    studentCount: getCount(studentStats, p.key),
-    teacherCount: getCount(teacherStats, p.key),
-    groupsWithoutTeacher: getCount(noTeacherStats, p.key),
+  const activityStats = ACTIVITIES_CATALOG.map((a) => ({
+    key: a.key,
+    name: a.name,
+    activeGroups: getCount(groupStats, a.key),
+    studentCount: getCount(studentStats, a.key),
+    teacherCount: getCount(teacherStats, a.key),
+    groupsWithoutTeacher: getCount(noTeacherStats, a.key),
   }));
 
   return {
-    programKey: undefined,
-    programName: undefined,
+    activityKey: undefined,
+    activityName: undefined,
     activeGroups: activeGroupsTotal,
     studentCount: studentDistinctTotal[0]?.count ?? 0,
     teacherCount: teacherDistinctTotal[0]?.count ?? 0,
     groupsWithoutTeacher: noTeacherTotal,
-    programStats,
+    activityStats,
   };
 }
 
@@ -339,8 +312,8 @@ export async function getGroup(ctx: MemberCtx, id: string): Promise<GroupDetail>
     id: String(group._id),
     orgId: group.orgId,
     branchId: group.branchId,
-    programKey: group.programKey,
-    programName: PROGRAM_CATALOG.find((p) => p.key === group.programKey)?.name ?? group.programKey,
+    activityKey: group.activityKey,
+    activityName: ACTIVITIES_CATALOG.find((a) => a.key === group.activityKey)?.name ?? group.activityKey,
     name: group.name,
     scheduleText: group.scheduleText,
     teacherId: group.teacherId,
@@ -356,7 +329,7 @@ export async function getGroup(ctx: MemberCtx, id: string): Promise<GroupDetail>
 
 interface CreateGroupInput {
   branchId?: string;
-  programKey: string;
+  activityKey: string;
   name: string;
   scheduleText?: string;
   teacherId?: string;
@@ -372,17 +345,17 @@ interface CreateGroupResult {
 export async function createGroup(ctx: MemberCtx, input: CreateGroupInput): Promise<CreateGroupResult> {
   requirePerm(ctx, "group:create");
   const branchId = await resolveBranch(ctx, input.branchId);
-  if (!validProgramKey(input.programKey)) throw new Error("VALIDATION: برنامج غير صالح");
+  if (!validActivityKey(input.activityKey)) throw new Error("VALIDATION: نشاط غير صالح");
   const name = input.name.trim();
   if (!name) throw new Error("VALIDATION: اسم المجموعة مطلوب");
   const exists = await Group.findOne({
     orgId: ctx.orgId,
     branchId,
-    programKey: input.programKey,
+    activityKey: input.activityKey,
     name,
     status: "active",
   });
-  if (exists) throw new Error("VALIDATION: اسم مجموعة موجود بالفعل في هذا الفرع والبرنامج");
+  if (exists) throw new Error("VALIDATION: اسم مجموعة موجود بالفعل في هذا الفرع والنشاط");
   if (input.teacherId) {
     const teacher = await Teacher.findOne({
       _id: input.teacherId,
@@ -395,7 +368,7 @@ export async function createGroup(ctx: MemberCtx, input: CreateGroupInput): Prom
   const group = await Group.create({
     orgId: ctx.orgId,
     branchId,
-    programKey: input.programKey,
+    activityKey: input.activityKey,
     name,
     scheduleText: input.scheduleText ?? null,
     teacherId: input.teacherId ?? null,
@@ -431,12 +404,12 @@ export async function updateGroup(
     const exists = await Group.findOne({
       orgId: ctx.orgId,
       branchId: group.branchId,
-      programKey: group.programKey,
+      activityKey: group.activityKey,
       name,
       status: "active",
       _id: { $ne: id },
     });
-    if (exists) throw new Error("VALIDATION: اسم مجموعة موجود بالفعل في هذا الفرع والبرنامج");
+    if (exists) throw new Error("VALIDATION: اسم مجموعة موجود بالفعل في هذا الفرع والنشاط");
     group.name = name;
   }
   if (input.scheduleText !== undefined) group.scheduleText = input.scheduleText ?? null;
@@ -537,7 +510,7 @@ export async function enrollStudents(
       branchId: group.branchId,
       studentId: new Types.ObjectId(sid),
       groupId: group._id,
-      programKey: group.programKey,
+      activityKey: group.activityKey,
       status: "active",
       joinedAt: new Date(),
       leftAt: null,
@@ -563,24 +536,23 @@ export interface StudentSearchResult {
   level: string;
   phone: string | null;
   guardianPhone: string | null;
-  registeredIn: string[]; // أسماء مجموعاته النشطة في نفس البرنامج
+  registeredIn: string[]; // أسماء مجموعاته النشطة في نفس النشاط
 }
 
 export async function searchStudentsForGroup(
   ctx: MemberCtx,
-  { groupId, programKey, q }: { groupId?: string; programKey: string; q: string },
+  { groupId, activityKey, q }: { groupId?: string; activityKey: string; q: string },
 ): Promise<StudentSearchResult[]> {
   requirePerm(ctx, "enrollment:manage");
-  if (!validProgramKey(programKey)) throw new Error("VALIDATION: برنامج غير صالح");
+  if (!validActivityKey(activityKey)) throw new Error("VALIDATION: نشاط غير صالح");
   await connectDB();
   let branchId: Types.ObjectId | null = null;
   if (groupId) {
     if (!Types.ObjectId.isValid(groupId)) throw new Error("NOT_FOUND");
-    const group = await Group.findOne({ _id: groupId, orgId: ctx.orgId }).select("_id branchId programKey").lean();
+    const group = await Group.findOne({ _id: groupId, orgId: ctx.orgId }).select("_id branchId activityKey").lean();
     if (!group) throw new Error("NOT_FOUND");
     branchId = group.branchId;
-    if (!validProgramKey(group.programKey)) throw new Error("VALIDATION: برنامج غير صالح");
-    // استخدم برنامج المجموعة إذا لم يُمرّر programKey بشكل صريح أو إذا تطابق
+    if (!validActivityKey(group.activityKey)) throw new Error("VALIDATION: نشاط غير صالح");
   }
   const filter: Record<string, unknown> = { orgId: ctx.orgId, status: "active" };
   if (branchId) filter.branchId = branchId;
@@ -593,11 +565,11 @@ export async function searchStudentsForGroup(
     .limit(20)
     .lean();
   const studentIds = students.map((s) => s._id);
-  // التسجيلات النشطة لهؤلاء الطلاب في نفس البرنامج
+  // التسجيلات النشطة لهؤلاء الطلاب في نفس النشاط
   const enrollments = await Enrollment.find({
     orgId: ctx.orgId,
     studentId: { $in: studentIds },
-    programKey,
+    activityKey,
     status: "active",
   }).lean();
   const enrollByStudent = new Map<string, Types.ObjectId[]>();

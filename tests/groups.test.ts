@@ -90,7 +90,7 @@ function ctx(role: "center_admin" | "branch_admin" | "supervisor" = "center_admi
 describe("groups", () => {
   it("creates a group and lists it", async () => {
     const c = ctx();
-    const { groupId } = await createGroup(c, { programKey: "quran", name: "الفجر", teacherId: String(ids.t1) });
+    const { groupId } = await createGroup(c, { activityKey: "quran", name: "الفجر", teacherId: String(ids.t1) });
     expect(typeof groupId).toBe("string");
     const rows = await listGroups(c, {});
     expect(rows.length).toBe(1);
@@ -100,20 +100,20 @@ describe("groups", () => {
 
   it("org isolation: group in org B invisible to org A", async () => {
     const c = ctx();
-    await createGroup(c, { programKey: "quran", name: "أ" });
+    await createGroup(c, { activityKey: "quran", name: "أ" });
     const otherAdmin = await User.create({ name: "X", email: "x@g.test" });
     const orgB = await Org.create({ name: "B", contactPhone: "01", createdByUserId: otherAdmin._id });
     const bB = await Branch.create({ orgId: orgB._id, name: "BB" });
     const cB = memberCtx(otherAdmin._id, orgB._id, "center_admin", [bB._id]);
-    await createGroup(cB,{ programKey: "tajweed", name: "ب" });
+    await createGroup(cB, { activityKey: "tajweed", name: "ب" });
     expect(await listGroups(c, {})).toHaveLength(1);
     expect(await listGroups(cB, {})).toHaveLength(1);
   });
 
   it("branch isolation: supervisor of B1 does not see B2 groups", async () => {
     const c = ctx("supervisor", [ids.b1]);
-    await createGroup(c, { programKey: "quran", name: "ب1-أ" });
-    await expect(createGroup(c,{ programKey: "quran", name: "ب2-أ", branchId: String(ids.b2) })).rejects.toThrow("فرع خارج نطاقك");
+    await createGroup(c, { activityKey: "quran", name: "ب1-أ" });
+    await expect(createGroup(c, { activityKey: "quran", name: "ب2-أ", branchId: String(ids.b2) })).rejects.toThrow("فرع خارج نطاقك");
     const rows = await listGroups(c, {});
     expect(rows.map((r) => r.name)).toEqual(["ب1-أ"]);
   });
@@ -124,10 +124,10 @@ describe("groups", () => {
     expect(can("branch_admin", "group:delete")).toBe(true);
   });
 
-  it("student can enroll in multiple groups even same program", async () => {
+  it("student can enroll in multiple groups even same activity", async () => {
     const c = ctx();
-    const { groupId: g1 } = await createGroup(c, { programKey: "quran", name: "قرآن أ" });
-    const { groupId: g2 } = await createGroup(c, { programKey: "quran", name: "قرآن ب" });
+    const { groupId: g1 } = await createGroup(c, { activityKey: "quran", name: "قرآن أ" });
+    const { groupId: g2 } = await createGroup(c, { activityKey: "quran", name: "قرآن ب" });
     const r1 = await enrollStudents(c, g1, [String(ids.s1)]);
     const r2 = await enrollStudents(c, g2, [String(ids.s1)]);
     expect(r1[0]!.status).toBe("enrolled");
@@ -136,7 +136,7 @@ describe("groups", () => {
 
   it("rejects duplicate student in same group", async () => {
     const c = ctx();
-    const { groupId } = await createGroup(c, { programKey: "quran", name: "مكرر" });
+    const { groupId } = await createGroup(c, { activityKey: "quran", name: "مكرر" });
     await enrollStudents(c, groupId, [String(ids.s1)]);
     const res = await enrollStudents(c, groupId, [String(ids.s1)]);
     expect(res[0]!.status).toBe("already");
@@ -144,23 +144,23 @@ describe("groups", () => {
 
   it("rejects teacher from another branch", async () => {
     const c = ctx("supervisor", [ids.b1]);
-    await expect(createGroup(c, { programKey: "quran", name: "خارجي", teacherId: String(ids.t2) })).rejects.toThrow("غير نشط");
+    await expect(createGroup(c, { activityKey: "quran", name: "خارجي", teacherId: String(ids.t2) })).rejects.toThrow("غير نشط");
   });
 
   it("rejects archived teacher", async () => {
     const c = ctx();
     const tArch = await Teacher.create({ orgId: ids.org, branchId: ids.b1, name: "مؤرشف", nameSearch: normalizeArabic("مؤرشف"), status: "archived" });
-    await expect(createGroup(c, { programKey: "quran", name: "أ", teacherId: String(tArch._id) })).rejects.toThrow();
+    await expect(createGroup(c, { activityKey: "quran", name: "أ", teacherId: String(tArch._id) })).rejects.toThrow();
   });
 
-  it("rejects invalid program key", async () => {
+  it("rejects invalid activity key", async () => {
     const c = ctx();
-    await expect(createGroup(c, { programKey: "cooking", name: "طهي" })).rejects.toThrow("برنامج غير صالح");
+    await expect(createGroup(c, { activityKey: "cooking", name: "طهي" })).rejects.toThrow("نشاط غير صالح");
   });
 
   it("createGroup with students: partial success does not abort", async () => {
     const c = ctx();
-    const { groupId } = await createGroup(c, { programKey: "quran", name: "مختلط" });
+    const { groupId } = await createGroup(c, { activityKey: "quran", name: "مختلط" });
     const sBad = await mkStudent(ids.org, ids.b2, "في فرع آخر"); // wrong branch
     const res = await enrollStudents(c, groupId, [String(ids.s1), String(sBad._id), "not-an-id"]);
     expect(res.map((r) => r.status)).toEqual(["enrolled", "not_allowed", "not_allowed"]);
@@ -171,13 +171,13 @@ describe("groups", () => {
 
   it("archiveTeacher refuses when teacher has active groups", async () => {
     const c = ctx();
-    await createGroup(c, { programKey: "quran", name: "نشطة", teacherId: String(ids.t1) });
+    await createGroup(c, { activityKey: "quran", name: "نشطة", teacherId: String(ids.t1) });
     await expect(archiveTeacher(ctx(), String(ids.t1))).rejects.toThrow("مجموعات نشطة");
   });
 
   it("deleteTeacherPermanently refuses when any group linked (even archived)", async () => {
     const c = ctx();
-    const { groupId } = await createGroup(c, { programKey: "quran", name: "مؤرشفة", teacherId: String(ids.t1) });
+    const { groupId } = await createGroup(c, { activityKey: "quran", name: "مؤرشفة", teacherId: String(ids.t1) });
     await archiveGroup(c, groupId);
     const teacher = await Teacher.findById(ids.t1);
     teacher!.status = "archived";
@@ -188,32 +188,32 @@ describe("groups", () => {
 
   it("archive/restore group keeps enrollments out of counts", async () => {
     const c = ctx();
-    const { groupId } = await createGroup(c, { programKey: "quran", name: "عدّاد" });
+    const { groupId } = await createGroup(c, { activityKey: "quran", name: "عدّاد" });
     await enrollStudents(c, groupId, [String(ids.s1), String(ids.s2)]);
-    let ov = await getGroupsOverview(c, { programKey: "quran" });
+    let ov = await getGroupsOverview(c, { activityKey: "quran" });
     expect(ov.studentCount).toBe(2);
     await archiveGroup(c, groupId);
-    ov = await getGroupsOverview(c, { programKey: "quran" });
+    ov = await getGroupsOverview(c, { activityKey: "quran" });
     expect(ov.activeGroups).toBe(0);
     expect(ov.studentCount).toBe(0);
     await restoreGroup(c, groupId);
-    ov = await getGroupsOverview(c, { programKey: "quran" });
+    ov = await getGroupsOverview(c, { activityKey: "quran" });
     expect(ov.activeGroups).toBe(1);
     expect(ov.studentCount).toBe(2);
   });
 
-  it("getGroupsOverview counts distinct students across programs", async () => {
+  it("getGroupsOverview counts distinct students across activities", async () => {
     const c = ctx();
-    await createGroup(c, { programKey: "quran", name: "ق1" });
-    await createGroup(c, { programKey: "tajweed", name: "ت1" });
+    await createGroup(c, { activityKey: "quran", name: "ق1" });
+    await createGroup(c, { activityKey: "tajweed", name: "ت1" });
     const g1 = await Group.findOne({ name: "ق1" });
     const g2 = await Group.findOne({ name: "ت1" });
     expect(g1 && g2).toBeTruthy();
     if (!g1 || !g2) return;
     await enrollStudents(c, String(g1._id), [String(ids.s1)]);
     await enrollStudents(c, String(g2._id), [String(ids.s1), String(ids.s2)]);
-    const ov = await getGroupsOverview(c, { programKey: undefined });
-    const stats = ov.programStats ?? [];
+    const ov = await getGroupsOverview(c, { activityKey: undefined });
+    const stats = ov.activityStats ?? [];
     const quran = stats.find((p) => p.key === "quran");
     const tajweed = stats.find((p) => p.key === "tajweed");
     expect(quran!.studentCount).toBe(1);
@@ -222,7 +222,7 @@ describe("groups", () => {
 
   it("removeStudent sets left + leftAt", async () => {
     const c = ctx();
-    const { groupId } = await createGroup(c, { programKey: "quran", name: "إزالة" });
+    const { groupId } = await createGroup(c, { activityKey: "quran", name: "إزالة" });
     await enrollStudents(c, groupId, [String(ids.s1)]);
     await removeStudent(groupId, String(ids.s1));
     const e = await Enrollment.findOne({ groupId, studentId: ids.s1 }).lean();
@@ -232,16 +232,16 @@ describe("groups", () => {
 
   it("searchStudentsForGroup excludes already enrolled in same group", async () => {
     const c = ctx();
-    const { groupId } = await createGroup(c, { programKey: "quran", name: "بحث" });
+    const { groupId } = await createGroup(c, { activityKey: "quran", name: "بحث" });
     await enrollStudents(c, groupId, [String(ids.s1)]);
-    const res = await searchStudentsForGroup(c, { groupId, programKey: "quran", q: "طالب" });
+    const res = await searchStudentsForGroup(c, { groupId, activityKey: "quran", q: "طالب" });
     expect(res.find((r) => r.studentId === String(ids.s1))).toBeUndefined();
     expect(res.find((r) => r.studentId === String(ids.s2))).toBeDefined();
   });
 
   it("getGroup returns members with level/guardian/lastReport", async () => {
     const c = ctx();
-    const { groupId } = await createGroup(c, { programKey: "quran", name: "تفاصيل" });
+    const { groupId } = await createGroup(c, { activityKey: "quran", name: "تفاصيل" });
     await enrollStudents(c, groupId, [String(ids.s1)]);
     const detail = await getGroup(c, groupId);
     expect(detail.members).toHaveLength(1);
@@ -252,7 +252,7 @@ describe("groups", () => {
 
   it("updateGroup renames and changes teacher", async () => {
     const c = ctx();
-    const { groupId } = await createGroup(c, { programKey: "quran", name: "قديم" });
+    const { groupId } = await createGroup(c, { activityKey: "quran", name: "قديم" });
     await updateGroup(c, groupId, { name: "جديد", teacherId: null });
     const rows = await listGroups(c, {});
     expect(rows[0]!.name).toBe("جديد");

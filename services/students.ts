@@ -16,7 +16,7 @@ import { COLUMN_AR, toCreateInput } from "@/lib/excel-import";
 import type { SessionContext } from "@/lib/tenant/context";
 import { scopedFilter } from "@/lib/tenant/scopedFilter";
 import { createStudentSchema, toBirthDate, type CreateStudentInput, type UpdateStudentInput } from "@/validators/students";
-import { PROGRAM_CATALOG } from "@/lib/programs";
+import { ACTIVITIES_CATALOG } from "@/lib/programs";
 
 type MemberCtx = Extract<SessionContext, { kind: "member" }>;
 
@@ -98,16 +98,16 @@ export async function listStudents(ctx: MemberCtx, query: StudentListQuery) {
     status: "active",
   }).lean();
   const groupIds = [...new Set(enrollments.map((e) => e.groupId))];
-  const groups = await Group.find({ _id: { $in: groupIds }, orgId: ctx.orgId }).select("_id name programKey").lean();
+  const groups = await Group.find({ _id: { $in: groupIds }, orgId: ctx.orgId }).select("_id name activityKey").lean();
   const groupMap = new Map(groups.map((g) => [String(g._id), g]));
-  const programMap = new Map<string, string>(PROGRAM_CATALOG.map((p) => [p.key, p.name]));
-  const enrollByStudent = new Map<string, Array<{ programKey: string; programName: string; groupName: string }>>();
+  const activityMap = new Map<string, string>(ACTIVITIES_CATALOG.map((a) => [a.key, a.name]));
+  const enrollByStudent = new Map<string, Array<{ activityKey: string; activityName: string; groupName: string }>>();
   for (const e of enrollments) {
     const g = groupMap.get(String(e.groupId));
     const arr = enrollByStudent.get(String(e.studentId)) ?? [];
     arr.push({
-      programKey: e.programKey,
-      programName: programMap.get(e.programKey) ?? e.programKey,
+      activityKey: e.activityKey,
+      activityName: activityMap.get(e.activityKey) ?? e.activityKey,
       groupName: g?.name ?? "",
     });
     enrollByStudent.set(String(e.studentId), arr);
@@ -133,14 +133,14 @@ export async function getStudent(ctx: MemberCtx, id: string) {
   const teacherIds = [...new Set(groups.filter((g) => g.teacherId).map((g) => g.teacherId))];
   const teachers = teacherIds.length ? await Teacher.find({ _id: { $in: teacherIds }, orgId: ctx.orgId }).select("_id name").lean() : [];
   const teacherMap = new Map(teachers.map((t) => [String(t._id), t.name]));
-  const programMap = new Map<string, string>(PROGRAM_CATALOG.map((p) => [p.key, p.name]));
-  const enrich = (e: { groupId: Types.ObjectId; programKey: string; status: string; joinedAt: Date | null; leftAt: Date | null }) => {
+  const activityMap = new Map<string, string>(ACTIVITIES_CATALOG.map((a) => [a.key, a.name]));
+  const enrich = (e: { groupId: Types.ObjectId; activityKey: string; status: string; joinedAt: Date | null; leftAt: Date | null }) => {
     const g = groupMap.get(String(e.groupId));
     return {
       groupId: String(e.groupId),
       groupName: g?.name ?? "",
-      programKey: e.programKey,
-      programName: programMap.get(e.programKey) ?? e.programKey,
+      activityKey: e.activityKey,
+      activityName: activityMap.get(e.activityKey) ?? e.activityKey,
       teacherName: g?.teacherId ? (teacherMap.get(String(g.teacherId)) ?? null) : null,
       status: e.status,
       joinedAt: e.joinedAt,

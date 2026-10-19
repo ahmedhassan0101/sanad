@@ -17,7 +17,7 @@ import { createGroupAction } from "./actions";
 
 const createGroupSchema = z.object({
   branchId: z.string().optional(),
-  programKey: z.string(),
+  activityKey: z.string(),
   name: z.string().trim().min(2, "اسم المجموعة مطلوب").max(80, "اسم المجموعة طويل جدًا"),
   scheduleText: z.string().trim().max(100, "الوقت طويل جدًا").optional().or(z.literal("")),
   teacherId: z.string().optional().or(z.literal("")),
@@ -25,12 +25,12 @@ const createGroupSchema = z.object({
   studentIds: z.array(z.string()).optional(),
 });
 export function CreateGroupForm({
-  program,
+  activity,
   branches,
   showBranch,
   teachers,
 }: {
-  program: string;
+  activity: string;
   branches: { id: string; name: string }[];
   showBranch: boolean;
   teachers: { id: string; name: string }[];
@@ -40,7 +40,7 @@ export function CreateGroupForm({
     schema: createGroupSchema,
     defaultValues: {
       branchId: showBranch ? undefined : branches[0]?.id,
-      programKey: program,
+      activityKey: activity,
       name: "",
       scheduleText: "",
       teacherId: "",
@@ -83,7 +83,7 @@ export function CreateGroupForm({
         />
       )}
       {!showBranch && <input type="hidden" name="branchId" value={branches[0]?.id ?? ""} />}
-      <input type="hidden" name="programKey" value={program} />
+      <input type="hidden" name="activityKey" value={activity} />
       <FormInput
         control={form.control}
         name="name"

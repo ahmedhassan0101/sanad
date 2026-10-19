@@ -1,4 +1,4 @@
-// المجموعات: صفحة واحدة لكل البرامج.
+// المجموعات: صفحة واحدة لكل الأنشطة.
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BookOpen } from "lucide-react";
@@ -10,13 +10,13 @@ import { DataCell, DataRow, DataTable } from "@/components/data-table";
 import { listGroups, getGroupsOverview } from "@/services/groups";
 import { viewer } from "@/services/viewer";
 import { can } from "@/lib/permissions/roles";
-import { PROGRAM_CATALOG } from "@/lib/programs";
+import { ACTIVITIES_CATALOG } from "@/lib/programs";
 import type { GroupRow } from "@/services/groups";
 
 const ALL = "all";
 
-function validProgram(value: string | undefined): string {
-  const keys = [ALL, ...PROGRAM_CATALOG.map((p) => p.key)];
+function validActivity(value: string | undefined): string {
+  const keys = [ALL, ...ACTIVITIES_CATALOG.map((a) => a.key)];
   return value !== undefined && keys.includes(value) ? value : ALL;
 }
 
@@ -35,7 +35,7 @@ function GroupTableRow({ g }: { g: GroupRow }) {
         </Link>
       </DataCell>
       <DataCell>
-        <span>{g.programName}</span>
+        <span>{g.activityName}</span>
       </DataCell>
       <DataCell>
         <span>{g.teacherName ?? "—"}</span>
@@ -63,15 +63,15 @@ export default async function GroupsPage({
   if (!can(ctx.role, "group:create")) redirect("/dashboard");
 
   const sp = await searchParams;
-  const program = validProgram(sp.program);
+  const activity = validActivity(sp.activity);
   const q = sp.q ?? "";
   const teacher = sp.teacher ?? "";
   const status = sp.status ?? "active";
-  const prog = program === ALL ? undefined : program;
+  const act = activity === ALL ? undefined : activity;
 
   const [overview, rows] = await Promise.all([
-    getGroupsOverview(ctx, { programKey: prog }),
-    listGroups(ctx, { programKey: prog, q, teacherId: teacher, status }),
+    getGroupsOverview(ctx, { activityKey: act }),
+    listGroups(ctx, { activityKey: act, q, teacherId: teacher, status }),
   ]);
 
   return (
@@ -80,14 +80,14 @@ export default async function GroupsPage({
         <PageHeader
           title="المجموعات"
           description={
-            program === ALL
+            activity === ALL
               ? "كل مجموعات المركز"
-              : `${overview?.programName ?? program} — ${overview?.activeGroups} مجموعة`
+              : `${overview?.activityName ?? activity} — ${overview?.activeGroups} مجموعة`
           }
           actions={
             can(ctx.role, "group:create") && (
               <Link
-                href={`/dashboard/groups/new?program=${program}`}
+                href={`/dashboard/groups/new?activity=${activity}`}
                 className={buttonVariants()}
               >
                 إضافة مجموعة
@@ -98,18 +98,18 @@ export default async function GroupsPage({
         <div className="overflow-x-auto border-b border-border pb-2 mb-2">
           <div className="flex items-center gap-1 min-w-[600px]">
             <Link
-              href={`/dashboard/groups?program=all${q ? "&q=" + q : ""}`}
-              className={tabClass(program === ALL)}
+              href={`/dashboard/groups?activity=all${q ? "&q=" + q : ""}`}
+              className={tabClass(activity === ALL)}
             >
               الكل
             </Link>
-            {PROGRAM_CATALOG.map((p) => (
+            {ACTIVITIES_CATALOG.map((a) => (
               <Link
-                key={p.key}
-                href={`/dashboard/groups?program=${p.key}${q ? "&q=" + q : ""}`}
-                className={tabClass(program === p.key)}
+                key={a.key}
+                href={`/dashboard/groups?activity=${a.key}${q ? "&q=" + q : ""}`}
+                className={tabClass(activity === a.key)}
               >
-                {p.name}
+                {a.name}
               </Link>
             ))}
           </div>
@@ -122,15 +122,15 @@ export default async function GroupsPage({
           <EmptyState
             icon={<BookOpen className="size-10 text-muted-foreground" />}
             title={
-              program === ALL ? "لا مجموعات بعد" : "لا مجموعات في هذا البرنامج"
+              activity === ALL ? "لا مجموعات بعد" : "لا مجموعات في هذا النشاط"
             }
             description={
-              program === ALL
+              activity === ALL
                 ? "ابدأ بإضافة أول مجموعة لمركزك."
-                : "جرّب تغيير البرنامج أو الفلاتر."
+                : "جرّب تغيير النشاط أو الفلاتر."
             }
             action={
-              can(ctx.role, "group:create") && program === ALL ? (
+              can(ctx.role, "group:create") && activity === ALL ? (
                 <Link href="/dashboard/groups/new" className={buttonVariants({ size: "sm" })}>
                   إضافة أول مجموعة
                 </Link>
@@ -138,7 +138,7 @@ export default async function GroupsPage({
             }
           />
         ) : (
-          <DataTable density="compact" headers={["المgruppe", "البرنامج", "المعلم", "الأعضاء", "الحالة", "إجراءات"]}>
+          <DataTable density="compact" headers={["المجموعة", "النشاط", "المعلم", "الأعضاء", "الحالة", "إجراءات"]}>
             {rows.map((g) => <GroupTableRow key={g.id} g={g} />)}
           </DataTable>
         ) }
