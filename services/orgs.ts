@@ -7,6 +7,7 @@ import { Org } from "@/db/models/Org";
 import { Branch } from "@/db/models/Branch";
 import { Membership } from "@/db/models/Membership";
 import { User } from "@/db/models/User";
+import { validationError, forbiddenError } from "@/lib/app-error";
 
 const inputSchema = z.object({
   name: z.string().trim().min(2).max(80),
@@ -16,15 +17,15 @@ const inputSchema = z.object({
 
 export async function createCenter(userId: string, raw: unknown) {
   const parsed = inputSchema.safeParse(raw);
-  if (!parsed.success) throw new Error("VALIDATION: بيانات المركز ناقصة");
+  if (!parsed.success) throw validationError("بيانات المركز ناقصة");
   await connectDB();
   const uid = new Types.ObjectId(userId);
   const creator = await User.findById(uid).select("emailVerifiedAt");
   if (!creator || !creator.emailVerifiedAt) {
-    throw new Error("VALIDATION: فعّل بريدك أولاً قبل إنشاء مركز");
+    throw validationError("فعّل بريدك أولاً قبل إنشاء مركز");
   }
   const owned = await Org.countDocuments({ createdByUserId: uid });
-  if (owned >= 3) throw new Error("FORBIDDEN: الحد الأقصى 3 مراكز");
+  if (owned >= 3) throw forbiddenError("الحد الأقصى 3 مراكز");
   const session = await mongoose.startSession();
   try {
     let out: { orgId: string } = { orgId: "" };

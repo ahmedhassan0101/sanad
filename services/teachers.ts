@@ -5,24 +5,26 @@ import { connectDB } from "@/db/connection";
 import { Branch } from "@/db/models/Branch";
 import { Group } from "@/db/models/Group";
 import { Teacher } from "@/db/models/Teacher";
+import { Enrollment } from "@/db/models/Enrollment";
 import { can, type Action } from "@/lib/permissions/roles";
 import { deleteStudentImage } from "@/lib/cloudinary";
 import { normalizeArabic } from "@/lib/students";
 import type { SessionContext } from "@/lib/tenant/context";
 import { scopedFilter } from "@/lib/tenant/scopedFilter";
 import type { CreateTeacherInput, UpdateTeacherInput } from "@/validators/teachers";
+import { validationError, forbiddenError, notFoundError } from "@/lib/app-error";
 
 type MemberCtx = Extract<SessionContext, { kind: "member" }>;
 
 function requirePerm(ctx: MemberCtx, action: Action) {
-  if (!can(ctx.role, action)) throw new Error("FORBIDDEN: لا صلاحية لديك");
+  if (!can(ctx.role, action)) throw forbiddenError("لا صلاحية لديك");
 }
 
 function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-// الفرع من النطاق على السيرفر: مُعطى فيُتحقق، وحيد فيُعيَّن تلقائيًا.
+// الفرع من النطاق على السيرفر (نفس منطق الطلاب).
 async function resolveBranch(ctx: MemberCtx, branchId?: string): Promise<Types.ObjectId> {
   await connectDB();
   const branches = await Branch.find({ orgId: ctx.orgId, status: "active" })
@@ -31,18 +33,18 @@ async function resolveBranch(ctx: MemberCtx, branchId?: string): Promise<Types.O
   const inScope = (id: Types.ObjectId) =>
     ctx.branchScope.mode === "all" || ctx.branchScope.branchIds.some((b) => b.equals(id));
   if (branchId) {
-    if (!Types.ObjectId.isValid(branchId)) throw new Error("VALIDATION: الفرع غير صحيح");
+    if (!Types.ObjectId.isValid(branchId)) throw validationError("الفرع غير صحيح");
     const found = branches.find((b) => String(b._id) === branchId);
-    if (!found || !inScope(found._id)) throw new Error("FORBIDDEN: فرع خارج نطاقك");
+    if (!found || !inScope(found._id)) throw forbiddenError("فرع خارج نطاقك");
     return found._id;
   }
   if (branches.length === 1 && inScope(branches[0]!._id)) return branches[0]!._id;
-  throw new Error("VALIDATION: اختر الفرع");
+  throw validationError("اختر الفرع");
 }
 
 function inScopeOrThrow(ctx: MemberCtx, branchId: Types.ObjectId) {
   if (ctx.branchScope.mode === "list" && !ctx.branchScope.branchIds.some((b) => b.equals(branchId))) {
-    throw new Error("NOT_FOUND");
+    throw notFoundError();
   }
 }
 
@@ -81,10 +83,10 @@ export async function listTeachers(ctx: MemberCtx, query: TeacherListQuery) {
 
 export async function getTeacher(ctx: MemberCtx, id: string) {
   requirePerm(ctx, "teacher:create");
-  if (!Types.ObjectId.isValid(id)) throw new Error("NOT_FOUND");
+  if (!Types.ObjectId.isValid(id)) throw notFoundError();
   await connectDB();
   const teacher = await Teacher.findOne({ _id: id, orgId: ctx.orgId }).lean();
-  if (!teacher) throw new Error("NOT_FOUND");
+  if (!teacher) throw notFoundError();
   inScopeOrThrow(ctx, teacher.branchId);
   return teacher;
 }
@@ -144,7 +146,7 @@ export async function updateTeacher(ctx: MemberCtx, id: string, input: UpdateTea
   requirePerm(ctx, "teacher:edit");
   await connectDB();
   const teacher = await Teacher.findOne({ _id: id, orgId: ctx.orgId });
-  if (!teacher) throw new Error("NOT_FOUND");
+  if (!teacher) throw notFoundError();
   inScopeOrThrow(ctx, teacher.branchId);
   const nameSearch = normalizeArabic(input.name);
   const dup = await findDuplicate(ctx.orgId, teacher.branchId, nameSearch, id);
@@ -171,11 +173,11 @@ export async function archiveTeacher(ctx: MemberCtx, id: string) {
   requirePerm(ctx, "teacher:archive");
   await connectDB();
   const teacher = await Teacher.findOne({ _id: id, orgId: ctx.orgId });
-  if (!teacher) throw new Error("NOT_FOUND");
+  if (!teacher) throw notFoundError();
   inScopeOrThrow(ctx, teacher.branchId);
   const activeGroups = await Group.find({ orgId: ctx.orgId, teacherId: teacher._id, status: "active" }).select("name").lean();
   if (activeGroups.length > 0) {
-    throw new Error(`VALIDATION: لا يمكن أرشفة المعلم — له مجموعات نشطة: ${activeGroups.map((g) => g.name).join("، ")}`);
+    throw validationError(`لا يمكن أرشفة المعلم — له مجموعات نشطة: ${activeGroups.map((g) => g.name).join("، ")}`);
   }
   teacher.status = "archived";
   teacher.archivedAt = new Date();
@@ -186,7 +188,7 @@ export async function restoreTeacher(ctx: MemberCtx, id: string) {
   requirePerm(ctx, "teacher:archive");
   await connectDB();
   const teacher = await Teacher.findOne({ _id: id, orgId: ctx.orgId });
-  if (!teacher) throw new Error("NOT_FOUND");
+  if (!teacher) throw notFoundError();
   inScopeOrThrow(ctx, teacher.branchId);
   teacher.status = "active";
   teacher.archivedAt = null;
@@ -197,11 +199,11 @@ export async function deleteTeacherPermanently(ctx: MemberCtx, id: string) {
   requirePerm(ctx, "teacher:delete");
   await connectDB();
   const teacher = await Teacher.findOne({ _id: id, orgId: ctx.orgId });
-  if (!teacher) throw new Error("NOT_FOUND");
+  if (!teacher) throw notFoundError();
   inScopeOrThrow(ctx, teacher.branchId);
-  if (teacher.status !== "archived") throw new Error("VALIDATION: احذف المؤرشف فقط — أرشف المعلم أولًا");
+  if (teacher.status !== "archived") throw validationError("احذف المؤرشف فقط — أرشف المعلم أولًا");
   const linkedGroups = await Group.countDocuments({ orgId: ctx.orgId, teacherId: teacher._id });
-  if (linkedGroups > 0) throw new Error("VALIDATION: لا يمكن حذف المعلم — توجد مجموعات مرتبطة به");
+  if (linkedGroups > 0) throw validationError("لا يمكن حذف المعلم — توجد مجموعات مرتبطة به");
   const publicId = teacher.image?.publicId;
   await Teacher.deleteOne({ _id: teacher._id });
   if (publicId) await deleteStudentImage(publicId);

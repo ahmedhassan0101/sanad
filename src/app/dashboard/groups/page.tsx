@@ -98,7 +98,7 @@ export default async function GroupsPage({
         <div className="overflow-x-auto border-b border-border pb-2 mb-2">
           <div className="flex items-center gap-1 min-w-[600px]">
             <Link
-              href={`/dashboard/groups?activity=all${q ? "&q=" + q : ""}`}
+              href={`/dashboard/groups${q ? "?q=" + q : ""}`}
               className={tabClass(activity === ALL)}
             >
               الكل

@@ -10,6 +10,7 @@ import {
   restoreTeacher,
   updateTeacher,
 } from "@/services/teachers";
+import { errorMessage } from "@/lib/app-error";
 import { viewer } from "@/services/viewer";
 import {
   createTeacherSchema,
@@ -52,7 +53,7 @@ export async function createTeacherAction(
   } catch (e) {
     return {
       ok: false,
-      message: e instanceof Error ? e.message : "تعذر الحفظ",
+      message: errorMessage(e),
     };
   }
 }
@@ -79,7 +80,7 @@ export async function updateTeacherAction(
   } catch (e) {
     return {
       ok: false,
-      message: e instanceof Error ? e.message : "تعذر الحفظ",
+      message: errorMessage(e),
     };
   }
 }
@@ -93,7 +94,7 @@ export async function deleteTeacherAction(
   } catch (e) {
     return {
       ok: false,
-      message: e instanceof Error ? e.message : "تعذر الحذف",
+      message: errorMessage(e),
     };
   }
   redirect("/dashboard/teachers");

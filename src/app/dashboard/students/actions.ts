@@ -11,6 +11,7 @@ import {
   updateStudent,
 } from "@/services/students";
 import { isCloudinaryEnabled, uploadStudentImage } from "@/lib/cloudinary";
+import { errorMessage } from "@/lib/app-error";
 import { viewer } from "@/services/viewer";
 import {
   createStudentSchema,
@@ -53,7 +54,7 @@ export async function createStudentAction(
   } catch (e) {
     return {
       ok: false,
-      message: e instanceof Error ? e.message : "تعذر الحفظ",
+      message: errorMessage(e),
     };
   }
 }
@@ -80,7 +81,7 @@ export async function updateStudentAction(
   } catch (e) {
     return {
       ok: false,
-      message: e instanceof Error ? e.message : "تعذر الحفظ",
+      message: errorMessage(e),
     };
   }
 }
@@ -94,7 +95,7 @@ export async function deleteStudentAction(
   } catch (e) {
     return {
       ok: false,
-      message: e instanceof Error ? e.message : "تعذر الحذف",
+      message: errorMessage(e),
     };
   }
   redirect("/dashboard/students");
@@ -111,7 +112,7 @@ export async function regenerateCodeAction(
   } catch (e) {
     return {
       ok: false,
-      message: e instanceof Error ? e.message : "تعذر التجديد",
+      message: errorMessage(e),
     };
   }
 }

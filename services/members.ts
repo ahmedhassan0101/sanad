@@ -7,12 +7,13 @@ import { User } from "@/db/models/User";
 import type { SessionContext } from "@/lib/tenant/context";
 import { scopedFilter } from "@/lib/tenant/scopedFilter";
 import { assertBranchesInOrg, assertRankAllows, guardAdminChange } from "./memberships";
+import { forbiddenError, notFoundError } from "@/lib/app-error";
 
 type MemberCtx = Extract<SessionContext, { kind: "member" }>;
 
 function requireTeamAccess(ctx: MemberCtx) {
   if (ctx.role !== "center_admin" && ctx.role !== "branch_admin") {
-    throw new Error("FORBIDDEN: الفريق للمشرفين فقط");
+    throw forbiddenError("الفريق للمشرفين فقط");
   }
 }
 
@@ -40,14 +41,14 @@ export async function updateMember(
 ) {
   requireTeamAccess(ctx);
   await connectDB();
-  if (!Types.ObjectId.isValid(targetUserId)) throw new Error("FORBIDDEN");
+  if (!Types.ObjectId.isValid(targetUserId)) throw forbiddenError("غير مسموح");
   const target = await Membership.findOne({ userId: new Types.ObjectId(targetUserId), orgId: ctx.orgId });
-  if (!target) throw new Error("NOT_FOUND");
+  if (!target) throw notFoundError();
   assertRankAllows(ctx.role, target.role);
   if (ctx.role === "branch_admin") {
     const mine = ctx.branchScope.mode === "list" ? ctx.branchScope.branchIds : [];
     const shared = target.branchIds.some((b) => mine.some((x) => x.equals(b)));
-    if (!shared) throw new Error("FORBIDDEN: خارج فروعك");
+    if (!shared) throw forbiddenError("خارج فروعك");
   }
   if (patch.role && patch.role !== target.role) {
     assertRankAllows(ctx.role, patch.role);

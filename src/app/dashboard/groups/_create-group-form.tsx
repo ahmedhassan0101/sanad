@@ -14,6 +14,9 @@ import {
   useEntityForm,
 } from "@/components/form";
 import { createGroupAction } from "./actions";
+import { ACTIVITIES_CATALOG } from "@/lib/programs";
+
+const ALL = "all";
 
 const createGroupSchema = z.object({
   branchId: z.string().optional(),
@@ -40,7 +43,7 @@ export function CreateGroupForm({
     schema: createGroupSchema,
     defaultValues: {
       branchId: showBranch ? undefined : branches[0]?.id,
-      activityKey: activity,
+      activityKey: activity === ALL ? "" : activity,
       name: "",
       scheduleText: "",
       teacherId: "",
@@ -83,7 +86,14 @@ export function CreateGroupForm({
         />
       )}
       {!showBranch && <input type="hidden" name="branchId" value={branches[0]?.id ?? ""} />}
-      <input type="hidden" name="activityKey" value={activity} />
+      <FormSelect
+        control={form.control}
+        name="activityKey"
+        label="النشاط"
+        required
+        placeholder="اختر النشاط…"
+        options={ACTIVITIES_CATALOG.map((a) => ({ value: a.key, label: a.name }))}
+      />
       <FormInput
         control={form.control}
         name="name"

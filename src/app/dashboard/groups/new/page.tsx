@@ -1,4 +1,4 @@
-// صفحة إنشاء مجموعة جديدة — النشاط يُحمله من الرابط إن كان صالحًا.
+// صفحة إنشاء مجموعة جديدة — النشاط يُحمله من الرابط إن كان صالحًا، وقابل للتغيير.
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";

@@ -10,10 +10,12 @@ import { ayahsBetween, todayKeyCairo } from "@/lib/progress";
 import type { SessionContext } from "@/lib/tenant/context";
 import type { CreateReportInput, UpdateReportInput } from "@/validators/reports";
 
+import { validationError, forbiddenError, notFoundError } from "@/lib/app-error";
+
 type MemberCtx = Extract<SessionContext, { kind: "member" }>;
 
 function requirePerm(ctx: MemberCtx, action: Action) {
-  if (!can(ctx.role, action)) throw new Error("FORBIDDEN: لا صلاحية لديك");
+  if (!can(ctx.role, action)) throw forbiddenError("لا صلاحية لديك");
 }
 
 function inScope(ctx: MemberCtx, branchId: Types.ObjectId): boolean {
@@ -24,16 +26,16 @@ function inScope(ctx: MemberCtx, branchId: Types.ObjectId): boolean {
 }
 
 async function requireActiveStudent(ctx: MemberCtx, studentId: string) {
-  if (!Types.ObjectId.isValid(studentId)) throw new Error("NOT_FOUND");
+  if (!Types.ObjectId.isValid(studentId)) throw notFoundError();
   await connectDB();
   const student = await Student.findOne({ _id: studentId, orgId: ctx.orgId });
-  if (!student || !inScope(ctx, student.branchId)) throw new Error("NOT_FOUND");
+  if (!student || !inScope(ctx, student.branchId)) throw notFoundError();
   return student;
 }
 
 function checkPosition(pos: { surah: number; ayah: number }) {
   if (!isValidAyah(pos.surah, pos.ayah)) {
-    throw new Error("VALIDATION: موضع غير صحيح في المصحف");
+    throw validationError("موضع غير صحيح في المصحف");
   }
 }
 
@@ -56,12 +58,12 @@ export async function syncStudentPosition(studentId: Types.ObjectId) {
 
 export async function getReport(ctx: MemberCtx, reportId: string) {
   requirePerm(ctx, "student:report");
-  if (!Types.ObjectId.isValid(reportId)) throw new Error("NOT_FOUND");
+  if (!Types.ObjectId.isValid(reportId)) throw notFoundError();
   await connectDB();
   const report = await ProgressReport.findOne({ _id: reportId, orgId: ctx.orgId }).lean();
-  if (!report) throw new Error("NOT_FOUND");
+  if (!report) throw notFoundError();
   const student = await Student.findOne({ _id: report.studentId, orgId: ctx.orgId }).select("_id branchId");
-  if (!student || !inScope(ctx, student.branchId)) throw new Error("NOT_FOUND");
+  if (!student || !inScope(ctx, student.branchId)) throw notFoundError();
   return report;
 }
 
@@ -123,7 +125,7 @@ export async function createReport(ctx: MemberCtx, studentId: string, input: Cre
   requirePerm(ctx, "report:create");
   const student = await requireActiveStudent(ctx, studentId);
   if (student.status !== "active") {
-    throw new Error("VALIDATION: لا تقارير لطالب مؤرشف — استرجعه أولًا");
+    throw validationError("لا تقارير لطالب مؤرشف — استرجعه أولًا");
   }
   checkPosition(input.hifzPosition);
   if (input.revisionPosition) checkPosition(input.revisionPosition);
@@ -145,12 +147,12 @@ export async function createReport(ctx: MemberCtx, studentId: string, input: Cre
 
 export async function updateReport(ctx: MemberCtx, reportId: string, input: UpdateReportInput) {
   requirePerm(ctx, "report:edit");
-  if (!Types.ObjectId.isValid(reportId)) throw new Error("NOT_FOUND");
+  if (!Types.ObjectId.isValid(reportId)) throw notFoundError();
   await connectDB();
   const report = await ProgressReport.findOne({ _id: reportId, orgId: ctx.orgId });
-  if (!report) throw new Error("NOT_FOUND");
+  if (!report) throw notFoundError();
   const student = await Student.findOne({ _id: report.studentId, orgId: ctx.orgId });
-  if (!student || !inScope(ctx, student.branchId)) throw new Error("NOT_FOUND");
+  if (!student || !inScope(ctx, student.branchId)) throw notFoundError();
   checkPosition(input.hifzPosition);
   if (input.revisionPosition) checkPosition(input.revisionPosition);
   report.hifzPosition = { ...input.hifzPosition };
@@ -165,12 +167,12 @@ export async function updateReport(ctx: MemberCtx, reportId: string, input: Upda
 
 export async function deleteReport(ctx: MemberCtx, reportId: string) {
   requirePerm(ctx, "report:delete");
-  if (!Types.ObjectId.isValid(reportId)) throw new Error("NOT_FOUND");
+  if (!Types.ObjectId.isValid(reportId)) throw notFoundError();
   await connectDB();
   const report = await ProgressReport.findOne({ _id: reportId, orgId: ctx.orgId });
-  if (!report) throw new Error("NOT_FOUND");
+  if (!report) throw notFoundError();
   const student = await Student.findOne({ _id: report.studentId, orgId: ctx.orgId });
-  if (!student || !inScope(ctx, student.branchId)) throw new Error("NOT_FOUND");
+  if (!student || !inScope(ctx, student.branchId)) throw notFoundError();
   await ProgressReport.deleteOne({ _id: report._id });
   await syncStudentPosition(student._id);
 }

@@ -13,13 +13,18 @@ import { normalizeArabic } from "@/lib/students";
 import type { SessionContext } from "@/lib/tenant/context";
 import { scopedFilter } from "@/lib/tenant/scopedFilter";
 import { ACTIVITIES_CATALOG } from "@/lib/programs";
+import {
+  validationError,
+  forbiddenError,
+  notFoundError,
+} from "@/lib/app-error";
 
 type MemberCtx = Extract<SessionContext, { kind: "member" }>;
 
 const ACTIVITY_KEYS: Set<string> = new Set(ACTIVITIES_CATALOG.map((a) => a.key));
 
 function requirePerm(ctx: MemberCtx, action: Action) {
-  if (!can(ctx.role, action)) throw new Error("FORBIDDEN: لا صلاحية لديك");
+  if (!can(ctx.role, action)) throw forbiddenError("لا صلاحية لديك");
 }
 
 function escapeRegex(s: string): string {
@@ -39,9 +44,9 @@ async function resolveBranch(ctx: MemberCtx, branchId?: string): Promise<Types.O
   const inScope = (id: Types.ObjectId) =>
     ctx.branchScope.mode === "all" || ctx.branchScope.branchIds.some((b) => b.equals(id));
   if (branchId) {
-    if (!Types.ObjectId.isValid(branchId)) throw new Error("VALIDATION: الفرع غير صحيح");
+    if (!Types.ObjectId.isValid(branchId)) throw validationError("الفرع غير صحيح");
     const found = branches.find((b) => String(b._id) === branchId);
-    if (!found || !inScope(found._id)) throw new Error("FORBIDDEN: فرع خارج نطاقك");
+    if (!found || !inScope(found._id)) throw forbiddenError("فرع خارج نطاقك");
     return found._id;
   }
   if (branches.length === 1 && inScope(branches[0]!._id)) return branches[0]!._id;
@@ -50,12 +55,12 @@ async function resolveBranch(ctx: MemberCtx, branchId?: string): Promise<Types.O
     const only = ctx.branchScope.branchIds[0]!;
     if (inScope(only)) return only;
   }
-  throw new Error("VALIDATION: اختر الفرع");
+  throw validationError("اختر الفرع");
 }
 
 function inScopeOrThrow(ctx: MemberCtx, branchId: Types.ObjectId) {
   if (ctx.branchScope.mode === "list" && !ctx.branchScope.branchIds.some((b) => b.equals(branchId))) {
-    throw new Error("NOT_FOUND");
+    throw notFoundError();
   }
 }
 
@@ -99,7 +104,7 @@ export async function listGroups(ctx: MemberCtx, query: GroupListQuery): Promise
   const { activityKey, q, teacherId, status = "active" } = query;
   const filter: Record<string, unknown> = { ...scopedFilter(ctx), status };
   if (activityKey) {
-    if (!validActivityKey(activityKey)) throw new Error("VALIDATION: نشاط غير صالح");
+    if (!validActivityKey(activityKey)) throw validationError("نشاط غير صالح");
     filter.activityKey = activityKey;
   }
   if (teacherId) filter.teacherId = new Types.ObjectId(teacherId);
@@ -167,7 +172,7 @@ export async function getGroupsOverview(ctx: MemberCtx, { activityKey }: { activ
   );
 
   if (activityKey) {
-    if (!validActivityKey(activityKey)) throw new Error("VALIDATION: نشاط غير صالح");
+    if (!validActivityKey(activityKey)) throw validationError("نشاط غير صالح");
     const [groupsRes, studentsRes, teachersRes, noTeacherRes] = await Promise.all([
       Group.countDocuments({ ...activeFilter, activityKey }),
       Enrollment.aggregate([
@@ -276,10 +281,10 @@ export interface GroupDetail extends GroupRow {
 
 export async function getGroup(ctx: MemberCtx, id: string): Promise<GroupDetail> {
   requirePerm(ctx, "group:create");
-  if (!Types.ObjectId.isValid(id)) throw new Error("NOT_FOUND");
+  if (!Types.ObjectId.isValid(id)) throw notFoundError();
   await connectDB();
   const group = await Group.findOne({ _id: id, orgId: ctx.orgId }).lean();
-  if (!group) throw new Error("NOT_FOUND");
+  if (!group) throw notFoundError();
   inScopeOrThrow(ctx, group.branchId);
   const enrollments = await Enrollment.find({
     orgId: ctx.orgId,
@@ -345,9 +350,9 @@ interface CreateGroupResult {
 export async function createGroup(ctx: MemberCtx, input: CreateGroupInput): Promise<CreateGroupResult> {
   requirePerm(ctx, "group:create");
   const branchId = await resolveBranch(ctx, input.branchId);
-  if (!validActivityKey(input.activityKey)) throw new Error("VALIDATION: نشاط غير صالح");
+  if (!validActivityKey(input.activityKey)) throw validationError("نشاط غير صالح");
   const name = input.name.trim();
-  if (!name) throw new Error("VALIDATION: اسم المجموعة مطلوب");
+  if (!name) throw validationError("اسم المجموعة مطلوب");
   const exists = await Group.findOne({
     orgId: ctx.orgId,
     branchId,
@@ -355,7 +360,7 @@ export async function createGroup(ctx: MemberCtx, input: CreateGroupInput): Prom
     name,
     status: "active",
   });
-  if (exists) throw new Error("VALIDATION: اسم مجموعة موجود بالفعل في هذا الفرع والنشاط");
+  if (exists) throw validationError("اسم مجموعة موجود بالفعل في هذا الفرع والنشاط");
   if (input.teacherId) {
     const teacher = await Teacher.findOne({
       _id: input.teacherId,
@@ -363,7 +368,7 @@ export async function createGroup(ctx: MemberCtx, input: CreateGroupInput): Prom
       branchId,
       status: "active",
     });
-    if (!teacher) throw new Error("VALIDATION: المعلم غير نشط أو ليس في هذا الفرع");
+    if (!teacher) throw validationError("المعلم غير نشط أو ليس في هذا الفرع");
   }
   const group = await Group.create({
     orgId: ctx.orgId,
@@ -393,14 +398,14 @@ export async function updateGroup(
   input: UpdateGroupInput,
 ): Promise<void> {
   requirePerm(ctx, "group:edit");
-  if (!Types.ObjectId.isValid(id)) throw new Error("NOT_FOUND");
+  if (!Types.ObjectId.isValid(id)) throw notFoundError();
   await connectDB();
   const group = await Group.findOne({ _id: id, orgId: ctx.orgId });
-  if (!group) throw new Error("NOT_FOUND");
+  if (!group) throw notFoundError();
   inScopeOrThrow(ctx, group.branchId);
   if (input.name !== undefined) {
     const name = input.name.trim();
-    if (!name) throw new Error("VALIDATION: اسم المجموعة مطلوب");
+    if (!name) throw validationError("اسم المجموعة مطلوب");
     const exists = await Group.findOne({
       orgId: ctx.orgId,
       branchId: group.branchId,
@@ -409,7 +414,7 @@ export async function updateGroup(
       status: "active",
       _id: { $ne: id },
     });
-    if (exists) throw new Error("VALIDATION: اسم مجموعة موجود بالفعل في هذا الفرع والنشاط");
+    if (exists) throw validationError("اسم مجموعة موجود بالفعل في هذا الفرع والنشاط");
     group.name = name;
   }
   if (input.scheduleText !== undefined) group.scheduleText = input.scheduleText ?? null;
@@ -422,7 +427,7 @@ export async function updateGroup(
         branchId: group.branchId,
         status: "active",
       });
-      if (!teacher) throw new Error("VALIDATION: المعلم غير نشط أو ليس في هذا الفرع");
+      if (!teacher) throw validationError("المعلم غير نشط أو ليس في هذا الفرع");
       group.teacherId = new Types.ObjectId(input.teacherId);
     } else {
       group.teacherId = null;
@@ -433,10 +438,10 @@ export async function updateGroup(
 
 export async function archiveGroup(ctx: MemberCtx, id: string): Promise<void> {
   requirePerm(ctx, "group:archive");
-  if (!Types.ObjectId.isValid(id)) throw new Error("NOT_FOUND");
+  if (!Types.ObjectId.isValid(id)) throw notFoundError();
   await connectDB();
   const group = await Group.findOne({ _id: id, orgId: ctx.orgId });
-  if (!group) throw new Error("NOT_FOUND");
+  if (!group) throw notFoundError();
   inScopeOrThrow(ctx, group.branchId);
   group.status = "archived";
   group.archivedAt = new Date();
@@ -445,10 +450,10 @@ export async function archiveGroup(ctx: MemberCtx, id: string): Promise<void> {
 
 export async function restoreGroup(ctx: MemberCtx, id: string): Promise<void> {
   requirePerm(ctx, "group:archive");
-  if (!Types.ObjectId.isValid(id)) throw new Error("NOT_FOUND");
+  if (!Types.ObjectId.isValid(id)) throw notFoundError();
   await connectDB();
   const group = await Group.findOne({ _id: id, orgId: ctx.orgId });
-  if (!group) throw new Error("NOT_FOUND");
+  if (!group) throw notFoundError();
   inScopeOrThrow(ctx, group.branchId);
   group.status = "active";
   group.archivedAt = null;
@@ -457,12 +462,12 @@ export async function restoreGroup(ctx: MemberCtx, id: string): Promise<void> {
 
 export async function deleteGroupPermanently(ctx: MemberCtx, id: string): Promise<void> {
   requirePerm(ctx, "group:delete");
-  if (!Types.ObjectId.isValid(id)) throw new Error("NOT_FOUND");
+  if (!Types.ObjectId.isValid(id)) throw notFoundError();
   await connectDB();
-  const group = await Group.findOne({ _id: id, orgId: ctx.orgId });
-  if (!group) throw new Error("NOT_FOUND");
+  const group = await Group.findOne({ _id: id, orgId: ctx.orgId }).lean();
+  if (!group) throw notFoundError();
   if (group.status !== "archived")
-    throw new Error("VALIDATION: احذف المجموعة المؤرشفة فقط — أرشف المجموعة أولًا");
+    throw validationError("احذف المجموعة المؤرشفة فقط — أرشف المجموعة أولًا");
   await Enrollment.deleteMany({ orgId: ctx.orgId, groupId: group._id });
   await Group.deleteOne({ _id: group._id });
 }
@@ -473,10 +478,10 @@ export async function enrollStudents(
   studentIds: string[],
 ): Promise<Array<{ studentId: string; status: "enrolled" | "already" | "not_allowed"; reason?: string }>> {
   requirePerm(ctx, "enrollment:manage");
-  if (!Types.ObjectId.isValid(groupId)) throw new Error("NOT_FOUND");
+  if (!Types.ObjectId.isValid(groupId)) throw notFoundError();
   await connectDB();
   const group = await Group.findOne({ _id: groupId, orgId: ctx.orgId }).lean();
-  if (!group) throw new Error("NOT_FOUND");
+  if (!group) throw notFoundError();
   const validIds = studentIds.filter((s) => Types.ObjectId.isValid(s));
   const students = await Student.find({
     _id: { $in: validIds.map((s) => new Types.ObjectId(s)) },
@@ -522,9 +527,9 @@ export async function enrollStudents(
 
 export async function removeStudent(groupId: string, studentId: string): Promise<void> {
   await connectDB();
-  if (!Types.ObjectId.isValid(groupId) || !Types.ObjectId.isValid(studentId)) throw new Error("NOT_FOUND");
+  if (!Types.ObjectId.isValid(groupId) || !Types.ObjectId.isValid(studentId)) throw notFoundError();
   const enrollment = await Enrollment.findOne({ groupId, studentId, status: "active" });
-  if (!enrollment) throw new Error("NOT_FOUND");
+  if (!enrollment) throw notFoundError();
   enrollment.status = "left";
   enrollment.leftAt = new Date();
   await enrollment.save();
@@ -544,15 +549,15 @@ export async function searchStudentsForGroup(
   { groupId, activityKey, q }: { groupId?: string; activityKey: string; q: string },
 ): Promise<StudentSearchResult[]> {
   requirePerm(ctx, "enrollment:manage");
-  if (!validActivityKey(activityKey)) throw new Error("VALIDATION: نشاط غير صالح");
+  if (!validActivityKey(activityKey)) throw validationError("نشاط غير صالح");
   await connectDB();
   let branchId: Types.ObjectId | null = null;
   if (groupId) {
-    if (!Types.ObjectId.isValid(groupId)) throw new Error("NOT_FOUND");
+    if (!Types.ObjectId.isValid(groupId)) throw notFoundError();
     const group = await Group.findOne({ _id: groupId, orgId: ctx.orgId }).select("_id branchId activityKey").lean();
-    if (!group) throw new Error("NOT_FOUND");
+    if (!group) throw notFoundError();
     branchId = group.branchId;
-    if (!validActivityKey(group.activityKey)) throw new Error("VALIDATION: نشاط غير صالح");
+    if (!validActivityKey(group.activityKey)) throw validationError("نشاط غير صالح");
   }
   const filter: Record<string, unknown> = { orgId: ctx.orgId, status: "active" };
   if (branchId) filter.branchId = branchId;

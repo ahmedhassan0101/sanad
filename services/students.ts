@@ -17,11 +17,12 @@ import type { SessionContext } from "@/lib/tenant/context";
 import { scopedFilter } from "@/lib/tenant/scopedFilter";
 import { createStudentSchema, toBirthDate, type CreateStudentInput, type UpdateStudentInput } from "@/validators/students";
 import { ACTIVITIES_CATALOG } from "@/lib/programs";
+import { validationError, forbiddenError, notFoundError } from "@/lib/app-error";
 
 type MemberCtx = Extract<SessionContext, { kind: "member" }>;
 
 function requirePerm(ctx: MemberCtx, action: Action) {
-  if (!can(ctx.role, action)) throw new Error("FORBIDDEN: لا صلاحية لديك");
+  if (!can(ctx.role, action)) throw forbiddenError("لا صلاحية لديك");
 }
 
 function escapeRegex(s: string): string {
@@ -37,13 +38,13 @@ async function resolveBranch(ctx: MemberCtx, branchId?: string): Promise<Types.O
   const inScope = (id: Types.ObjectId) =>
     ctx.branchScope.mode === "all" || ctx.branchScope.branchIds.some((b) => b.equals(id));
   if (branchId) {
-    if (!Types.ObjectId.isValid(branchId)) throw new Error("VALIDATION: الفرع غير صحيح");
+    if (!Types.ObjectId.isValid(branchId)) throw validationError("الفرع غير صحيح");
     const found = branches.find((b) => String(b._id) === branchId);
-    if (!found || !inScope(found._id)) throw new Error("FORBIDDEN: فرع خارج نطاقك");
+    if (!found || !inScope(found._id)) throw forbiddenError("فرع خارج نطاقك");
     return found._id;
   }
   if (branches.length === 1 && inScope(branches[0]!._id)) return branches[0]!._id;
-  throw new Error("VALIDATION: اختر الفرع");
+  throw validationError("اختر الفرع");
 }
 
 async function uniqueParentCode(): Promise<string> {
@@ -51,7 +52,7 @@ async function uniqueParentCode(): Promise<string> {
     const code = generateCode(10);
     if (!(await Student.exists({ parentCode: code }))) return code;
   }
-  throw new Error("RETRY: تعذر توليد كود فريد");
+  throw validationError("تعذر توليد كود فريد");
 }
 
 export interface StudentListQuery {
@@ -118,12 +119,12 @@ export async function listStudents(ctx: MemberCtx, query: StudentListQuery) {
 
 export async function getStudent(ctx: MemberCtx, id: string) {
   requirePerm(ctx, "student:report");
-  if (!Types.ObjectId.isValid(id)) throw new Error("NOT_FOUND");
+  if (!Types.ObjectId.isValid(id)) throw notFoundError();
   await connectDB();
   const student = await Student.findOne({ _id: id, orgId: ctx.orgId }).lean();
-  if (!student) throw new Error("NOT_FOUND");
+  if (!student) throw notFoundError();
   if (ctx.branchScope.mode === "list" && !ctx.branchScope.branchIds.some((b) => b.equals(student.branchId))) {
-    throw new Error("NOT_FOUND");
+    throw notFoundError();
   }
   const enrollments = await Enrollment.find({ orgId: ctx.orgId, studentId: student._id, status: "active" }).lean();
   const pastEnrollments = await Enrollment.find({ orgId: ctx.orgId, studentId: student._id, status: "left" }).sort({ leftAt: -1 }).lean();
@@ -301,8 +302,8 @@ export async function createStudentsBulk(
   opts: { branchId?: string; confirmDuplicateRows?: number[] } = {},
 ): Promise<BulkRowResult[]> {
   requirePerm(ctx, "student:import");
-  if (!Array.isArray(rows)) throw new Error("VALIDATION: صفوف غير صالحة");
-  if (rows.length > MAX_BULK_ROWS) throw new Error("VALIDATION: الحد الأقصى 500 صف");
+  if (!Array.isArray(rows)) throw validationError("صفوف غير صالحة");
+  if (rows.length > MAX_BULK_ROWS) throw validationError("الحد الأقصى 500 صف");
   const branchId = await resolveBranch(ctx, opts.branchId);
   const confirmed = new Set(opts.confirmDuplicateRows ?? []);
   const seenInBatch = new Map<string, number>();
@@ -351,9 +352,9 @@ export async function updateStudent(ctx: MemberCtx, id: string, input: UpdateStu
   requirePerm(ctx, "student:edit");
   await connectDB();
   const student = await Student.findOne({ _id: id, orgId: ctx.orgId });
-  if (!student) throw new Error("NOT_FOUND");
+  if (!student) throw notFoundError();
   if (ctx.branchScope.mode === "list" && !ctx.branchScope.branchIds.some((b) => b.equals(student.branchId))) {
-    throw new Error("NOT_FOUND");
+    throw notFoundError();
   }
   const nameSearch = normalizeArabic(input.name);
   const dup = await findDuplicate(ctx.orgId, student.branchId, nameSearch, id);
@@ -386,9 +387,9 @@ export async function archiveStudent(ctx: MemberCtx, id: string) {
   requirePerm(ctx, "student:archive");
   await connectDB();
   const student = await Student.findOne({ _id: id, orgId: ctx.orgId });
-  if (!student) throw new Error("NOT_FOUND");
+  if (!student) throw notFoundError();
   if (ctx.branchScope.mode === "list" && !ctx.branchScope.branchIds.some((b) => b.equals(student.branchId))) {
-    throw new Error("NOT_FOUND");
+    throw notFoundError();
   }
   student.status = "archived";
   student.archivedAt = new Date();
@@ -399,9 +400,9 @@ export async function restoreStudent(ctx: MemberCtx, id: string) {
   requirePerm(ctx, "student:archive");
   await connectDB();
   const student = await Student.findOne({ _id: id, orgId: ctx.orgId });
-  if (!student) throw new Error("NOT_FOUND");
+  if (!student) throw notFoundError();
   if (ctx.branchScope.mode === "list" && !ctx.branchScope.branchIds.some((b) => b.equals(student.branchId))) {
-    throw new Error("NOT_FOUND");
+    throw notFoundError();
   }
   student.status = "active";
   student.archivedAt = null;
@@ -412,11 +413,11 @@ export async function deleteStudentPermanently(ctx: MemberCtx, id: string) {
   requirePerm(ctx, "student:delete");
   await connectDB();
   const student = await Student.findOne({ _id: id, orgId: ctx.orgId });
-  if (!student) throw new Error("NOT_FOUND");
+  if (!student) throw notFoundError();
   if (ctx.branchScope.mode === "list" && !ctx.branchScope.branchIds.some((b) => b.equals(student.branchId))) {
-    throw new Error("NOT_FOUND");
+    throw notFoundError();
   }
-  if (student.status !== "archived") throw new Error("VALIDATION: احذف المؤرشف فقط — أرشف الطالب أولًا");
+  if (student.status !== "archived") throw validationError("احذف المؤرشف فقط — أرشف الطالب أولًا");
   const publicId = student.image?.publicId;
   await ProgressReport.deleteMany({ studentId: student._id, orgId: ctx.orgId });
   await Enrollment.deleteMany({ studentId: student._id, orgId: ctx.orgId });
@@ -428,9 +429,9 @@ export async function regenerateParentCode(ctx: MemberCtx, id: string) {
   requirePerm(ctx, "student:edit");
   await connectDB();
   const student = await Student.findOne({ _id: id, orgId: ctx.orgId });
-  if (!student) throw new Error("NOT_FOUND");
+  if (!student) throw notFoundError();
   if (ctx.branchScope.mode === "list" && !ctx.branchScope.branchIds.some((b) => b.equals(student.branchId))) {
-    throw new Error("NOT_FOUND");
+    throw notFoundError();
   }
   student.parentCode = await uniqueParentCode();
   await student.save();
