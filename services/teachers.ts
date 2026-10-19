@@ -5,7 +5,6 @@ import { connectDB } from "@/db/connection";
 import { Branch } from "@/db/models/Branch";
 import { Group } from "@/db/models/Group";
 import { Teacher } from "@/db/models/Teacher";
-import { Enrollment } from "@/db/models/Enrollment";
 import { can, type Action } from "@/lib/permissions/roles";
 import { deleteStudentImage } from "@/lib/cloudinary";
 import { normalizeArabic } from "@/lib/students";

@@ -385,7 +385,7 @@ export async function createGroup(ctx: MemberCtx, input: CreateGroupInput): Prom
   return { groupId: String(group._id), enrollmentResults };
 }
 
-interface UpdateGroupInput {
+export interface UpdateGroupInput {
   name?: string;
   scheduleText?: string;
   teacherId?: string | null;

@@ -2,7 +2,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { createGroup } from "@/services/groups";
+import { createGroup, updateGroup, type UpdateGroupInput } from "@/services/groups";
 import { viewer } from "@/services/viewer";
 
 async function memberCtx() {
@@ -18,5 +18,15 @@ export async function createGroupAction(values: unknown) {
     return { ok: true, groupId: res.groupId };
   } catch (e) {
     return { ok: false, message: e instanceof Error ? e.message : "تعذر إضافة المجموعة" };
+  }
+}
+
+export async function updateGroupAction(id: string, values: unknown) {
+  const ctx = await memberCtx();
+  try {
+    await updateGroup(ctx, id, values as UpdateGroupInput);
+    return { ok: true, groupId: id };
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : "تعذر التعديل" };
   }
 }
