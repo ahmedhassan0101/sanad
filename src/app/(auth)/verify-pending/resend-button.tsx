@@ -25,3 +25,29 @@ export function ResendButton() {
     </Button>
   );
 }
+
+
+    // <Button
+    //   variant="outline"
+    //   className="w-full"
+    //   disabled={busy}
+    //   onClick={async () => {
+    //     if (busy) return;
+    //     setBusy(true);
+    //     try {
+    //       const res = await resendAction();
+
+    //       if (res.ok) {
+    //         toast.success("أُرسل الرابط إلى بريدك");
+    //       } else {
+    //         toast.error(res.message);
+    //       }
+    //     } catch {
+    //       toast.error("تعذر الإرسال — حاول مجددًا");
+    //     } finally {
+    //       setBusy(false);
+    //     }
+    //   }}
+    // >
+    //   إعادة إرسال الرابط
+    // </Button>

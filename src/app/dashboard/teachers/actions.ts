@@ -1,4 +1,3 @@
-// أكشنات المعلمين: إنشاء/تعديل/حذف/أرشفة — نفس نمط أكشنات الطلاب.
 "use server";
 
 import { revalidatePath } from "next/cache";

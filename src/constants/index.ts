@@ -21,6 +21,45 @@ export function defineOptions<const T extends readonly string[]>(
 export type OptionKey<O extends ReturnType<typeof defineOptions>> =
   O["keys"][number];
 
+export const MEMBERSHIP_ROLES = defineOptions(
+  ["center_admin", "branch_admin", "supervisor"] as const,
+  {
+    center_admin: "مدير مركز",
+    branch_admin: "مدير فرع",
+    supervisor: "مشرف",
+  },
+);
+
+export const MEMBERSHIP_STATUS = defineOptions(
+  ["active", "disabled"] as const,
+  {
+    active: "نشط",
+    disabled: "معطل",
+  },
+);
+
+export const USER_STATUS = defineOptions(
+  ["active", "disabled", "deleted"] as const,
+  {
+    active: "نشط",
+    disabled: "معطل",
+    deleted: "محذوف",
+  },
+);
+
+export const ENROLLMENT_STATUS = defineOptions(["active", "left"] as const, {
+  active: "منتظم (نشط)",
+  left: "منسحب",
+});
+
+export const TOKEN_TYPES = defineOptions(
+  ["verify-email", "reset-password"] as const,
+  {
+    "verify-email": "تفعيل البريد الإلكتروني",
+    "reset-password": "إعادة تعيين كلمة المرور",
+  },
+);
+
 export const GENDERS = defineOptions(["male", "female"] as const, {
   male: "ذكر",
   female: "أنثى",
@@ -31,7 +70,7 @@ export const LEVELS = defineOptions(
   { beginner: "مبتدئ", intermediate: "متوسط", advanced: "متقدم" },
 );
 
-export const STUDENT_STATUS = defineOptions(["active", "archived"] as const, {
+export const STATUS = defineOptions(["active", "archived"] as const, {
   active: "نشط",
   archived: "مؤرشف",
 });
@@ -79,12 +118,6 @@ export const TAJWEED_RATINGS = defineOptions(
     needs_practice: "يحتاج تدريب",
   },
 );
-
-export const ROLE_NAMES_AR: Record<string, string> = {
-  center_admin: "مدير مركز",
-  branch_admin: "مدير فرع",
-  supervisor: "مشرف",
-};
 
 const RAW_SURAHS: ReadonlyArray<readonly [number, string, number]> = [
   [1, "الفاتحة", 7],

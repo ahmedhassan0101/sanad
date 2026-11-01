@@ -4,13 +4,20 @@ import { Types } from "mongoose";
 import { connectDB } from "@/db/connection";
 import { ProgressReport } from "@/db/models/ProgressReport";
 import { Student } from "@/db/models/Student";
-import { isValidAyah } from "@/constants/students";
+import { isValidAyah } from "@/constants";
 import { can, type Action } from "@/lib/permissions/roles";
 import { ayahsBetween, todayKeyCairo } from "@/lib/progress";
 import type { SessionContext } from "@/lib/tenant/context";
-import type { CreateReportInput, UpdateReportInput } from "@/validators/reports";
+import type {
+  CreateReportInput,
+  UpdateReportInput,
+} from "@/validators/reports";
 
-import { validationError, forbiddenError, notFoundError } from "@/lib/app-error";
+import {
+  validationError,
+  forbiddenError,
+  notFoundError,
+} from "@/lib/app-error";
 
 type MemberCtx = Extract<SessionContext, { kind: "member" }>;
 
@@ -44,7 +51,10 @@ export async function syncStudentPosition(studentId: Types.ObjectId) {
   await connectDB();
   const student = await Student.findById(studentId);
   if (!student) return;
-  const latest = await ProgressReport.findOne({ studentId, orgId: student.orgId }).sort({
+  const latest = await ProgressReport.findOne({
+    studentId,
+    orgId: student.orgId,
+  }).sort({
     reportDateKey: -1,
     createdAt: -1,
   });
@@ -60,9 +70,15 @@ export async function getReport(ctx: MemberCtx, reportId: string) {
   requirePerm(ctx, "student:report");
   if (!Types.ObjectId.isValid(reportId)) throw notFoundError();
   await connectDB();
-  const report = await ProgressReport.findOne({ _id: reportId, orgId: ctx.orgId }).lean();
+  const report = await ProgressReport.findOne({
+    _id: reportId,
+    orgId: ctx.orgId,
+  }).lean();
   if (!report) throw notFoundError();
-  const student = await Student.findOne({ _id: report.studentId, orgId: ctx.orgId }).select("_id branchId");
+  const student = await Student.findOne({
+    _id: report.studentId,
+    orgId: ctx.orgId,
+  }).select("_id branchId");
   if (!student || !inScope(ctx, student.branchId)) throw notFoundError();
   return report;
 }
@@ -73,10 +89,18 @@ export async function getLatestReportKeys(
 ): Promise<Map<string, string>> {
   if (studentIds.length === 0) return new Map();
   await connectDB();
-  const rows = await ProgressReport.aggregate<{ _id: Types.ObjectId; reportDateKey: string }>([
+  const rows = await ProgressReport.aggregate<{
+    _id: Types.ObjectId;
+    reportDateKey: string;
+  }>([
     { $match: { orgId: ctx.orgId, studentId: { $in: studentIds } } },
     { $sort: { reportDateKey: -1, createdAt: -1 } },
-    { $group: { _id: "$studentId", reportDateKey: { $first: "$reportDateKey" } } },
+    {
+      $group: {
+        _id: "$studentId",
+        reportDateKey: { $first: "$reportDateKey" },
+      },
+    },
   ]);
   return new Map(rows.map((r) => [String(r._id), r.reportDateKey]));
 }
@@ -86,19 +110,34 @@ export interface ReportListQuery {
   pageSize?: number;
 }
 
-export async function listReports(ctx: MemberCtx, studentId: string, query: ReportListQuery = {}) {
+export async function listReports(
+  ctx: MemberCtx,
+  studentId: string,
+  query: ReportListQuery = {},
+) {
   requirePerm(ctx, "student:report");
   const student = await requireActiveStudent(ctx, studentId);
   const { page = 1, pageSize = 20 } = query;
   const safePage = Math.max(1, page);
   const safeSize = Math.min(Math.max(1, pageSize), 100);
   // استعلام واحد مرتب من الأقدم، والحساب في الذاكرة، ثم العرض من الأحدث.
-  const all = await ProgressReport.find({ studentId: student._id, orgId: ctx.orgId })
+  const all = await ProgressReport.find({
+    studentId: student._id,
+    orgId: ctx.orgId,
+  })
     .sort({ reportDateKey: 1, createdAt: 1 })
     .lean();
-  const start = student.hifzStart ? { surah: student.hifzStart.surah, ayah: student.hifzStart.ayah } : null;
+  const start = student.hifzStart
+    ? { surah: student.hifzStart.surah, ayah: student.hifzStart.ayah }
+    : null;
   const enriched = all.map((r, i) => {
-    const prev = i === 0 ? start : { surah: all[i - 1]!.hifzPosition.surah, ayah: all[i - 1]!.hifzPosition.ayah };
+    const prev =
+      i === 0
+        ? start
+        : {
+            surah: all[i - 1]!.hifzPosition.surah,
+            ayah: all[i - 1]!.hifzPosition.ayah,
+          };
     const current = { surah: r.hifzPosition.surah, ayah: r.hifzPosition.ayah };
     return {
       id: String(r._id),
@@ -117,11 +156,17 @@ export async function listReports(ctx: MemberCtx, studentId: string, query: Repo
     };
   });
   const total = enriched.length;
-  const items = enriched.reverse().slice((safePage - 1) * safeSize, safePage * safeSize);
+  const items = enriched
+    .reverse()
+    .slice((safePage - 1) * safeSize, safePage * safeSize);
   return { items, total, page: safePage, pageSize: safeSize };
 }
 
-export async function createReport(ctx: MemberCtx, studentId: string, input: CreateReportInput) {
+export async function createReport(
+  ctx: MemberCtx,
+  studentId: string,
+  input: CreateReportInput,
+) {
   requirePerm(ctx, "report:create");
   const student = await requireActiveStudent(ctx, studentId);
   if (student.status !== "active") {
@@ -135,7 +180,9 @@ export async function createReport(ctx: MemberCtx, studentId: string, input: Cre
     studentId: student._id,
     reportDateKey: todayKeyCairo(),
     hifzPosition: { ...input.hifzPosition },
-    revisionPosition: input.revisionPosition ? { ...input.revisionPosition } : null,
+    revisionPosition: input.revisionPosition
+      ? { ...input.revisionPosition }
+      : null,
     tajweedRating: input.tajweedRating,
     trend: input.trend,
     notes: input.notes || null,
@@ -145,18 +192,30 @@ export async function createReport(ctx: MemberCtx, studentId: string, input: Cre
   return { id: String(report._id) };
 }
 
-export async function updateReport(ctx: MemberCtx, reportId: string, input: UpdateReportInput) {
+export async function updateReport(
+  ctx: MemberCtx,
+  reportId: string,
+  input: UpdateReportInput,
+) {
   requirePerm(ctx, "report:edit");
   if (!Types.ObjectId.isValid(reportId)) throw notFoundError();
   await connectDB();
-  const report = await ProgressReport.findOne({ _id: reportId, orgId: ctx.orgId });
+  const report = await ProgressReport.findOne({
+    _id: reportId,
+    orgId: ctx.orgId,
+  });
   if (!report) throw notFoundError();
-  const student = await Student.findOne({ _id: report.studentId, orgId: ctx.orgId });
+  const student = await Student.findOne({
+    _id: report.studentId,
+    orgId: ctx.orgId,
+  });
   if (!student || !inScope(ctx, student.branchId)) throw notFoundError();
   checkPosition(input.hifzPosition);
   if (input.revisionPosition) checkPosition(input.revisionPosition);
   report.hifzPosition = { ...input.hifzPosition };
-  report.revisionPosition = input.revisionPosition ? { ...input.revisionPosition } : null;
+  report.revisionPosition = input.revisionPosition
+    ? { ...input.revisionPosition }
+    : null;
   report.tajweedRating = input.tajweedRating;
   report.trend = input.trend;
   report.notes = input.notes || null;
@@ -169,9 +228,15 @@ export async function deleteReport(ctx: MemberCtx, reportId: string) {
   requirePerm(ctx, "report:delete");
   if (!Types.ObjectId.isValid(reportId)) throw notFoundError();
   await connectDB();
-  const report = await ProgressReport.findOne({ _id: reportId, orgId: ctx.orgId });
+  const report = await ProgressReport.findOne({
+    _id: reportId,
+    orgId: ctx.orgId,
+  });
   if (!report) throw notFoundError();
-  const student = await Student.findOne({ _id: report.studentId, orgId: ctx.orgId });
+  const student = await Student.findOne({
+    _id: report.studentId,
+    orgId: ctx.orgId,
+  });
   if (!student || !inScope(ctx, student.branchId)) throw notFoundError();
   await ProgressReport.deleteOne({ _id: report._id });
   await syncStudentPosition(student._id);

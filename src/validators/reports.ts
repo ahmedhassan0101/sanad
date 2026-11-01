@@ -1,6 +1,11 @@
 // مخططات التقارير المشتركة (عميل + سيرفر) — المواضع تُتحقق ضد عدد الآيات.
 import { z } from "zod";
-import { PROGRESS_TRENDS, TAJWEED_RATINGS, getSurah, isValidAyah } from "@/constants/students";
+import {
+  PROGRESS_TRENDS,
+  TAJWEED_RATINGS,
+  getSurah,
+  isValidAyah,
+} from "@/constants";
 import { optionalString } from "./common";
 
 export const reportPositionRule = z

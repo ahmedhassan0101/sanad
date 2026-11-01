@@ -10,7 +10,7 @@ export function PageContainer({
   narrow?: boolean;
 }) {
   return (
-    <div className={cn("page-container", narrow ? "max-w-2xl" : "max-w-5xl")}>
+    <div className={cn("page-container", narrow ? "max-w-3xl" : "max-w-7xl")}>
       {children}
     </div>
   );

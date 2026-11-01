@@ -15,25 +15,28 @@ export default async function NewTeacherPage() {
   if (!can(ctx.role, "teacher:create")) redirect("/dashboard/teachers");
   const branches = await listBranches(ctx);
   return (
-    <PageContainer narrow>
-    <div className="flex flex-col gap-4">
-      <PageHeader title="إضافة معلم" />
-      <Card>
-        <CardHeader>
-          <CardTitle>بيانات المعلم</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <TeacherForm
-            defaultValues={{}}
-            branches={branches.map((b) => ({ id: String(b._id), name: b.name }))}
-            showBranch={branches.length > 1}
-            submitLabel="إضافة المعلم"
-            imageEnabled={isCloudinaryEnabled()}
-            submit={createTeacherAction}
-          />
-        </CardContent>
-      </Card>
-    </div>
+    <PageContainer>
+      <div className="flex flex-col gap-4">
+        <PageHeader title="إضافة معلم" />
+        <Card>
+          <CardHeader>
+            <CardTitle>بيانات المعلم</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TeacherForm
+              defaultValues={{}}
+              branches={branches.map((b) => ({
+                id: String(b._id),
+                name: b.name,
+              }))}
+              showBranch={branches.length > 1}
+              submitLabel="إضافة المعلم"
+              imageEnabled={isCloudinaryEnabled()}
+              submitAction={createTeacherAction}
+            />
+          </CardContent>
+        </Card>
+      </div>
     </PageContainer>
   );
 }

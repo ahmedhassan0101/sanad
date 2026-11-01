@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { GENDERS, LEVELS, STUDENT_STATUS } from "@/constants/students";
+import { GENDERS, LEVELS, STATUS } from "@/constants";
 
 export function StudentsToolbar() {
   const [q, setQ] = useQueryState(
@@ -22,11 +22,15 @@ export function StudentsToolbar() {
   );
   const [level, setLevel] = useQueryState(
     "level",
-    parseAsString.withOptions({ clearOnDefault: true, shallow: false }).withDefault(""),
+    parseAsString
+      .withOptions({ clearOnDefault: true, shallow: false })
+      .withDefault(""),
   );
   const [gender, setGender] = useQueryState(
     "gender",
-    parseAsString.withOptions({ clearOnDefault: true, shallow: false }).withDefault(""),
+    parseAsString
+      .withOptions({ clearOnDefault: true, shallow: false })
+      .withDefault(""),
   );
   const [status, setStatus] = useQueryState(
     "status",
@@ -97,7 +101,7 @@ export function StudentsToolbar() {
           status,
           (v) => setStatus(v),
           "الكل",
-          STUDENT_STATUS.options,
+          STATUS.options,
           false,
         )}
         <label className="flex items-center gap-2 text-sm">

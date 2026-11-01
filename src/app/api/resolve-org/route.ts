@@ -1,4 +1,6 @@
+// src\app\api\resolve-org\route.ts
 // توجيه ما بعد الدخول: يثبت الكوكي هنا (لا يعمل cookies().set في المكوّنات).
+// post-login routing: sets the cookie here (cookies().set doesn't work in components).
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth/config";
 import { resolvePostLogin, setActiveOrgCookie } from "@/services/org-selection";

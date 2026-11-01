@@ -27,7 +27,9 @@ export async function listMyMemberships(userId: string) {
     userId: new Types.ObjectId(userId),
     status: "active",
   }).lean();
-  const orgs = await Org.find({ _id: { $in: memberships.map((m) => m.orgId) } }).lean();
+  const orgs = await Org.find({
+    _id: { $in: memberships.map((m) => m.orgId) },
+  }).lean();
   const nameOf = new Map(orgs.map((o) => [String(o._id), o.name]));
   return memberships.map((m) => ({
     orgId: String(m.orgId),
@@ -52,15 +54,23 @@ export async function activateOrg(userId: string, orgId: string) {
 // قرار ما بعد الدخول: بلا عضويات ← onboarding، واحدة ← تُختار تلقائيًا، أكثر ← select-org.
 export async function resolvePostLogin(
   userId: string,
-): Promise<{ kind: "none" } | { kind: "single"; orgId: string } | { kind: "many" }> {
+): Promise<
+  { kind: "none" } | { kind: "single"; orgId: string } | { kind: "many" }
+> {
   const memberships = await listMyMemberships(userId);
   if (memberships.length === 0) return { kind: "none" };
-  if (memberships.length === 1) return { kind: "single", orgId: memberships[0]!.orgId };
+  if (memberships.length === 1)
+    return { kind: "single", orgId: memberships[0]!.orgId };
   return { kind: "many" };
 }
 
-export async function activateBranchPref(userId: string, orgId: string, branchId: string | null) {
-  if (branchId !== null && !Types.ObjectId.isValid(branchId)) throw new Error("FORBIDDEN");
+export async function activateBranchPref(
+  userId: string,
+  orgId: string,
+  branchId: string | null,
+) {
+  if (branchId !== null && !Types.ObjectId.isValid(branchId))
+    throw new Error("FORBIDDEN");
   await requireVerifiedUser(userId);
   await connectDB();
   const m = await Membership.findOne({
@@ -70,11 +80,18 @@ export async function activateBranchPref(userId: string, orgId: string, branchId
   });
   if (!m) throw new Error("FORBIDDEN");
   if (branchId !== null) {
-    if (m.role !== "center_admin" && !m.branchIds.some((b) => b.equals(new Types.ObjectId(branchId)))) {
+    if (
+      m.role !== "center_admin" &&
+      !m.branchIds.some((b) => b.equals(new Types.ObjectId(branchId)))
+    ) {
       throw new Error("FORBIDDEN: خارج فروعك");
     }
     const { Branch } = await import("@/db/models/Branch");
-    const br = await Branch.findOne({ _id: new Types.ObjectId(branchId), orgId: m.orgId, status: "active" });
+    const br = await Branch.findOne({
+      _id: new Types.ObjectId(branchId),
+      orgId: m.orgId,
+      status: "active",
+    });
     if (!br) throw new Error("NOT_FOUND");
   }
   return { branchId };

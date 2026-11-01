@@ -1,7 +1,7 @@
 // قراءة ملف استيراد الطلاب (.xlsx فقط): توقيع zip، أول ورقة، عناوين بالاسم.
 // لا تُنفَّذ معادلات ولا يُسجَّل محتوى الملف في الـ logs.
 import ExcelJS from "exceljs";
-import { GENDERS, GUARDIAN_RELATIONS, LEVELS, QURAN_SURAHS } from "@/constants/students";
+import { GENDERS, GUARDIAN_RELATIONS, LEVELS, QURAN_SURAHS } from "@/constants";
 import { cleanPhone, toOptionKey } from "./students";
 
 export const MAX_IMPORT_BYTES = 5 * 1024 * 1024;
@@ -53,15 +53,26 @@ export function cellText(value: ExcelJS.CellValue): string {
     const p = (n: number) => String(n).padStart(2, "0");
     return `${value.getFullYear()}-${p(value.getMonth() + 1)}-${p(value.getDate())}`;
   }
-  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
-    if (typeof value === "number" && Number.isInteger(value)) return String(Math.trunc(value));
+  if (
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
+    if (typeof value === "number" && Number.isInteger(value))
+      return String(Math.trunc(value));
     return String(value);
   }
   if (typeof value === "object") {
-    if ("richText" in value && Array.isArray((value as { richText: { text: string }[] }).richText)) {
-      return (value as { richText: { text: string }[] }).richText.map((t) => t.text).join("");
+    if (
+      "richText" in value &&
+      Array.isArray((value as { richText: { text: string }[] }).richText)
+    ) {
+      return (value as { richText: { text: string }[] }).richText
+        .map((t) => t.text)
+        .join("");
     }
-    if ("result" in value) return cellText((value as { result: ExcelJS.CellValue }).result);
+    if ("result" in value)
+      return cellText((value as { result: ExcelJS.CellValue }).result);
     if ("text" in value) return String((value as { text: unknown }).text ?? "");
     if ("error" in value) return "";
   }
@@ -77,12 +88,17 @@ function excelSerialToDate(n: number): string {
 
 const SURAH_OPTIONS = {
   keys: QURAN_SURAHS.map((s) => String(s.number)),
-  labels: Object.fromEntries(QURAN_SURAHS.map((s) => [String(s.number), s.name])),
+  labels: Object.fromEntries(
+    QURAN_SURAHS.map((s) => [String(s.number), s.name]),
+  ),
 };
 
-export async function parseStudentWorkbook(buffer: ArrayBuffer): Promise<ParsedImportRow[]> {
+export async function parseStudentWorkbook(
+  buffer: ArrayBuffer,
+): Promise<ParsedImportRow[]> {
   const bytes = new Uint8Array(buffer);
-  if (bytes.length > MAX_IMPORT_BYTES) throw new Error("VALIDATION: الملف أكبر من 5MB");
+  if (bytes.length > MAX_IMPORT_BYTES)
+    throw new Error("VALIDATION: الملف أكبر من 5MB");
   if (bytes.length < 2 || bytes[0] !== 0x50 || bytes[1] !== 0x4b) {
     throw new Error("VALIDATION: الملف ليس Excel (.xlsx) صالحًا");
   }
@@ -93,7 +109,9 @@ export async function parseStudentWorkbook(buffer: ArrayBuffer): Promise<ParsedI
   const headerRow = ws.getRow(1);
   const colIndex = new Map<string, number>();
   headerRow.eachCell((cell, col) => {
-    const key = headerKey(typeof cell.value === "string" ? cell.value : cellText(cell.value));
+    const key = headerKey(
+      typeof cell.value === "string" ? cell.value : cellText(cell.value),
+    );
     if (key && !colIndex.has(key)) colIndex.set(key, col);
   });
   const missing = REQUIRED.filter((r) => !colIndex.has(r));
@@ -141,7 +159,12 @@ export function mapRow(raw: Record<string, string>): Record<string, unknown> {
     address: raw.address?.trim() || undefined,
     notes: raw.notes?.trim() || undefined,
     surah: (raw.surah ?? "").trim(),
-    ayah: ayahRaw === "" ? undefined : Number.isInteger(ayahNum) ? ayahNum : ayahRaw,
+    ayah:
+      ayahRaw === ""
+        ? undefined
+        : Number.isInteger(ayahNum)
+          ? ayahNum
+          : ayahRaw,
   };
 }
 
@@ -176,17 +199,26 @@ export function toCreateInput(cleaned: Record<string, unknown>): MappedRow {
   let guardians: { relation: string; phone: string }[];
   if (Array.isArray(cleaned.guardians)) {
     guardians = (cleaned.guardians as Record<string, unknown>[]).map((g) => ({
-      relation: toOptionKey(g?.relation, GUARDIAN_RELATIONS) ?? str(g?.relation),
+      relation:
+        toOptionKey(g?.relation, GUARDIAN_RELATIONS) ?? str(g?.relation),
       phone: cleanPhone(g?.phone),
     }));
   } else {
     const relationRaw = str(cleaned.relation);
-    const relation = relationRaw === "" ? "" : (toOptionKey(relationRaw, GUARDIAN_RELATIONS) ?? relationRaw);
+    const relation =
+      relationRaw === ""
+        ? ""
+        : (toOptionKey(relationRaw, GUARDIAN_RELATIONS) ?? relationRaw);
     const guardianPhone = cleanPhone(str(cleaned.guardianPhone));
     if (relationRaw !== "" && guardianPhone === "") {
-      errors.push({ column: "هاتف ولي الأمر", message: "الهاتف مطلوب مع وجود الصلة" });
+      errors.push({
+        column: "هاتف ولي الأمر",
+        message: "الهاتف مطلوب مع وجود الصلة",
+      });
     }
-    guardians = guardianPhone ? [{ relation: relation || "father", phone: guardianPhone }] : [];
+    guardians = guardianPhone
+      ? [{ relation: relation || "father", phone: guardianPhone }]
+      : [];
   }
   const surahRaw = str(cleaned.surah);
   const ayah = cleaned.ayah;
@@ -194,10 +226,15 @@ export function toCreateInput(cleaned: Record<string, unknown>): MappedRow {
   if (surahRaw === "" && ayah === undefined) {
     hifz = undefined;
   } else if (surahRaw !== "" && typeof ayah === "number") {
-    const key = /^\d+$/.test(surahRaw) ? surahRaw : toOptionKey(surahRaw, SURAH_OPTIONS);
+    const key = /^\d+$/.test(surahRaw)
+      ? surahRaw
+      : toOptionKey(surahRaw, SURAH_OPTIONS);
     hifz = key ? { surah: Number(key), ayah } : { surah: surahRaw, ayah };
   } else {
-    errors.push({ column: "موضع الحفظ", message: "السورة والآية معًا أو لا شيء" });
+    errors.push({
+      column: "موضع الحفظ",
+      message: "السورة والآية معًا أو لا شيء",
+    });
   }
   return {
     input: {

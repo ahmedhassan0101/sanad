@@ -1,3 +1,4 @@
+// src\app\(auth)\register\actions.ts
 "use server";
 
 import { redirect } from "next/navigation";
@@ -5,9 +6,7 @@ import { signIn } from "@/lib/auth/config";
 import { isEmailVerified, registerAccount } from "@/services/auth-accounts";
 import { registerSchema, type RegisterInput } from "@/validators/forms";
 
-export async function registerAction(
-  values: RegisterInput,
-): Promise<{ ok: true } | { ok: false; message: string }> {
+export async function registerAction(values: RegisterInput,): Promise<{ ok: true } | { ok: false; message: string }> {
   const parsed = registerSchema.safeParse(values);
   if (!parsed.success)
     return { ok: false, message: "تحقق من الحقول ثم حاول مجددًا" };

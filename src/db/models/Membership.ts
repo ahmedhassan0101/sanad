@@ -1,8 +1,8 @@
 import { Schema, model, models, type Document, type Model, type Types } from "mongoose";
+import { MEMBERSHIP_ROLES, MEMBERSHIP_STATUS, type OptionKey } from "@/constants";
 
-export type MembershipRole = "center_admin" | "branch_admin" | "supervisor";
-export type MembershipStatus = "active" | "disabled";
-
+export type MembershipRole = OptionKey<typeof MEMBERSHIP_ROLES>;
+export type MembershipStatus = OptionKey<typeof MEMBERSHIP_STATUS>;
 export interface MembershipDoc extends Document {
   userId: Types.ObjectId;
   orgId: Types.ObjectId;
@@ -19,7 +19,7 @@ const membershipSchema = new Schema<MembershipDoc>(
     orgId: { type: Schema.Types.ObjectId, ref: "Org", required: true },
     role: {
       type: String,
-      enum: ["center_admin", "branch_admin", "supervisor"],
+      enum: MEMBERSHIP_ROLES.values,
       required: true,
     },
     branchIds: {
@@ -35,7 +35,7 @@ const membershipSchema = new Schema<MembershipDoc>(
         message: "branch_admin and teacher require at least one branch",
       },
     },
-    status: { type: String, enum: ["active", "disabled"], default: "active" },
+    status: { type: String, enum: MEMBERSHIP_STATUS.values, default: "active" },
     invitedByUserId: { type: Schema.Types.ObjectId, ref: "User", default: null },
   },
   { timestamps: true }

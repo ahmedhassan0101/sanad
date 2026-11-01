@@ -1,8 +1,8 @@
 import { Schema, model, models, type Document, type Model } from "mongoose";
+import { TOKEN_TYPES, type OptionKey } from "@/constants";
 
-// روابط لمرة واحدة: تأكيد إيميل أو تعيين باسورد — تُحذف عند انتهائها.
-export type TokenType = "verify-email" | "reset-password";
-
+// One-time links: email confirmation or password reset — deleted when expired.
+export type TokenType = OptionKey<typeof TOKEN_TYPES>;
 export interface VerificationTokenDoc extends Document {
   identifier: string;
   tokenHash: string;
@@ -13,7 +13,7 @@ export interface VerificationTokenDoc extends Document {
 const verificationTokenSchema = new Schema<VerificationTokenDoc>({
   identifier: { type: String, required: true, lowercase: true, trim: true },
   tokenHash: { type: String, required: true, unique: true },
-  type: { type: String, enum: ["verify-email", "reset-password"], required: true },
+  type: { type: String, enum: TOKEN_TYPES.values, required: true },
   expiresAt: { type: Date, required: true },
 });
 

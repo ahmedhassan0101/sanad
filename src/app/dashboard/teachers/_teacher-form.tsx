@@ -1,5 +1,4 @@
-
-// فورم المعلم الواحد للإنشاء والتعديل — الفرق فقط defaultValues.
+// src\app\dashboard\teachers\_teacher-form.tsx
 "use client";
 
 import { useState } from "react";
@@ -53,14 +52,14 @@ export function TeacherForm({
   showBranch,
   submitLabel,
   imageEnabled,
-  submit,
+  submitAction,
 }: {
   defaultValues: Partial<TeacherFormInput>;
   branches: { id: string; name: string }[];
   showBranch: boolean;
   submitLabel: string;
   imageEnabled: boolean;
-  submit: (values: TeacherFormInput) => Promise<TeacherSubmitResult>;
+  submitAction: (values: TeacherFormInput) => Promise<TeacherSubmitResult>;
 }) {
   const form = useEntityForm({
     schema: teacherFormSchema,
@@ -70,9 +69,13 @@ export function TeacherForm({
   const [dup, setDup] = useState<{ id: string; name: string } | null>(null);
   const router = useRouter();
 
+  const isSubmitting = form.formState.isSubmitting;
+
+  // Both regular submission and duplicate confirmation use this handler.
   const send = async (values: TeacherFormInput) => {
     setServerError(null);
-    const res = await submit({
+    if (values.confirmDuplicate === true) setDup(null);
+    const res = await submitAction({
       ...values,
       phone: values.phone ? cleanPhone(values.phone) : values.phone,
     });
@@ -91,54 +94,61 @@ export function TeacherForm({
   return (
     <>
       <form
+        id="teacher-form"
         onSubmit={form.handleSubmit(send)}
         noValidate
         className="flex flex-col gap-4"
       >
-        <FormAlert message={serverError} />
-        {imageEnabled && (
-          <FormImageUpload
+        <fieldset
+          disabled={isSubmitting}
+          className="m-0 flex flex-col gap-4 border-0 p-0"
+        >
+          <FormAlert message={serverError} />
+          {imageEnabled && (
+            <FormImageUpload
+              control={form.control}
+              name="image"
+              label="الصورة (اختياري)"
+              description="jpeg أو png أو webp حتى 2MB"
+              upload={async (file: File) => {
+                const fd = new FormData();
+                fd.append("file", file);
+                return uploadStudentImageAction(fd);
+              }}
+            />
+          )}
+          {showBranch && (
+            <FormSelect
+              control={form.control}
+              name="branchId"
+              label="الفرع"
+              required
+              options={branches.map((b) => ({ value: b.id, label: b.name }))}
+            />
+          )}
+          <FormInput
             control={form.control}
-            name="image"
-            label="الصورة (اختياري)"
-            description="jpeg أو png أو webp حتى 2MB"
-            upload={async (file: File) => {
-              const fd = new FormData();
-              fd.append("file", file);
-              return uploadStudentImageAction(fd);
-            }}
-          />
-        )}
-        {showBranch && (
-          <FormSelect
-            control={form.control}
-            name="branchId"
-            label="الفرع"
+            name="name"
+            label="الاسم"
+            type="text"
             required
-            options={branches.map((b) => ({ value: b.id, label: b.name }))}
+            placeholder="اسم المعلم"
           />
-        )}
-        <FormInput
-          control={form.control}
-          name="name"
-          label="الاسم"
-          type="text"
-          required
-          placeholder="اسم المعلم"
-        />
-        <FormInput
-          control={form.control}
-          name="phone"
-          label="الهاتف (اختياري)"
-          type="tel"
-        />
-        <FormTextarea
-          control={form.control}
-          name="notes"
-          label="الملاحظات (اختياري)"
-          rows={3}
-        />
-        <FormSubmitButton form={form}>{submitLabel}</FormSubmitButton>
+          <FormInput
+            control={form.control}
+            name="phone"
+            label="الهاتف (اختياري)"
+            type="tel"
+            required
+          />
+          <FormTextarea
+            control={form.control}
+            name="notes"
+            label="الملاحظات (اختياري)"
+            rows={3}
+          />
+          <FormSubmitButton form={form}>{submitLabel}</FormSubmitButton>
+        </fieldset>
       </form>
       <Dialog open={!!dup} onOpenChange={(o) => !o && setDup(null)}>
         <DialogContent>
@@ -152,19 +162,25 @@ export function TeacherForm({
             <Button
               type="button"
               variant="outline"
+              disabled={isSubmitting}
               onClick={() => setDup(null)}
             >
               تراجع
             </Button>
             <Button
-              type="button"
+              type="submit"
+              // onClick={() => {
+              //   const values = { ...form.getValues(), confirmDuplicate: true };
+              //   setDup(null);
+              //   void send(values);
+              // }}
               onClick={() => {
-                const values = { ...form.getValues(), confirmDuplicate: true };
-                setDup(null);
-                void send(values);
+                form.setValue("confirmDuplicate", true, {
+                  shouldValidate: false,
+                });
               }}
             >
-              حفظ على أي حال
+              {isSubmitting ? "جارٍ الحفظ..." : "حفظ على أي حال"}
             </Button>
           </DialogFooter>
         </DialogContent>

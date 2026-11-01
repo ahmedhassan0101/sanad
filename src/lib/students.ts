@@ -1,4 +1,4 @@
-// دوال نقية للطلاب (بلا داتابيز): تطبيع عربي + نقص البيانات + العمر.
+// Pure student functions (no database): Arabic normalization + incomplete data + age.
 export function normalizeArabic(text: string): string {
   return text
     .replace(/[\u064B-\u0652\u0670]/g, "")
@@ -15,13 +15,13 @@ interface ProfileLike {
   birthDate?: Date | string | null;
 }
 
-// ناقص = بلا ولي أمر برقم هاتف أو بلا تاريخ ميلاد.
+// Incomplete = no guardian with phone number or no birth date.
 export function isProfileIncomplete(student: ProfileLike): boolean {
   const hasGuardianPhone = (student.guardians ?? []).some((g) => !!g.phone?.trim());
   return !hasGuardianPhone || !student.birthDate;
 }
 
-// نفس الشرط أعلاه كفلتر Mongo — يُستخدم مع scopedFilter.
+// Incomplete = no guardian with phone number or no birth date.
 export function incompleteFilter() {
   return {
     $or: [
@@ -31,6 +31,7 @@ export function incompleteFilter() {
   };
 }
 
+// Calculate age from birth date (Date or string) and current date (default = now).
 export function calcAge(birthDate: Date | string | null | undefined, now = new Date()): number | null {
   if (!birthDate) return null;
   const b = new Date(birthDate);
@@ -44,8 +45,11 @@ export function calcAge(birthDate: Date | string | null | undefined, now = new D
 const ARABIC_DIGITS = "٠١٢٣٤٥٦٧٨٩";
 const LATIN_DIGITS = "0123456789";
 
-// تنظيف رقم هاتف واحد: أرقام عربية ← لاتينية، حذف مسافات/شرطات/أقواس،
+// تنظيف رقم هاتف واحد: أرقام عربية ← لاتينية، حذف مسافات/شرطات/أقواس，
 // ‎+20/0020 ← 0، ورقم من 10 خانات يبدأ بـ1 ← أضف 0 (Excel يقصّ الصفر الأول).
+// Return empty string for null/undefined.
+// Clean a single phone number: Arabic digits → Latin, remove spaces/dashes/parentheses,
+// +20/0020 → 0, and 10-digit number starting with 1 → add 0 (Excel trims leading zero).
 export function cleanPhone(raw: unknown): string {
   if (raw === null || raw === undefined) return "";
   let s = String(raw).trim();
@@ -58,6 +62,8 @@ export function cleanPhone(raw: unknown): string {
 
 // تحويل قيمة عربية أو إنجليزية إلى مفتاح الثوابت (متجاهلة المسافات والتشكيل).
 // تُستخدم للنوع والمستوى والصلة واسم السورة. غير المعروف ← undefined.
+// Convert an Arabic or English value to a constant key (ignoring spaces and diacritics).
+// Used for type, level, relation, and surah name. Unknown → undefined.
 export function toOptionKey(
   raw: unknown,
   options: { keys: readonly string[]; labels: Record<string, string> },

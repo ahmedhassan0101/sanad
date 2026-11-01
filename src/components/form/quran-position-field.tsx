@@ -3,7 +3,12 @@
 
 import { useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { Controller, type Control, type FieldValues, type Path } from "react-hook-form";
+import {
+  Controller,
+  type Control,
+  type FieldValues,
+  type Path,
+} from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -14,9 +19,13 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { QURAN_SURAHS, getSurah } from "@/constants/students";
+import { QURAN_SURAHS, getSurah } from "@/constants";
 import { FieldShell } from "./field-shell";
 
 export interface QuranPositionValue {
@@ -49,7 +58,8 @@ export function QuranPositionField<T extends FieldValues>({
       render={({ field, fieldState }) => {
         const value = field.value as QuranPositionValue | undefined;
         const surah = value ? getSurah(value.surah) : undefined;
-        const set = (next: QuranPositionValue | undefined) => field.onChange(next);
+        const set = (next: QuranPositionValue | undefined) =>
+          field.onChange(next);
         return (
           <FieldShell
             label={label}
@@ -88,7 +98,14 @@ export function QuranPositionField<T extends FieldValues>({
                               setOpen(false);
                             }}
                           >
-                            <Check className={cn("size-4", value?.surah === s.number ? "opacity-100" : "opacity-0")} />
+                            <Check
+                              className={cn(
+                                "size-4",
+                                value?.surah === s.number
+                                  ? "opacity-100"
+                                  : "opacity-0",
+                              )}
+                            />
                             {s.number} - {s.name}
                           </CommandItem>
                         ))}
@@ -109,12 +126,18 @@ export function QuranPositionField<T extends FieldValues>({
                   aria-invalid={fieldState.invalid}
                   value={value?.ayah ?? ""}
                   onChange={(e) =>
-                    set(surah ? { surah: surah.number, ayah: e.target.valueAsNumber } : undefined)
+                    set(
+                      surah
+                        ? { surah: surah.number, ayah: e.target.valueAsNumber }
+                        : undefined,
+                    )
                   }
                   onBlur={field.onBlur}
                 />
                 <span className="whitespace-nowrap text-xs text-muted-foreground">
-                  {surah ? `عدد آيات السورة: ${surah.ayahs}` : "اختر السورة أولًا"}
+                  {surah
+                    ? `عدد آيات السورة: ${surah.ayahs}`
+                    : "اختر السورة أولًا"}
                 </span>
               </div>
             </div>

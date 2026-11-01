@@ -1,11 +1,13 @@
 // طالب في فرع واحد لا ينتقل — الأنشطة تُحسب من المجموعات لاحقًا لا من هنا.
-import { Schema, model, models, type Document, type Model, type Types } from "mongoose";
 import {
-  GENDERS,
-  GUARDIAN_RELATIONS,
-  LEVELS,
-  STUDENT_STATUS,
-} from "@/constants/students";
+  Schema,
+  model,
+  models,
+  type Document,
+  type Model,
+  type Types,
+} from "mongoose";
+import { GENDERS, GUARDIAN_RELATIONS, LEVELS, STATUS } from "@/constants";
 
 export interface GuardianEntry {
   relation: string;
@@ -76,7 +78,11 @@ const studentSchema = new Schema<StudentDoc>(
       type: [
         new Schema<GuardianEntry>(
           {
-            relation: { type: String, required: true, enum: [...GUARDIAN_RELATIONS.keys] },
+            relation: {
+              type: String,
+              required: true,
+              enum: [...GUARDIAN_RELATIONS.keys],
+            },
             phone: { type: String, required: true, trim: true },
           },
           { _id: false },
@@ -90,7 +96,7 @@ const studentSchema = new Schema<StudentDoc>(
     },
     hifzStart: { type: quranPositionSchema, default: null },
     hifzPosition: { type: quranPositionSchema, default: null },
-    status: { type: String, default: "active", enum: [...STUDENT_STATUS.keys] },
+    status: { type: String, default: "active", enum: [...STATUS.keys] },
     archivedAt: { type: Date, default: null },
     parentCode: { type: String, required: true, unique: true },
   },
@@ -101,4 +107,5 @@ studentSchema.index({ orgId: 1, branchId: 1, status: 1, createdAt: -1 });
 studentSchema.index({ orgId: 1, branchId: 1, nameSearch: 1 });
 
 export const Student: Model<StudentDoc> =
-  (models.Student as Model<StudentDoc> | undefined) ?? model<StudentDoc>("Student", studentSchema);
+  (models.Student as Model<StudentDoc> | undefined) ??
+  model<StudentDoc>("Student", studentSchema);

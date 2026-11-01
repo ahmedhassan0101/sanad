@@ -13,7 +13,7 @@ import {
   QuranPositionField,
   useEntityForm,
 } from "@/components/form";
-import { PROGRESS_TRENDS, TAJWEED_RATINGS } from "@/constants/students";
+import { PROGRESS_TRENDS, TAJWEED_RATINGS } from "@/constants";
 import { todayKeyCairo } from "@/lib/progress";
 import {
   createReportSchema,
@@ -29,7 +29,9 @@ export function ReportForm({
   studentId: string;
   defaultValues: Partial<CreateReportInput>;
   submitLabel: string;
-  submit: (values: CreateReportInput) => Promise<{ ok: boolean; message: string }>;
+  submit: (
+    values: CreateReportInput,
+  ) => Promise<{ ok: boolean; message: string }>;
 }) {
   const form = useEntityForm({
     schema: createReportSchema,
@@ -61,7 +63,9 @@ export function ReportForm({
       className="flex flex-col gap-4"
     >
       <FormAlert message={serverError} />
-      <p className="text-sm text-muted-foreground">تاريخ التقرير: اليوم ({todayKeyCairo()})</p>
+      <p className="text-sm text-muted-foreground">
+        تاريخ التقرير: اليوم ({todayKeyCairo()})
+      </p>
       <QuranPositionField
         control={form.control}
         name="hifzPosition"
@@ -85,9 +89,17 @@ export function ReportForm({
         name="trend"
         label="اتجاه التقدم"
         required
-        options={PROGRESS_TRENDS.options.map((o) => ({ value: o.value, title: o.label }))}
+        options={PROGRESS_TRENDS.options.map((o) => ({
+          value: o.value,
+          title: o.label,
+        }))}
       />
-      <FormTextarea control={form.control} name="notes" label="الملاحظات (اختياري)" rows={3} />
+      <FormTextarea
+        control={form.control}
+        name="notes"
+        label="الملاحظات (اختياري)"
+        rows={3}
+      />
       <FormSubmitButton form={form}>{submitLabel}</FormSubmitButton>
     </form>
   );

@@ -8,7 +8,10 @@ export async function setActiveOrg(formData: FormData) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
   try {
-    const { orgId } = await activateOrg(session.user.id, String(formData.get("orgId") ?? ""));
+    const { orgId } = await activateOrg(
+      session.user.id,
+      String(formData.get("orgId") ?? ""),
+    );
     await setActiveOrgCookie(orgId);
   } catch {
     redirect("/onboarding");

@@ -1,5 +1,5 @@
 // حسابات التقارير النقية: ترتيب الآيات تراكميًا بلا أي حكم تقدم/تراجع.
-import { QURAN_SURAHS, getSurah } from "@/constants/students";
+import { QURAN_SURAHS, getSurah } from "@/constants";
 
 const PREFIX: number[] = [];
 let running = 0;
@@ -39,10 +39,15 @@ export function formatRange(
 }
 
 // «منذ N يوم» من مفتاح التاريخ — نقية وقابلة للاختبار.
-export function daysAgoLabel(reportDateKey: string | null, today = todayKeyCairo()): string {
+export function daysAgoLabel(
+  reportDateKey: string | null,
+  today = todayKeyCairo(),
+): string {
   if (!reportDateKey) return "لا يوجد";
   const diff = Math.round(
-    (Date.parse(`${today}T12:00:00Z`) - Date.parse(`${reportDateKey}T12:00:00Z`)) / 86400000,
+    (Date.parse(`${today}T12:00:00Z`) -
+      Date.parse(`${reportDateKey}T12:00:00Z`)) /
+      86400000,
   );
   if (Number.isNaN(diff) || diff < 0) return "لا يوجد";
   if (diff === 0) return "اليوم";

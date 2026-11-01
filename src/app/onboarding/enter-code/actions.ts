@@ -8,7 +8,7 @@ import { setActiveOrgCookie } from "@/services/org-selection";
 import { enterCodeSchema, type EnterCodeInput } from "@/validators/forms";
 
 export async function enterCodeAction(
-  values: EnterCodeInput
+  values: EnterCodeInput,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
@@ -19,7 +19,10 @@ export async function enterCodeAction(
     await setActiveOrgCookie(orgId);
   } catch (e) {
     const message = e instanceof Error ? e.message : "";
-    return { ok: false, message: message || "الكود غير صحيح أو منتهي أو مستخدم" };
+    return {
+      ok: false,
+      message: message || "الكود غير صحيح أو منتهي أو مستخدم",
+    };
   }
   redirect("/dashboard");
 }

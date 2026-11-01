@@ -1,5 +1,9 @@
 import { Schema, model, models, type Document, type Model, type Types } from "mongoose";
-import type { MembershipRole } from "./Membership";
+// import type { MembershipRole } from "./Membership";
+
+import { MEMBERSHIP_ROLES, type OptionKey } from "@/constants";
+
+export type MembershipRole = OptionKey<typeof MEMBERSHIP_ROLES>;
 
 export interface InviteDoc extends Document {
   orgId: Types.ObjectId;
@@ -29,7 +33,7 @@ const inviteSchema = new Schema<InviteDoc>(
     },
     role: {
       type: String,
-      enum: ["center_admin", "branch_admin", "supervisor"],
+      enum: MEMBERSHIP_ROLES.values,
       required: true,
     },
     codeHash: { type: String, required: true, unique: true },

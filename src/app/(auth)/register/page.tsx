@@ -1,4 +1,4 @@
-// شاشة إنشاء حساب جديد.
+// src\app\(auth)\register\page.tsx
 import Link from "next/link";
 import { AuthShell } from "@/components/auth-shell";
 import { RegisterForm } from "./form";

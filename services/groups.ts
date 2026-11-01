@@ -65,7 +65,7 @@ function inScopeOrThrow(ctx: MemberCtx, branchId: Types.ObjectId) {
 }
 
 // العدادات النشطة لكل مجموعة باستعلام تجميعي واحد.
-async function memberCounts(ctx: MemberCtx, groupIds: Types.ObjectId[]): Promise<Map<string, number>> {
+export async function memberCounts(ctx: MemberCtx, groupIds: Types.ObjectId[]): Promise<Map<string, number>> {
   if (groupIds.length === 0) return new Map();
   const rows = await Enrollment.aggregate([
     { $match: { orgId: ctx.orgId, groupId: { $in: groupIds }, status: "active" } },

@@ -1,4 +1,4 @@
-// صفحة تفعيل الإيميل من الرابط.
+// src\app\(auth)\verify\page.tsx
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";

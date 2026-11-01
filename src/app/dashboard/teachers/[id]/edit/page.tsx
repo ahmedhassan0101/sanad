@@ -10,7 +10,11 @@ import { viewer } from "@/services/viewer";
 import { TeacherForm } from "../../_teacher-form";
 import { updateTeacherAction } from "../../actions";
 
-export default async function EditTeacherPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function EditTeacherPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const ctx = await viewer();
   if (ctx.kind !== "member") redirect("/onboarding");
   if (!can(ctx.role, "teacher:edit")) redirect("/dashboard/teachers");
@@ -22,29 +26,32 @@ export default async function EditTeacherPage({ params }: { params: Promise<{ id
   if (!teacher) notFound();
   return (
     <PageContainer narrow>
-    <div className="flex flex-col gap-4">
-      <PageHeader title={`تعديل: ${teacher.name}`} />
-      <Card>
-        <CardHeader>
-          <CardTitle>بيانات المعلم</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <TeacherForm
-            defaultValues={{
-              name: teacher.name,
-              phone: teacher.phone ?? undefined,
-              notes: teacher.notes ?? undefined,
-              image: teacher.image ?? undefined,
-            }}
-            branches={branches.map((b) => ({ id: String(b._id), name: b.name }))}
-            showBranch={false}
-            submitLabel="حفظ التعديلات"
-            imageEnabled={isCloudinaryEnabled()}
-            submit={updateTeacherAction.bind(null, id)}
-          />
-        </CardContent>
-      </Card>
-    </div>
+      <div className="flex flex-col gap-4">
+        <PageHeader title={`تعديل: ${teacher.name}`} />
+        <Card>
+          <CardHeader>
+            <CardTitle>بيانات المعلم</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TeacherForm
+              defaultValues={{
+                name: teacher.name,
+                phone: teacher.phone ?? undefined,
+                notes: teacher.notes ?? undefined,
+                image: teacher.image ?? undefined,
+              }}
+              branches={branches.map((b) => ({
+                id: String(b._id),
+                name: b.name,
+              }))}
+              showBranch={false}
+              submitLabel="حفظ التعديلات"
+              imageEnabled={isCloudinaryEnabled()}
+              submitAction={updateTeacherAction.bind(null, id)}
+            />
+          </CardContent>
+        </Card>
+      </div>
     </PageContainer>
   );
 }

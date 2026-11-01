@@ -33,9 +33,28 @@ export function CreateCenterForm() {
       className="flex flex-col gap-4"
     >
       <FormAlert message={serverError} />
-      <FormInput control={form.control} name="name" label="اسم المركز" type="text" required placeholder="مثال: مركز النور" />
-      <FormInput control={form.control} name="contactPhone" label="رقم التواصل" type="tel" required placeholder="01xxxxxxxxx" />
-      <FormInput control={form.control} name="addressText" label="العنوان (اختياري)" type="text" />
+      <FormInput
+        control={form.control}
+        name="name"
+        label="اسم المركز"
+        type="text"
+        required
+        placeholder="مثال: مركز النور"
+      />
+      <FormInput
+        control={form.control}
+        name="contactPhone"
+        label="رقم التواصل"
+        type="tel"
+        required
+        placeholder="01xxxxxxxxx"
+      />
+      <FormInput
+        control={form.control}
+        name="addressText"
+        label="العنوان (اختياري)"
+        type="text"
+      />
       <FormSubmitButton form={form}>إنشاء المركز</FormSubmitButton>
     </form>
   );

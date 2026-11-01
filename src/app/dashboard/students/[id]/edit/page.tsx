@@ -7,7 +7,7 @@ import { isCloudinaryEnabled } from "@/lib/cloudinary";
 import { listBranches } from "@/services/branches-read";
 import { getStudent } from "@/services/students";
 import { viewer } from "@/services/viewer";
-import { GUARDIAN_RELATIONS, type OptionKey } from "@/constants/students";
+import { GUARDIAN_RELATIONS, type OptionKey } from "@/constants";
 import { StudentForm } from "../../_student-form";
 import { updateStudentAction } from "../../actions";
 
@@ -18,7 +18,11 @@ function toDateInput(d: unknown): string | undefined {
   return dt.toISOString().slice(0, 10);
 }
 
-export default async function EditStudentPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function EditStudentPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const ctx = await viewer();
   if (ctx.kind !== "member") redirect("/onboarding");
   if (!can(ctx.role, "student:edit")) redirect("/dashboard/students");
@@ -30,41 +34,50 @@ export default async function EditStudentPage({ params }: { params: Promise<{ id
   if (!student) notFound();
   return (
     <PageContainer narrow>
-    <div className="flex flex-col gap-4">
-      <PageHeader title={`تعديل: ${student.name}`} />
-      <Card>
-        <CardHeader>
-          <CardTitle>بيانات الطالب</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <StudentForm
-            defaultValues={{
-              name: student.name,
-              gender: student.gender as "male" | "female",
-              level: student.level as "beginner" | "intermediate" | "advanced",
-              birthDate: toDateInput(student.birthDate),
-              phone: student.phone ?? undefined,
-              address: student.address ?? undefined,
-              notes: student.notes ?? undefined,
-              guardians: student.guardians.map((g) => ({
-                relation: g.relation as OptionKey<typeof GUARDIAN_RELATIONS>,
-                phone: g.phone,
-              })),
-              image: student.image ?? undefined,
-              hifzPosition: student.hifzPosition
-                ? { surah: student.hifzPosition.surah, ayah: student.hifzPosition.ayah }
-                : undefined,
-            }}
-            branches={branches.map((b) => ({ id: String(b._id), name: b.name }))}
-            showBranch={false}
-            hifzMode="edit"
-            submitLabel="حفظ التعديلات"
-            imageEnabled={isCloudinaryEnabled()}
-            submit={updateStudentAction.bind(null, id)}
-          />
-        </CardContent>
-      </Card>
-    </div>
+      <div className="flex flex-col gap-4">
+        <PageHeader title={`تعديل: ${student.name}`} />
+        <Card>
+          <CardHeader>
+            <CardTitle>بيانات الطالب</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <StudentForm
+              defaultValues={{
+                name: student.name,
+                gender: student.gender as "male" | "female",
+                level: student.level as
+                  | "beginner"
+                  | "intermediate"
+                  | "advanced",
+                birthDate: toDateInput(student.birthDate),
+                phone: student.phone ?? undefined,
+                address: student.address ?? undefined,
+                notes: student.notes ?? undefined,
+                guardians: student.guardians.map((g) => ({
+                  relation: g.relation as OptionKey<typeof GUARDIAN_RELATIONS>,
+                  phone: g.phone,
+                })),
+                image: student.image ?? undefined,
+                hifzPosition: student.hifzPosition
+                  ? {
+                      surah: student.hifzPosition.surah,
+                      ayah: student.hifzPosition.ayah,
+                    }
+                  : undefined,
+              }}
+              branches={branches.map((b) => ({
+                id: String(b._id),
+                name: b.name,
+              }))}
+              showBranch={false}
+              hifzMode="edit"
+              submitLabel="حفظ التعديلات"
+              imageEnabled={isCloudinaryEnabled()}
+              submit={updateStudentAction.bind(null, id)}
+            />
+          </CardContent>
+        </Card>
+      </div>
     </PageContainer>
   );
 }

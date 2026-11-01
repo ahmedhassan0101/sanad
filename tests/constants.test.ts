@@ -6,8 +6,8 @@ import {
   isValidAyah,
   GENDERS,
   LEVELS,
-  ROLE_NAMES_AR,
-} from "../src/constants/students";
+  MEMBERSHIP_ROLES,
+} from "../src/constants";
 
 describe("quran constants", () => {
   it("has 114 surahs with 6236 ayahs in total", () => {
@@ -31,6 +31,6 @@ describe("quran constants", () => {
     expect(GENDERS.labelOf("male")).toBe("ذكر");
     expect(GENDERS.zod().parse("female")).toBe("female");
     expect(() => LEVELS.zod().parse("unknown")).toThrow();
-    expect(ROLE_NAMES_AR.supervisor).toBe("مشرف");
+    expect(MEMBERSHIP_ROLES.labels.supervisor).toBe("مشرف");
   });
 });

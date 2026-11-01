@@ -3,7 +3,12 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { FormAlert, FormInput, FormSubmitButton, useEntityForm } from "@/components/form";
+import {
+  FormAlert,
+  FormInput,
+  FormSubmitButton,
+  useEntityForm,
+} from "@/components/form";
 import { loginSchema } from "@/validators/forms";
 import { loginAction } from "./actions";
 
@@ -28,8 +33,23 @@ export function LoginForm() {
       className="flex flex-col gap-4"
     >
       <FormAlert message={serverError} />
-      <FormInput control={form.control} name="email" label="البريد الإلكتروني" type="email" required autoComplete="email" placeholder="name@example.com" />
-      <FormInput control={form.control} name="password" label="كلمة المرور" type="password" required autoComplete="current-password" />
+      <FormInput
+        control={form.control}
+        name="email"
+        label="البريد الإلكتروني"
+        type="email"
+        required
+        autoComplete="email"
+        placeholder="name@example.com"
+      />
+      <FormInput
+        control={form.control}
+        name="password"
+        label="كلمة المرور"
+        type="password"
+        required
+        autoComplete="current-password"
+      />
       <FormSubmitButton form={form}>دخول</FormSubmitButton>
     </form>
   );

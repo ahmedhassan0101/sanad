@@ -1,4 +1,5 @@
 
+// src\components\providers.tsx
 import React from "react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { DirectionProvider } from "@/components/ui/direction";

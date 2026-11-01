@@ -39,17 +39,28 @@ export async function createCenter(userId: string, raw: unknown) {
             createdByUserId: uid,
           },
         ],
-        { session }
+        { session },
       );
       const org = createdOrgs[0]!;
-      const createdBranches = await Branch.create([{ orgId: org._id, name: "الفرع الرئيسي" }], {
-        session,
-        ordered: true,
-      });
+      const createdBranches = await Branch.create(
+        [{ orgId: org._id, name: "الفرع الرئيسي" }],
+        {
+          session,
+          ordered: true,
+        },
+      );
       void createdBranches;
       await Membership.create(
-        [{ userId: uid, orgId: org._id, role: "center_admin", branchIds: [], invitedByUserId: uid }],
-        { session, ordered: true }
+        [
+          {
+            userId: uid,
+            orgId: org._id,
+            role: "center_admin",
+            branchIds: [],
+            invitedByUserId: uid,
+          },
+        ],
+        { session, ordered: true },
       );
       out = { orgId: String(org._id) };
     });

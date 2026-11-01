@@ -7,13 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar } from "@/components/brand";
 import { PageContainer } from "@/components/page-header";
 import { StatusBadge } from "@/components/status-badge";
-import { TEACHER_STATUS } from "@/constants/teachers";
 import { can } from "@/lib/permissions/roles";
 import { getTeacher } from "@/services/teachers";
 import { viewer } from "@/services/viewer";
 import { CopyTextButton } from "../../students/[id]/_actions-ui";
 import { archiveTeacherAction, restoreTeacherAction } from "../actions";
 import { DeleteTeacherButton } from "./_actions-ui";
+import { getTeacherGroups } from "@/services/teachers";
+import { STATUS } from "@/constants";
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -30,6 +31,8 @@ export default async function TeacherDetailPage({ params }: { params: Promise<{ 
   const { id } = await params;
   const teacher = await getTeacher(ctx, id).catch(() => null);
   if (!teacher) notFound();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const teacherGroups = await getTeacherGroups(ctx, id);
   const canEdit = can(ctx.role, "teacher:edit");
   const canArchive = can(ctx.role, "teacher:archive");
   const canDelete = can(ctx.role, "teacher:delete") && teacher.status === "archived";
@@ -47,7 +50,7 @@ export default async function TeacherDetailPage({ params }: { params: Promise<{ 
           <h1 className="truncate text-heading-xl font-extrabold">{teacher.name}</h1>
           <span>
             <StatusBadge tone={teacher.status === "active" ? "success" : "neutral"}>
-              {TEACHER_STATUS.labelOf(teacher.status)}
+              {STATUS.labelOf(teacher.status)}
             </StatusBadge>
           </span>
         </div>

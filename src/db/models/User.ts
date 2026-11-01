@@ -1,7 +1,15 @@
-import { Schema, model, models, type Document, type Model, type Types } from "mongoose";
+import {
+  Schema,
+  model,
+  models,
+  type Document,
+  type Model,
+  type Types,
+} from "mongoose";
 
-export type UserStatus = "active" | "disabled" | "deleted";
+import { USER_STATUS, type OptionKey } from "@/constants";
 
+export type UserStatus = OptionKey<typeof USER_STATUS>;
 export interface UserDoc extends Document {
   name: string;
   email: string;
@@ -16,22 +24,29 @@ export interface UserDoc extends Document {
 const userSchema = new Schema<UserDoc>(
   {
     name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
     emailVerifiedAt: { type: Date, default: null },
     image: { type: String, default: null },
     passwordHash: { type: String, default: null, select: false },
     status: {
       type: String,
-      enum: ["active", "disabled", "deleted"],
+      enum: USER_STATUS.values,
       default: "active",
     },
     isPlatformAdmin: { type: Boolean, default: false },
     sessionVersion: { type: Number, default: 0 },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const User: Model<UserDoc> =
-  (models.User as Model<UserDoc> | undefined) ?? model<UserDoc>("User", userSchema);
+  (models.User as Model<UserDoc> | undefined) ??
+  model<UserDoc>("User", userSchema);
 
 export type { Types };

@@ -3,10 +3,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth/config";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { ROLE_NAMES_AR } from "@/constants/students";
 import { listMyMemberships } from "@/services/org-selection";
 import { OnboardingShell } from "@/components/onboarding-shell";
 import { setActiveOrg } from "../onboarding/actions";
+import { MEMBERSHIP_ROLES } from "@/constants";
 
 export default async function SelectOrgPage() {
   const session = await auth();
@@ -14,22 +14,35 @@ export default async function SelectOrgPage() {
   const memberships = await listMyMemberships(session.user.id);
   if (memberships.length === 0) redirect("/onboarding");
   return (
-    <OnboardingShell title="اختر المركز" description="لديك عضوية في أكثر من مركز">
+    <OnboardingShell
+      title="اختر المركز"
+      description="لديك عضوية في أكثر من مركز"
+    >
       <section className="flex flex-col gap-2" aria-label="مراكزك">
         {memberships.map((m) => (
           <form key={m.orgId} action={setActiveOrg}>
             <input type="hidden" name="orgId" value={m.orgId} />
-            <Button type="submit" variant="outline" className="w-full justify-start">
-              {m.orgName} — {ROLE_NAMES_AR[m.role] ?? m.role}
+            <Button
+              type="submit"
+              variant="outline"
+              className="w-full justify-start"
+            >
+              {m.orgName} — {MEMBERSHIP_ROLES.labelOf(m.role)}{" "}
             </Button>
           </form>
         ))}
       </section>
       <section className="flex flex-col gap-2" aria-label="خيارات أخرى">
-        <Link href="/onboarding/create-center" className={buttonVariants({ variant: "ghost" })}>
+        <Link
+          href="/onboarding/create-center"
+          className={buttonVariants({ variant: "ghost" })}
+        >
           إنشاء مركز جديد
         </Link>
-        <Link href="/onboarding/enter-code" className={buttonVariants({ variant: "ghost" })}>
+        <Link
+          href="/onboarding/enter-code"
+          className={buttonVariants({ variant: "ghost" })}
+        >
           عندي كود دعوة
         </Link>
       </section>

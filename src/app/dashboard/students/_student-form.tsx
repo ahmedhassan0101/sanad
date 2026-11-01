@@ -26,7 +26,7 @@ import {
   useEntityForm,
 } from "@/components/form";
 import { uploadStudentImageAction } from "./actions";
-import { GENDERS, GUARDIAN_RELATIONS, LEVELS } from "@/constants/students";
+import { GENDERS, GUARDIAN_RELATIONS, LEVELS } from "@/constants";
 import { cleanPhone } from "@/lib/students";
 import {
   studentFormSchema,
@@ -49,7 +49,9 @@ const EMPTY: StudentFormInput = {
   phone: undefined,
   address: undefined,
   notes: undefined,
-  guardians: [{ relation: "father", phone: "" }] as StudentFormInput["guardians"],
+  guardians: [
+    { relation: "father", phone: "" },
+  ] as StudentFormInput["guardians"],
   image: undefined,
   branchId: undefined,
   hifz: undefined,

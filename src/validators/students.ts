@@ -6,7 +6,7 @@ import {
   LEVELS,
   getSurah,
   isValidAyah,
-} from "@/constants/students";
+} from "@/constants";
 import {
   emptyTo,
   nameRule,
@@ -63,9 +63,7 @@ function stripEmptyGuardians(v: unknown) {
   );
 }
 
-const guardiansArrayRule = z
-  .array(guardianRule)
-  .max(4, "4 أولياء كحد أقصى");
+const guardiansArrayRule = z.array(guardianRule).max(4, "4 أولياء كحد أقصى");
 
 // z.preprocess يوسّع الدخل لـ unknown في الاستدلال، فإعادة الصب تحفظ النوع الساكن.
 const guardiansFormRule = z.preprocess(

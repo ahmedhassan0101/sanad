@@ -1,6 +1,5 @@
-// معلم بلا حساب دخول — في فرع واحد ولا ينتقل.
+import { STATUS } from "@/constants";
 import { Schema, model, models, type Document, type Model, type Types } from "mongoose";
-import { TEACHER_STATUS } from "@/constants/teachers";
 
 export interface TeacherImage {
   url: string;
@@ -37,7 +36,7 @@ const teacherSchema = new Schema<TeacherDoc>(
       ),
       default: null,
     },
-    status: { type: String, default: "active", enum: [...TEACHER_STATUS.keys] },
+    status: { type: String, default: "active", enum: STATUS.values },
     archivedAt: { type: Date, default: null },
   },
   { timestamps: true },

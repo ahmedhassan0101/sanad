@@ -1,17 +1,25 @@
-// خدمات المعلمين: عزل دائم بـ scopedFilter، وfindOne({_id, orgId}) للقراءة المفردة.
 import "server-only";
 import { Types } from "mongoose";
 import { connectDB } from "@/db/connection";
 import { Branch } from "@/db/models/Branch";
 import { Group } from "@/db/models/Group";
 import { Teacher } from "@/db/models/Teacher";
+import { memberCounts } from "@/services/groups";
 import { can, type Action } from "@/lib/permissions/roles";
 import { deleteStudentImage } from "@/lib/cloudinary";
 import { normalizeArabic } from "@/lib/students";
 import type { SessionContext } from "@/lib/tenant/context";
 import { scopedFilter } from "@/lib/tenant/scopedFilter";
-import type { CreateTeacherInput, UpdateTeacherInput } from "@/validators/teachers";
-import { validationError, forbiddenError, notFoundError } from "@/lib/app-error";
+import type {
+  CreateTeacherInput,
+  UpdateTeacherInput,
+} from "@/validators/teachers";
+import {
+  validationError,
+  forbiddenError,
+  notFoundError,
+} from "@/lib/app-error";
+import { ACTIVITIES_CATALOG } from "@/lib/programs";
 
 type MemberCtx = Extract<SessionContext, { kind: "member" }>;
 
@@ -24,25 +32,34 @@ function escapeRegex(s: string): string {
 }
 
 // الفرع من النطاق على السيرفر (نفس منطق الطلاب).
-async function resolveBranch(ctx: MemberCtx, branchId?: string): Promise<Types.ObjectId> {
+async function resolveBranch(
+  ctx: MemberCtx,
+  branchId?: string,
+): Promise<Types.ObjectId> {
   await connectDB();
   const branches = await Branch.find({ orgId: ctx.orgId, status: "active" })
     .select("_id")
     .lean();
   const inScope = (id: Types.ObjectId) =>
-    ctx.branchScope.mode === "all" || ctx.branchScope.branchIds.some((b) => b.equals(id));
+    ctx.branchScope.mode === "all" ||
+    ctx.branchScope.branchIds.some((b) => b.equals(id));
   if (branchId) {
-    if (!Types.ObjectId.isValid(branchId)) throw validationError("الفرع غير صحيح");
+    if (!Types.ObjectId.isValid(branchId))
+      throw validationError("الفرع غير صحيح");
     const found = branches.find((b) => String(b._id) === branchId);
     if (!found || !inScope(found._id)) throw forbiddenError("فرع خارج نطاقك");
     return found._id;
   }
-  if (branches.length === 1 && inScope(branches[0]!._id)) return branches[0]!._id;
+  if (branches.length === 1 && inScope(branches[0]!._id))
+    return branches[0]!._id;
   throw validationError("اختر الفرع");
 }
 
 function inScopeOrThrow(ctx: MemberCtx, branchId: Types.ObjectId) {
-  if (ctx.branchScope.mode === "list" && !ctx.branchScope.branchIds.some((b) => b.equals(branchId))) {
+  if (
+    ctx.branchScope.mode === "list" &&
+    !ctx.branchScope.branchIds.some((b) => b.equals(branchId))
+  ) {
     throw notFoundError();
   }
 }
@@ -64,7 +81,10 @@ export async function listTeachers(ctx: MemberCtx, query: TeacherListQuery) {
     if (/^[+\d][\d\s+]*$/.test(trimmed)) {
       filter.phone = new RegExp(escapeRegex(trimmed.replace(/\s+/g, "")), "i");
     } else {
-      filter.nameSearch = new RegExp(escapeRegex(normalizeArabic(trimmed)), "i");
+      filter.nameSearch = new RegExp(
+        escapeRegex(normalizeArabic(trimmed)),
+        "i",
+      );
     }
   }
   const safePage = Math.max(1, page);
@@ -105,7 +125,12 @@ export async function getTeacherStats(ctx: MemberCtx) {
   return { active, archived, addedThisMonth };
 }
 
-async function findDuplicate(orgId: Types.ObjectId, branchId: Types.ObjectId, nameSearch: string, excludeId?: string) {
+async function findDuplicate(
+  orgId: Types.ObjectId,
+  branchId: Types.ObjectId,
+  nameSearch: string,
+  excludeId?: string,
+) {
   return Teacher.findOne({
     orgId,
     branchId,
@@ -121,13 +146,19 @@ export type CreateTeacherResult =
   | { status: "created"; id: string }
   | { status: "duplicate"; duplicate: { id: string; name: string } };
 
-export async function createTeacher(ctx: MemberCtx, input: CreateTeacherInput): Promise<CreateTeacherResult> {
+export async function createTeacher(
+  ctx: MemberCtx,
+  input: CreateTeacherInput,
+): Promise<CreateTeacherResult> {
   requirePerm(ctx, "teacher:create");
   const branchId = await resolveBranch(ctx, input.branchId);
   const nameSearch = normalizeArabic(input.name);
   const dup = await findDuplicate(ctx.orgId, branchId, nameSearch);
   if (dup && !input.confirmDuplicate) {
-    return { status: "duplicate", duplicate: { id: String(dup._id), name: dup.name } };
+    return {
+      status: "duplicate",
+      duplicate: { id: String(dup._id), name: dup.name },
+    };
   }
   const teacher = await Teacher.create({
     orgId: ctx.orgId,
@@ -141,7 +172,11 @@ export async function createTeacher(ctx: MemberCtx, input: CreateTeacherInput): 
   return { status: "created", id: String(teacher._id) };
 }
 
-export async function updateTeacher(ctx: MemberCtx, id: string, input: UpdateTeacherInput) {
+export async function updateTeacher(
+  ctx: MemberCtx,
+  id: string,
+  input: UpdateTeacherInput,
+) {
   requirePerm(ctx, "teacher:edit");
   await connectDB();
   const teacher = await Teacher.findOne({ _id: id, orgId: ctx.orgId });
@@ -150,7 +185,10 @@ export async function updateTeacher(ctx: MemberCtx, id: string, input: UpdateTea
   const nameSearch = normalizeArabic(input.name);
   const dup = await findDuplicate(ctx.orgId, teacher.branchId, nameSearch, id);
   if (dup && !input.confirmDuplicate) {
-    return { status: "duplicate", duplicate: { id: String(dup._id), name: dup.name } } as const;
+    return {
+      status: "duplicate",
+      duplicate: { id: String(dup._id), name: dup.name },
+    } as const;
   }
   teacher.name = input.name.trim();
   teacher.nameSearch = nameSearch;
@@ -174,9 +212,17 @@ export async function archiveTeacher(ctx: MemberCtx, id: string) {
   const teacher = await Teacher.findOne({ _id: id, orgId: ctx.orgId });
   if (!teacher) throw notFoundError();
   inScopeOrThrow(ctx, teacher.branchId);
-  const activeGroups = await Group.find({ orgId: ctx.orgId, teacherId: teacher._id, status: "active" }).select("name").lean();
+  const activeGroups = await Group.find({
+    orgId: ctx.orgId,
+    teacherId: teacher._id,
+    status: "active",
+  })
+    .select("name")
+    .lean();
   if (activeGroups.length > 0) {
-    throw validationError(`لا يمكن أرشفة المعلم — له مجموعات نشطة: ${activeGroups.map((g) => g.name).join("، ")}`);
+    throw validationError(
+      `لا يمكن أرشفة المعلم — له مجموعات نشطة: ${activeGroups.map((g) => g.name).join("، ")}`,
+    );
   }
   teacher.status = "archived";
   teacher.archivedAt = new Date();
@@ -200,10 +246,39 @@ export async function deleteTeacherPermanently(ctx: MemberCtx, id: string) {
   const teacher = await Teacher.findOne({ _id: id, orgId: ctx.orgId });
   if (!teacher) throw notFoundError();
   inScopeOrThrow(ctx, teacher.branchId);
-  if (teacher.status !== "archived") throw validationError("احذف المؤرشف فقط — أرشف المعلم أولًا");
-  const linkedGroups = await Group.countDocuments({ orgId: ctx.orgId, teacherId: teacher._id });
-  if (linkedGroups > 0) throw validationError("لا يمكن حذف المعلم — توجد مجموعات مرتبطة به");
+  if (teacher.status !== "archived")
+    throw validationError("احذف المؤرشف فقط — أرشف المعلم أولًا");
+  const linkedGroups = await Group.countDocuments({
+    orgId: ctx.orgId,
+    teacherId: teacher._id,
+  });
+  if (linkedGroups > 0)
+    throw validationError("لا يمكن حذف المعلم — توجد مجموعات مرتبطة به");
   const publicId = teacher.image?.publicId;
   await Teacher.deleteOne({ _id: teacher._id });
   if (publicId) await deleteStudentImage(publicId);
+}
+
+export async function getTeacherGroups(ctx: MemberCtx, id: string) {
+  requirePerm(ctx, "group:create");
+  await connectDB();
+  const teacher = await Teacher.findOne({ _id: id, orgId: ctx.orgId });
+  if (!teacher) throw notFoundError();
+  inScopeOrThrow(ctx, teacher.branchId);
+  const groups = await Group.find({ orgId: ctx.orgId, teacherId: teacher._id })
+    .sort({ activityKey: 1, name: 1 })
+    .lean();
+  const groupIds = groups.map((g) => g._id);
+  const counts = await memberCounts(ctx, groupIds);
+  return groups.map((g) => ({
+    id: String(g._id),
+    activityKey: g.activityKey,
+    activityName:
+      ACTIVITIES_CATALOG.find((a) => a.key === g.activityKey)?.name ??
+      g.activityKey,
+    name: g.name,
+    scheduleText: g.scheduleText,
+    memberCount: counts.get(String(g._id)) ?? 0,
+    status: g.status,
+  }));
 }

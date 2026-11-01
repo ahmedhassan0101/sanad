@@ -1,4 +1,3 @@
-
 // شريط فلاتر المعلمين: بحث (debounce) + حالة — الحالة في الـ URL عبر nuqs.
 "use client";
 
@@ -11,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TEACHER_STATUS } from "@/constants/teachers";
+import { STATUS } from "@/constants";
 
 export function TeachersToolbar() {
   const [q, setQ] = useQueryState(
@@ -38,13 +37,13 @@ export function TeachersToolbar() {
           <Select
             value={status}
             onValueChange={(v) => setStatus(v)}
-            items={Object.fromEntries(TEACHER_STATUS.options.map((o) => [o.value, o.label]))}
+            items={STATUS.labels}
           >
             <SelectTrigger>
               <SelectValue placeholder="الكل" />
             </SelectTrigger>
             <SelectContent>
-              {TEACHER_STATUS.options.map((o) => (
+              {STATUS.options.map((o) => (
                 <SelectItem key={o.value} value={o.value}>
                   {o.label}
                 </SelectItem>

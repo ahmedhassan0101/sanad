@@ -1,13 +1,22 @@
 // تسجيل طالب في مجموعة — قيود العزل والتكرار على مستوى المستند.
-import { Schema, model, models, type Document, type Model, type Types } from "mongoose";
+import { ENROLLMENT_STATUS, type OptionKey } from "@/constants";
+import {
+  Schema,
+  model,
+  models,
+  type Document,
+  type Model,
+  type Types,
+} from "mongoose";
 
+export type EnrollmentStatus = OptionKey<typeof ENROLLMENT_STATUS>;
 export interface EnrollmentDoc extends Document {
   orgId: Types.ObjectId;
   branchId: Types.ObjectId;
   studentId: Types.ObjectId;
   groupId: Types.ObjectId;
   activityKey: string;
-  status: "active" | "left";
+  status: EnrollmentStatus;
   joinedAt: Date | null;
   leftAt: Date | null;
 }
@@ -19,16 +28,16 @@ const enrollmentSchema = new Schema<EnrollmentDoc>(
     studentId: { type: Schema.Types.ObjectId, ref: "Student", required: true },
     groupId: { type: Schema.Types.ObjectId, ref: "Group", required: true },
     activityKey: { type: String, required: true, trim: true },
-    status: { type: String, enum: ["active", "left"], default: "active" },
+    status: { type: String, enum: ENROLLMENT_STATUS.values, default: "active" },
     joinedAt: { type: Date, default: null },
     leftAt: { type: Date, default: null },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 enrollmentSchema.index(
   { studentId: 1, groupId: 1, status: 1 },
-  { unique: true, partialFilterExpression: { status: "active" } }
+  { unique: true, partialFilterExpression: { status: "active" } },
 );
 enrollmentSchema.index({ orgId: 1, groupId: 1, status: 1 });
 enrollmentSchema.index({ orgId: 1, studentId: 1, status: 1 });
